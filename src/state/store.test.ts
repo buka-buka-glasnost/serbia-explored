@@ -200,6 +200,74 @@ describe('overlapping writes', () => {
   });
 });
 
+describe('rollback ownership', () => {
+  const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] };
+  beforeEach(() => useApp.setState({ visits: { Q1: visit } }));
+
+  it('unmark, mark, unmark: a failed first delete does not bring the visit back', async () => {
+    const first = deferred();
+    vi.mocked(db.deleteVisit).mockReturnValueOnce(first.promise).mockResolvedValue();
+    const s = useApp.getState();
+    const w1 = s.unmarkVisited('Q1');
+    const w2 = useApp.getState().markVisited('Q1');
+    const w3 = useApp.getState().unmarkVisited('Q1');
+    expect(useApp.getState().visits.Q1).toBeUndefined();
+    first.reject(new Error('boom'));
+    await Promise.all([w1, w2, w3]);
+    expect(useApp.getState().visits.Q1).toBeUndefined();
+    expect(db.deleteVisit).toHaveBeenCalledTimes(2); // W3 reached storage last
+  });
+});
+
+describe('photo blobs after failed writes', () => {
+  const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: ['a'] };
+  beforeEach(() => {
+    vi.mocked(db.putPhoto).mockResolvedValue();
+    vi.mocked(db.deletePhoto).mockResolvedValue();
+  });
+
+  it('addPhoto keeps the photo when a later queued write still shows it', async () => {
+    useApp.setState({ visits: { Q1: { ...visit, photoIds: [] } } });
+    const put = deferred();
+    vi.mocked(db.putVisit).mockReturnValueOnce(put.promise).mockResolvedValue();
+    const adding = useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'));
+    await vi.waitFor(() => expect(db.putVisit).toHaveBeenCalledTimes(1));
+    const later = useApp.getState().updateVisit('Q1', { note: 'n' }); // built on the visit with the photo
+    put.reject(new Error('boom'));
+    await Promise.all([adding, later]);
+    const photoId = vi.mocked(db.putPhoto).mock.calls[0][0].id;
+    expect(useApp.getState().visits.Q1.photoIds).toEqual([photoId]);
+    expect(db.deletePhoto).not.toHaveBeenCalled();
+  });
+
+  it('addPhoto deletes the photo when its failed write is rolled back', async () => {
+    useApp.setState({ visits: { Q1: { ...visit, photoIds: [] } } });
+    vi.mocked(db.putVisit).mockRejectedValue(new Error('boom'));
+    await useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'));
+    expect(db.deletePhoto).toHaveBeenCalledWith(vi.mocked(db.putPhoto).mock.calls[0][0].id);
+  });
+
+  it('removePhoto keeps the blob when its failed write is rolled back', async () => {
+    useApp.setState({ visits: { Q1: visit } });
+    vi.mocked(db.putVisit).mockRejectedValue(new Error('boom'));
+    await useApp.getState().removePhoto('Q1', 'a');
+    expect(useApp.getState().visits.Q1.photoIds).toEqual(['a']);
+    expect(db.deletePhoto).not.toHaveBeenCalled();
+  });
+
+  it('removePhoto deletes the blob when a later write without it wins', async () => {
+    useApp.setState({ visits: { Q1: visit } });
+    const put = deferred();
+    vi.mocked(db.putVisit).mockReturnValueOnce(put.promise).mockResolvedValue();
+    const removing = useApp.getState().removePhoto('Q1', 'a');
+    const later = useApp.getState().updateVisit('Q1', { note: 'n' });
+    put.reject(new Error('boom'));
+    await Promise.all([removing, later]);
+    expect(useApp.getState().visits.Q1.photoIds).toEqual([]);
+    expect(db.deletePhoto).toHaveBeenCalledWith('a');
+  });
+});
+
 describe('addPhoto while the visit changes', () => {
   const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] as string[] };
   beforeEach(() => {

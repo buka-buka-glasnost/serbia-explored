@@ -152,3 +152,20 @@ describe('App keyboard and focus', () => {
     expect(useApp.getState().selectedId).toBe('Q1');
   });
 });
+
+describe('App drawer focus bookkeeping', () => {
+  it('a close request while already closing does not later pull focus to List', async () => {
+    mockMatchMedia(true);
+    render(<App />);
+    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    const backdrop = document.querySelector('.drawer-backdrop') as HTMLElement;
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+    act(() => backdrop.click()); // still on screen while the drawer slides out
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    (document.activeElement as HTMLElement | null)?.blur();
+    act(() => useApp.getState().select('Q2')); // chosen on the map: closes the drawer
+    expect(screen.getByRole('button', { name: 'List' })).not.toHaveFocus();
+  });
+});
+

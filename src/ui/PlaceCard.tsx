@@ -33,6 +33,9 @@ function wikipediaLink(p: Place, lang: Lang): { href: string } | null {
     : pick('sr', p.wikipediaSr) ?? pick('en', p.wikipediaEn);
 }
 
+const prefersReducedMotion = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /** How far back the release velocity looks. */
 const VELOCITY_WINDOW_MS = 100;
 
@@ -70,7 +73,10 @@ function useSheetDrag(sheet: React.RefObject<HTMLElement | null>, onDismiss: () 
     const velocity = (e.clientY - from.y) / Math.max(1, now - from.t);
     el.classList.remove('dragging');
     if (d.dy > DISMISS_PX || (d.dy > 10 && velocity > DISMISS_VELOCITY)) {
-      el.style.transform = 'translateY(100%)'; // slide on from where the finger left it
+      // Slide on from where the finger left it; with reduced motion, stay there and fade.
+      // `drag-dismissed` keeps the reduced-motion closing rule from resetting the transform.
+      el.classList.add('drag-dismissed');
+      if (!prefersReducedMotion()) el.style.transform = 'translateY(100%)';
       onDismiss();
     } else {
       el.style.transform = ''; // snap back
@@ -99,7 +105,9 @@ export function PlaceCard({ place, closing = false, headingRef }: {
   const dragHandlers = useSheetDrag(ref, () => select(null));
   // A sheet dismissed by dragging keeps its off-screen transform; drop it if the card is reused.
   useEffect(() => {
-    if (!closing && ref.current) ref.current.style.transform = '';
+    if (closing || !ref.current) return;
+    ref.current.style.transform = '';
+    ref.current.classList.remove('drag-dismissed');
   }, [closing]);
 
   const type = placeType(place, lang);

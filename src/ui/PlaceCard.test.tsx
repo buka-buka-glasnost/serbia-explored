@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useApp } from '../state/store';
 import { PlaceCard } from './PlaceCard';
@@ -85,4 +85,41 @@ describe('PlaceCard', () => {
     })));
     expect(screen.getByRole('textbox')).toHaveValue('imported');
   });
+
+  describe('bottom sheet drag-dismiss', () => {
+    const phone = (reduced: boolean) => {
+      window.matchMedia = ((q: string) => ({
+        matches: q === '(max-width: 767px)' || (reduced && q === '(prefers-reduced-motion: reduce)'),
+        media: q, addEventListener: () => undefined, removeEventListener: () => undefined,
+      })) as unknown as typeof window.matchMedia;
+    };
+    const drag = (handle: Element) => {
+      fireEvent.pointerDown(handle, { pointerId: 1, clientY: 300 });
+      fireEvent.pointerMove(handle, { pointerId: 1, clientY: 450 });
+      fireEvent.pointerUp(handle, { pointerId: 1, clientY: 450 });
+    };
+    const original = window.matchMedia;
+    afterEach(() => { window.matchMedia = original; });
+
+    it('slides on from the finger: keeps translateY(100%) and marks the sheet', () => {
+      phone(false);
+      useApp.setState({ selectedId: 'Q1' });
+      const { container } = render(<PlaceCard place={makePlace('Q1')} />);
+      drag(container.querySelector('.sheet-handle')!);
+      const sheet = container.querySelector('.place-card') as HTMLElement;
+      expect(useApp.getState().selectedId).toBeNull();
+      expect(sheet.style.transform).toBe('translateY(100%)');
+      expect(sheet).toHaveClass('drag-dismissed');
+    });
+
+    it('with reduced motion stays where the finger left it (to fade there)', () => {
+      phone(true);
+      const { container } = render(<PlaceCard place={makePlace('Q1')} />);
+      drag(container.querySelector('.sheet-handle')!);
+      const sheet = container.querySelector('.place-card') as HTMLElement;
+      expect(sheet.style.transform).toBe('translateY(150px)');
+      expect(sheet).toHaveClass('drag-dismissed');
+    });
+  });
 });
+

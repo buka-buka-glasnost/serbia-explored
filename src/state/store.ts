@@ -113,9 +113,10 @@ export const useApp = create<AppState>((set, get) => {
 
   // Visit writes are queued per place so they reach storage in order. While a place has
   // writes in flight, `committed` holds the last value known to be stored; a failed write
-  // rolls back to it, but only if no later change has replaced the value it wrote.
+  // rolls back to it, but only if it is still the latest write for that place (`seq`).
   const queues = new Map<string, Promise<boolean>>();
   const committed = new Map<string, Visit | undefined>();
+  const seq = new Map<string, number>();
 
   const putInMemory = (id: string, value: Visit | undefined) =>
     set((s) => {
@@ -127,6 +128,8 @@ export const useApp = create<AppState>((set, get) => {
   /** Applies `next` (undefined removes the visit) in memory and saves it; false if saving failed. */
   const writeVisit = (id: string, next: Visit | undefined): Promise<boolean> => {
     const before = get().visits[id];
+    const n = (seq.get(id) ?? 0) + 1;
+    seq.set(id, n);
     putInMemory(id, next);
     if (!get().storageOk) return Promise.resolve(true);
     if (!queues.has(id)) committed.set(id, before);
@@ -136,7 +139,7 @@ export const useApp = create<AppState>((set, get) => {
         committed.set(id, next);
         return true;
       } catch {
-        if (get().visits[id] === next) putInMemory(id, committed.get(id));
+        if (seq.get(id) === n) putInMemory(id, committed.get(id)); // no later write owns the value
         get().showToast('storageError', 'error');
         return false;
       } finally {
@@ -148,6 +151,12 @@ export const useApp = create<AppState>((set, get) => {
     });
     queues.set(id, run);
     return run;
+  };
+
+  /** Deletes a stored photo unless the visit (as it is now in memory) still shows it. */
+  const dropPhotoIfUnused = async (id: string, photoId: string) => {
+    if (get().visits[id]?.photoIds.includes(photoId)) return;
+    await deletePhoto(photoId).catch(() => undefined);
   };
 
   async function load() {
@@ -276,15 +285,15 @@ export const useApp = create<AppState>((set, get) => {
         get().showToast('tooManyPhotos', 'info');
         return;
       }
-      const ok = await writeVisit(id, { ...cur, photoIds: [...cur.photoIds, photoId] });
-      if (!ok) await dropPhoto();
+      await writeVisit(id, { ...cur, photoIds: [...cur.photoIds, photoId] });
+      await dropPhotoIfUnused(id, photoId); // the write failed and nothing later kept the photo
     },
 
     async removePhoto(id, photoId) {
       const prev = get().visits[id];
       if (!prev) return;
-      const ok = await writeVisit(id, { ...prev, photoIds: prev.photoIds.filter((p) => p !== photoId) });
-      if (ok) await deletePhoto(photoId).catch(() => undefined);
+      await writeVisit(id, { ...prev, photoIds: prev.photoIds.filter((p) => p !== photoId) });
+      await dropPhotoIfUnused(id, photoId); // kept if a failed write rolled the photo back
     },
 
     addToTrip(id) {

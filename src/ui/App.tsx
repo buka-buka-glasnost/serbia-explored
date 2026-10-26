@@ -70,10 +70,12 @@ export function App() {
   }, [narrow]);
 
   const closeDrawer = () => {
+    if (!drawerOpen) return; // already closed (e.g. a second Escape): nothing to return focus from
     focusListOnClose.current = true;
     setDrawerOpen(false);
   };
   useEffect(() => {
+    if (drawerOpen) focusListOnClose.current = false; // a fresh open starts clean
     if (drawerOpen || !focusListOnClose.current) return;
     focusListOnClose.current = false;
     focusQuietly(listButton.current);

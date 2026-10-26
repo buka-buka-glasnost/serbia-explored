@@ -324,6 +324,9 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 @media (prefers-reduced-motion: reduce) {
   .place-card, .place-card.bottom-sheet, .side-panel.drawer, .toast, .kosovo-note, .visit-editor { transition-property: opacity !important; }
   @starting-style { .place-card, .place-card.bottom-sheet, .side-panel.drawer { opacity: 0; transform: none !important; } }
-  .place-card[data-state='closing'], .place-card.bottom-sheet[data-state='closing'], .side-panel.drawer[data-state='closing'] { opacity: 0; transform: none !important; }
+  .place-card[data-state='closing']:not(.drag-dismissed), .place-card.bottom-sheet[data-state='closing']:not(.drag-dismissed),
+  .side-panel.drawer[data-state='closing'] { opacity: 0; transform: none !important; }
+  /* a drag-dismissed sheet keeps its inline offset (where the finger left it) and fades */
+  .place-card.bottom-sheet.drag-dismissed[data-state='closing'] { opacity: 0; }
   .btn:active, .chip:active { transform: none; }
 }
