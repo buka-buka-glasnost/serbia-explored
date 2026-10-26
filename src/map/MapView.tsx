@@ -23,10 +23,22 @@ function FitToPlaces() {
   return null;
 }
 
+/** Flies to the selected place, zooming in to at least 12. */
+function FlyToSelected() {
+  const map = useMap();
+  const selected = useApp((s) => (s.selectedId ? s.placesById.get(s.selectedId) : undefined));
+  useEffect(() => {
+    if (!selected) return;
+    map.flyTo([selected.lat, selected.lon], Math.max(map.getZoom(), 12));
+  }, [map, selected]);
+  return null;
+}
+
 export function MapView() {
   return (
     <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6}>
       <FitToPlaces />
+      <FlyToSelected />
       <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={TILES.maxZoom} />
       <KosovoLayer />
       <PlaceMarkers />

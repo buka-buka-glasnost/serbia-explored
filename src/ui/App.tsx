@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
 import { useApp } from '../state/store';
-import { t } from '../i18n/i18n';
 import { MapView } from '../map/MapView';
-import { LanguageSwitch } from './LanguageSwitch';
+import { SidePanel } from './SidePanel';
+import { PlaceCard } from './PlaceCard';
 import { Toast } from './Toast';
 import './app.css';
 
 export function App() {
   const status = useApp((s) => s.status);
-  const lang = useApp((s) => s.settings.lang);
-  const storageOk = useApp((s) => s.storageOk);
+  const selected = useApp((s) => (s.selectedId ? s.placesById.get(s.selectedId) : undefined));
   useEffect(() => {
     void useApp.getState().init();
   }, []);
@@ -25,12 +24,11 @@ export function App() {
   }
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>{t('appTitle', lang)}</h1>
-        <LanguageSwitch />
-      </header>
-      {!storageOk && <div className="banner">{t('storageUnavailableBanner', lang)}</div>}
-      <MapView />
+      <SidePanel />
+      <main className="map-area">
+        <MapView />
+        {selected && <PlaceCard place={selected} />}
+      </main>
       <Toast />
     </div>
   );
