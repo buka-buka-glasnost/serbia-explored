@@ -8,6 +8,7 @@ import { fetchExtracts, fetchPhotoInfo } from './enrich';
 import { groupRows, mergeRaw, type RawPlace } from './normalize';
 import type { Overrides } from './overrides';
 import { designatedItemsQuery, natureClassQuery } from './queries';
+import { reconcile, type ReconcileResult } from './reconcile';
 import { runSparql } from './sparql';
 
 const OUT_DIR = path.join('public', 'data');
@@ -88,6 +89,12 @@ async function main() {
     ['id,name,reason', ...sortedDropped.map((d) => [d.id, d.name, d.reason].map(csvCell).join(','))].join('\n') + '\n',
   );
 
+  let reconciled: ReconcileResult | null = null;
+  if (!process.argv.includes('--skip-reconcile')) {
+    console.log('Reconciling against the official register');
+    reconciled = await reconcile(places, path.join('data', 'reports', 'missing-from-map.csv'));
+  }
+
   console.log('\n=== Summary ===');
   console.log(`Places: ${places.length}   Dropped: ${dropped.length}`);
   console.log('Per tier:');
@@ -102,6 +109,12 @@ async function main() {
   console.log(`With photo: ${places.filter((p) => p.photo).length}   descSr: ${places.filter((p) => p.descSr).length}   descEn: ${places.filter((p) => p.descEn).length}`);
   if (noName.length > 0) {
     console.log(`Items with no name at all (QID used as name): ${noName.map((r) => `${r.id}(${displayName(r)})`).join(', ')}`);
+  }
+  if (reconciled) {
+    console.log(
+      `Register (exceptional+great): ${reconciled.total} entries, matched by id ${reconciled.byId}, ` +
+      `by name ${reconciled.byName}, missing ${reconciled.missing.length}`,
+    );
   }
   console.log('File sizes:');
   for (const f of ['places.json', 'areas.geojson', 'kosovo.geojson']) {
