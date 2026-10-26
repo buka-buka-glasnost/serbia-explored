@@ -1,0 +1,17 @@
+html, body, #root { height: 100%; margin: 0; }
+body { font-family: system-ui, sans-serif; }
+.app { height: 100%; display: flex; flex-direction: column; }
+.app-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; background: #fff; border-bottom: 1px solid #ddd; z-index: 1100; }
+.app-header h1 { font-size: 1.1rem; margin: 0; }
+.banner { background: #fdecea; color: #7a1c14; padding: 6px 12px; font-size: 0.9rem; }
+.map { flex: 1; min-height: 0; }
+.fullscreen-msg { height: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; justify-content: center; }
+.lang-switch button { padding: 4px 10px; border: 1px solid #999; background: #fff; cursor: pointer; }
+.lang-switch button[aria-pressed='true'] { background: #2e86c1; color: #fff; border-color: #2e86c1; }
+.kosovo-control { position: relative; background: #fff; padding: 6px 8px; font-size: 0.85rem; }
+.kosovo-toggle { position: relative; display: flex; align-items: center; gap: 6px; }
+.kosovo-info { border: 0; background: none; cursor: pointer; font-size: 1rem; padding: 0 2px; }
+.kosovo-note { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; width: 260px; background: #fff; border: 1px solid #999; padding: 8px; font-size: 0.8rem; line-height: 1.35; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.kosovo-note.open, .kosovo-toggle:hover .kosovo-note, .kosovo-toggle:focus-within .kosovo-note { display: block; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: 6px; background: #333; color: #fff; z-index: 2000; }
+.toast-error { background: #a93226; }
