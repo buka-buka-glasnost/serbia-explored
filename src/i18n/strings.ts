@@ -41,8 +41,8 @@ export const STRINGS = {
     en: 'Changes could not be saved in this browser.',
   },
   storageUnavailableBanner: {
-    sr: 'Чување података није доступно — напредак неће бити сачуван.',
-    en: 'Storage is unavailable — your progress will not be saved.',
+    sr: 'Напредак не може да се сачува у овом прегледачу (приватни режим?).',
+    en: "Your progress can't be saved in this browser (private mode?).",
   },
   tooManyPhotos: {
     sr: 'Превише фотографија — приказан је ограничен број.',

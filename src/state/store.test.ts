@@ -17,6 +17,10 @@ vi.mock('../storage/db', async () => {
     requestPersistence: vi.fn(async () => true),
   };
 });
+vi.mock('../storage/photos', async (orig) => ({
+  ...(await orig<typeof import('../storage/photos')>()),
+  resizeImage: vi.fn(async (f: Blob) => f),
+}));
 vi.mock('../data/loadData', () => ({
   loadPlaces: vi.fn(async () => [
     { id: 'Q1', nameSr: 'А', kind: 'culture', tier: 1, designations: [], lat: 44, lon: 21, districtId: null, municipalityId: null, inKosovo: false, access: null },
@@ -101,6 +105,26 @@ describe('addPhoto', () => {
     expect(useApp.getState().visits.Q1.photoIds).toHaveLength(5);
     expect(useApp.getState().toast).toEqual({ key: 'tooManyPhotos', kind: 'info' });
     expect(db.putPhoto).not.toHaveBeenCalled();
+  });
+});
+
+describe('actions never reject on storage failure', () => {
+  it('resolves and toasts for visit and photo actions', async () => {
+    const boom = new Error('boom');
+    vi.mocked(db.putVisit).mockRejectedValue(boom);
+    vi.mocked(db.deleteVisit).mockRejectedValue(boom);
+    vi.mocked(db.putPhoto).mockRejectedValue(boom);
+    vi.mocked(db.deletePhoto).mockRejectedValue(boom);
+    const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: ['a'] };
+    useApp.setState({ visits: { Q1: visit } });
+    const s = useApp.getState();
+    await expect(s.markVisited('Q2')).resolves.toBeUndefined();
+    await expect(s.updateVisit('Q1', { note: 'x' })).resolves.toBeUndefined();
+    await expect(s.addPhoto('Q1', new File(['x'], 'x.jpg'))).resolves.toBeUndefined();
+    await expect(s.removePhoto('Q1', 'a')).resolves.toBeUndefined();
+    await expect(s.unmarkVisited('Q1')).resolves.toBeUndefined();
+    expect(useApp.getState().toast).toEqual({ key: 'storageError', kind: 'error' });
+    expect(useApp.getState().visits.Q1).toEqual(visit);
   });
 });
 

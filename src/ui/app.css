@@ -24,7 +24,7 @@ body { font-family: system-ui, sans-serif; }
 .backup-buttons { display: flex; gap: 8px; }
 .backup .button, .backup button { padding: 4px 10px; border: 1px solid #999; background: #fff; cursor: pointer; font-size: 0.85rem; }
 .map-area { position: relative; flex: 1; min-width: 0; display: flex; }
-.place-card { position: absolute; right: 12px; bottom: 12px; width: 320px; max-height: calc(100% - 24px); overflow-y: auto; box-sizing: border-box; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.3); z-index: 1000; font-size: 0.9rem; }
+.place-card { position: absolute; right: 12px; bottom: 36px; width: 320px; max-height: calc(100% - 48px); overflow-y: auto; box-sizing: border-box; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.3); z-index: 1000; font-size: 0.9rem; }
 .place-card h2 { margin: 0 0 6px; font-size: 1.1rem; padding-right: 24px; }
 .card-close { position: absolute; top: 6px; right: 8px; border: 0; background: none; font-size: 1.4rem; line-height: 1; cursor: pointer; }
 .card-photo { margin: 0 0 8px; }
