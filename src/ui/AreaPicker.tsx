@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useApp } from '../state/store';
 import { areaName, t } from '../i18n/i18n';
 import { loose } from '../logic/search';
@@ -44,15 +44,6 @@ export function AreaPicker() {
   const found = useMemo(() => suggestAreas(props, text, kosovoShown), [props, text, kosovoShown]);
   const suggestions = open ? found : [];
 
-  useEffect(() => {
-    if (!picking) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPicking(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [picking, setPicking]);
-
   const choose = (id: string) => {
     setArea(id);
     setText('');
@@ -77,6 +68,7 @@ export function AreaPicker() {
         choose(pick.id);
       }
     } else if (e.key === 'Escape' && suggestions.length > 0) {
+      e.preventDefault(); // handled here: the app-wide Escape skips it
       setOpen(false);
     }
   };

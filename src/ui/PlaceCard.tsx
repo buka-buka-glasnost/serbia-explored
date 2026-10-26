@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useApp } from '../state/store';
 import { areaName, placeDescription, placeName, placeType, t } from '../i18n/i18n';
 import { toLatin } from '../shared/translit';
@@ -33,9 +33,12 @@ function wikipediaLink(p: Place, lang: Lang): { href: string } | null {
     : pick('sr', p.wikipediaSr) ?? pick('en', p.wikipediaEn);
 }
 
+/** How far back the release velocity looks. */
+const VELOCITY_WINDOW_MS = 100;
+
 /** Pointer handlers that let the bottom sheet be dragged down to close. */
 function useSheetDrag(sheet: React.RefObject<HTMLElement | null>, onDismiss: () => void) {
-  const drag = useRef<{ y: number; t: number; dy: number; id: number } | null>(null);
+  const drag = useRef<{ y: number; dy: number; id: number; samples: { y: number; t: number }[] } | null>(null);
   const onPointerDown = (e: React.PointerEvent) => {
     if (drag.current || !sheet.current) return; // ignore extra fingers
     try {
@@ -43,29 +46,42 @@ function useSheetDrag(sheet: React.RefObject<HTMLElement | null>, onDismiss: () 
     } catch {
       /* pointer already released */
     }
-    drag.current = { y: e.clientY, t: performance.now(), dy: 0, id: e.pointerId };
+    drag.current = { y: e.clientY, dy: 0, id: e.pointerId, samples: [{ y: e.clientY, t: performance.now() }] };
     sheet.current.classList.add('dragging');
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d || e.pointerId !== d.id || !sheet.current) return;
+    const now = performance.now();
+    d.samples.push({ y: e.clientY, t: now });
+    while (d.samples.length > 2 && now - d.samples[1].t > VELOCITY_WINDOW_MS) d.samples.shift();
     const raw = e.clientY - d.y;
     d.dy = raw < 0 ? raw * 0.2 : raw; // friction when pulled up
     sheet.current.style.transform = `translateY(${d.dy}px)`;
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current;
-    if (!d || e.pointerId !== d.id || !sheet.current) return;
+    const el = sheet.current;
+    if (!d || e.pointerId !== d.id || !el) return;
     drag.current = null;
-    const velocity = d.dy / Math.max(1, performance.now() - d.t);
-    sheet.current.classList.remove('dragging');
-    sheet.current.style.transform = '';
-    if (d.dy > DISMISS_PX || (d.dy > 10 && velocity > DISMISS_VELOCITY)) onDismiss();
+    // velocity over the last ~100 ms, so a slow drag that ends in a flick still counts
+    const now = performance.now();
+    const from = d.samples.find((s) => now - s.t <= VELOCITY_WINDOW_MS) ?? d.samples[d.samples.length - 1];
+    const velocity = (e.clientY - from.y) / Math.max(1, now - from.t);
+    el.classList.remove('dragging');
+    if (d.dy > DISMISS_PX || (d.dy > 10 && velocity > DISMISS_VELOCITY)) {
+      el.style.transform = 'translateY(100%)'; // slide on from where the finger left it
+      onDismiss();
+    } else {
+      el.style.transform = ''; // snap back
+    }
   };
   return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
 }
 
-export function PlaceCard({ place, closing = false }: { place: Place; closing?: boolean }) {
+export function PlaceCard({ place, closing = false, headingRef }: {
+  place: Place; closing?: boolean; headingRef?: React.Ref<HTMLHeadingElement>;
+}) {
   const lang = useApp((s) => s.settings.lang);
   const municipality = useApp((s) =>
     (place.municipalityId ? s.areasById.get(place.municipalityId)?.properties : undefined));
@@ -81,6 +97,10 @@ export function PlaceCard({ place, closing = false }: { place: Place; closing?: 
   const narrow = useIsNarrow();
   const ref = useRef<HTMLElement>(null);
   const dragHandlers = useSheetDrag(ref, () => select(null));
+  // A sheet dismissed by dragging keeps its off-screen transform; drop it if the card is reused.
+  useEffect(() => {
+    if (!closing && ref.current) ref.current.style.transform = '';
+  }, [closing]);
 
   const type = placeType(place, lang);
   const desc = placeDescription(place, lang);
@@ -111,7 +131,7 @@ export function PlaceCard({ place, closing = false }: { place: Place; closing?: 
         </figure>
       )}
       <div className="card-body">
-        <h2>{name}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>{name}</h2>
         {place.designations.length > 0 && (
           <ul className="badges">
             {place.designations.map((d) => (

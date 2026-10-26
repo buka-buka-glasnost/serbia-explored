@@ -11,7 +11,8 @@ const OVERSCAN = 8;
 
 type Row = { kind: 'place'; place: Place; dim: boolean } | { kind: 'heading'; label: string };
 
-export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
+/** `onSelect` gets the row a place was chosen from (before the selection changes). */
+export function PlaceList({ onSelect }: { onSelect?: (row: HTMLElement) => void } = {}) {
   const lang = useApp((s) => s.settings.lang);
   const areasById = useApp((s) => s.areasById);
   const visits = useApp((s) => s.visits);
@@ -80,7 +81,7 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
         className={`place-row${row.dim ? ' dim' : ''}${row.place.id === selectedId ? ' selected' : ''}`}
         style={style}
         aria-current={row.place.id === selectedId ? 'true' : undefined}
-        onClick={() => { select(row.place.id); onSelect?.(); }}
+        onClick={(e) => { onSelect?.(e.currentTarget); select(row.place.id); }}
       >
         <span className={`dot tier${row.place.tier}`} aria-hidden="true" />
         <span className="place-row-text">

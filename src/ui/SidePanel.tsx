@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -9,12 +9,22 @@ import { PlaceList } from './PlaceList';
 import { TripPanel } from './TripPanel';
 import { BackupControls } from './BackupControls';
 
-/** `onClose` is given in the phone layout, where the panel is a drawer. */
-export function SidePanel({ onClose, closing = false }: { onClose?: () => void; closing?: boolean }) {
+/**
+ * `onClose` is given in the phone layout, where the panel is a drawer.
+ * `onPlaceChosen` gets the list row a place was chosen from.
+ */
+export function SidePanel({ onClose, onPlaceChosen, closing = false }: {
+  onClose?: () => void; onPlaceChosen?: (row: HTMLElement) => void; closing?: boolean;
+}) {
   const lang = useApp((s) => s.settings.lang);
   // stops of places no longer in the data do not count
   const tripCount = useApp((s) => s.trip.stopIds.filter((id) => s.placesById.has(id)).length);
   const [tab, setTab] = useState<'places' | 'trip'>('places');
+  const closeButton = useRef<HTMLButtonElement>(null);
+  // An opened drawer takes focus on its close button.
+  useEffect(() => {
+    if (onClose && !closing) closeButton.current?.focus({ preventScroll: true });
+  }, [closing]);
   return (
     <aside
       className={onClose ? 'side-panel drawer' : 'side-panel'}
@@ -35,7 +45,7 @@ export function SidePanel({ onClose, closing = false }: { onClose?: () => void; 
         </h1>
         <LanguageSwitch />
         {onClose && (
-          <button type="button" className="drawer-close" aria-label={t('close', lang)} onClick={onClose}>
+          <button ref={closeButton} type="button" className="drawer-close" aria-label={t('close', lang)} onClick={onClose}>
             ×
           </button>
         )}
@@ -54,7 +64,7 @@ export function SidePanel({ onClose, closing = false }: { onClose?: () => void; 
         <>
           <AreaPicker />
           <Filters />
-          <PlaceList onSelect={onClose} />
+          <PlaceList onSelect={onPlaceChosen} />
         </>
       ) : (
         <TripPanel />
