@@ -57,6 +57,15 @@ describe('App phone layout', () => {
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
 
+  it('closes the drawer when tapping the already-selected place', async () => {
+    mockMatchMedia(true);
+    useApp.setState({ selectedId: 'Q1' });
+    render(<App />);
+    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+  });
+
   it('keeps the side panel and the desktop card on wide screens', async () => {
     mockMatchMedia(false);
     render(<App />);

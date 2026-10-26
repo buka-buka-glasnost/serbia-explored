@@ -10,7 +10,7 @@ const OVERSCAN = 8;
 
 type Row = { kind: 'place'; place: Place; dim: boolean } | { kind: 'heading'; label: string };
 
-export function PlaceList() {
+export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
   const places = useApp((s) => s.places);
   const settings = useApp((s) => s.settings);
   const query = useApp((s) => s.query);
@@ -66,7 +66,7 @@ export function PlaceList() {
         className={`place-row${row.dim ? ' dim' : ''}${row.place.id === selectedId ? ' selected' : ''}`}
         style={style}
         aria-current={row.place.id === selectedId ? 'true' : undefined}
-        onClick={() => select(row.place.id)}
+        onClick={() => { select(row.place.id); onSelect?.(); }}
       >
         <span className={`dot tier${row.place.tier}`} aria-hidden="true" />
         <span className="place-row-name">{placeName(row.place, lang)}</span>

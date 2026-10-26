@@ -39,7 +39,7 @@ export function SidePanel({ onClose }: { onClose?: () => void }) {
         <>
           <AreaPicker />
           <Filters />
-          <PlaceList />
+          <PlaceList onSelect={onClose} />
         </>
       ) : (
         <TripPanel />
