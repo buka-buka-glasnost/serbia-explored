@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import { useMap } from 'react-leaflet';
@@ -11,8 +11,22 @@ export function KosovoToggleView() {
   const shown = useApp((s) => s.settings.kosovoShown);
   const setSettings = useApp((s) => s.setSettings);
   const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onPointer = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointer);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointer);
+    };
+  }, [open]);
   return (
-    <div className="kosovo-toggle">
+    <div className="kosovo-toggle" ref={root}>
       <label>
         <input
           type="checkbox"
@@ -25,7 +39,7 @@ export function KosovoToggleView() {
       <button
         type="button"
         className="kosovo-info"
-        aria-label="Info"
+        aria-label={t('info', lang)}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >

@@ -6,7 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
 import { filterPlaces } from '../logic/filters';
-import { activeIds } from '../logic/areas';
+import { areaOpacity } from '../logic/areas';
 import { placeName } from '../i18n/i18n';
 import { markerStyle } from './markerStyle';
 import type { AreaProps } from '../shared/types';
@@ -41,16 +41,16 @@ export function PlaceMarkers() {
     group.clearLayers();
     const filtered = filterPlaces(places, settings, query);
     const area = areaId ? areas?.features.find((f) => f.properties.id === areaId) : undefined;
-    const active = activeIds(
+    const opacities = areaOpacity(
       filtered,
       area as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps> | undefined,
     );
     const markers = filtered.map((p) => {
-      const dim = active !== null && !active.has(p.id);
+      const opacity = opacities?.get(p.id) ?? 1;
       const m = L.circleMarker([p.lat, p.lon], {
         ...markerStyle(p, !!visits[p.id], trip.stopIds.includes(p.id)),
-        fillOpacity: dim ? 0.25 : 0.9,
-        opacity: dim ? 0.25 : 1,
+        fillOpacity: 0.9 * opacity,
+        opacity,
       });
       m.bindTooltip(placeName(p, settings.lang));
       m.on('click', () => select(p.id));

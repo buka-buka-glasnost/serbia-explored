@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AreaProps, Place } from '../shared/types';
-import { DEFAULT_SETTINGS, filterPlaces, splitByArea } from './filters';
+import { makePlace } from '../ui/testPlaces';
+import { DEFAULT_SETTINGS, filterPlaces, sortForDisplay, splitByArea } from './filters';
 
 const mk = (id: string, o: Partial<Place> = {}): Place => ({
   id, nameSr: id, kind: 'culture', tier: 1, designations: [], lat: 0, lon: 0,
@@ -41,5 +42,20 @@ describe('splitByArea', () => {
   it('honours a custom nearby distance', () => {
     const near = mk('near', { lat: 44.5, lon: eastOf(5) });
     expect(splitByArea([near], area, 2).nearby).toEqual([]);
+  });
+});
+
+describe('sortForDisplay', () => {
+  const sabac = makePlace('a', { nameSr: 'Шабац', nameEn: 'Sabac', tier: 2 });
+  const uros = makePlace('b', { nameSr: 'Урош', nameEn: 'Uros', tier: 2 });
+  const top = makePlace('c', { nameSr: 'Зеница', nameEn: 'Zenica', tier: 1 });
+  const ids = (l: Place[]) => l.map((p) => p.id).join('');
+  it('sorts by tier first', () => {
+    expect(ids(sortForDisplay([sabac, top], 'en'))).toBe('ca');
+  });
+  it('follows Cyrillic order in Cyrillic and Latin order in Latin and English', () => {
+    expect(ids(sortForDisplay([sabac, uros], 'sr-Cyrl'))).toBe('ba');
+    expect(ids(sortForDisplay([sabac, uros], 'sr-Latn'))).toBe('ab');
+    expect(ids(sortForDisplay([uros, sabac], 'en'))).toBe('ab');
   });
 });

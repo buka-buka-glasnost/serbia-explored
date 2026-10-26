@@ -11,3 +11,8 @@ export function buildDirectionsUrl(stops: LatLon[], origin?: LatLon): string {
   if (origin) url += `&origin=${fmt(origin)}`;
   return url;
 }
+
+/** The stops to drive to: the start place is the origin, so it is never also a stop. */
+export function routeStops<T extends { id: string }>(stops: T[], startPlaceId: string | null): T[] {
+  return startPlaceId ? stops.filter((s) => s.id !== startPlaceId) : stops;
+}

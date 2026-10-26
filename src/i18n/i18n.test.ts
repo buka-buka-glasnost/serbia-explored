@@ -59,7 +59,7 @@ describe('i18n', () => {
     expect(STRINGS.accessUnknown.en).toBe('Information not available yet');
   });
   it('includes the keys other tasks rely on', () => {
-    const keys = ['tripFull', 'alreadyInTrip', 'storageError', 'storageUnavailableBanner', 'tooManyPhotos',
+    const keys = ['tripFull', 'alreadyInTrip', 'storageError', 'storageUnavailableBanner', 'tooManyPhotos', 'loadError', 'retry', 'info', 'language',
       'importDone', 'importInvalid', 'kosovoNote', 'notTranslated', 'accessUnknown', 'accessDoor',
       'accessRough', 'accessHikeBoat', 'tier1', 'tier2', 'tier3', 'tier4', 'culture', 'nature',
       'designation_unesco_whs', 'designation_unesco_whs_part', 'designation_unesco_geopark',

@@ -8,6 +8,7 @@ export function AreaLayer() {
   const map = useMap();
   const areas = useApp((s) => s.areas);
   const areaId = useApp((s) => s.areaId);
+  const kosovoShown = useApp((s) => s.settings.kosovoShown);
   const picking = useApp((s) => s.picking);
   const setArea = useApp((s) => s.setArea);
   const area = useMemo(
@@ -18,7 +19,7 @@ export function AreaLayer() {
   useMapEvents({
     click(e) {
       if (!picking || !areas) return;
-      const hit = areaAt(areas, e.latlng.lat, e.latlng.lng, map.getZoom());
+      const hit = areaAt(areas, e.latlng.lat, e.latlng.lng, map.getZoom(), kosovoShown);
       if (hit) setArea(hit.id);
     },
   });

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import {
@@ -20,6 +21,7 @@ async function reloadFromStorage() {
 export function BackupControls() {
   const lang = useApp((s) => s.settings.lang);
   const storageOk = useApp((s) => s.storageOk);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const onExport = async () => {
     try {
@@ -43,10 +45,10 @@ export function BackupControls() {
     const { showToast } = useApp.getState();
     try {
       const summary = await readBackupSummary(file);
-      const counts = t('importCounts', lang)
+      const message = t('importConfirm', lang)
         .replace('{visits}', String(summary.visits))
         .replace('{photos}', String(summary.photos));
-      if (!window.confirm(`${t('importConfirm', lang)}\n\n${counts}`)) return;
+      if (!window.confirm(message)) return;
       await importBackup(file);
       await reloadFromStorage();
       showToast('importDone', 'info');
@@ -60,15 +62,14 @@ export function BackupControls() {
       {!storageOk && <div className="banner" role="alert">{t('storageUnavailableBanner', lang)}</div>}
       <div className="backup-buttons">
         <button type="button" onClick={() => void onExport()}>{t('export', lang)}</button>
-        <label className="button">
-          {t('import', lang)}
-          <input
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(e) => void onImport(e.target.files?.[0], e.target)}
-          />
-        </label>
+        <button type="button" onClick={() => fileInput.current?.click()}>{t('import', lang)}</button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(e) => void onImport(e.target.files?.[0], e.target)}
+        />
       </div>
     </footer>
   );

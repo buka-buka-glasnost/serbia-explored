@@ -1,4 +1,5 @@
 import type { Settings } from '../logic/filters';
+import type { Lang, PlaceKind } from '../shared/types';
 import { todayLocal } from '../logic/date';
 import {
   getAllVisits, getAllPhotos, getMeta, putVisit, putPhoto, deletePhoto, setMeta,
@@ -71,6 +72,16 @@ async function readText(file: Blob): Promise<string> {
 const isStr = (v: unknown): v is string => typeof v === 'string';
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
+const LANGS: Lang[] = ['sr-Cyrl', 'sr-Latn', 'en'];
+const KINDS: PlaceKind[] = ['culture', 'nature'];
+const isSubset = (v: unknown, allowed: readonly unknown[]) =>
+  Array.isArray(v) && v.every((x) => allowed.includes(x));
+
+function validSettings(s: unknown): s is Settings {
+  return isObj(s) && LANGS.includes(s.lang as Lang) && typeof s.kosovoShown === 'boolean'
+    && isSubset(s.tiers, [1, 2, 3, 4]) && isSubset(s.kinds, KINDS);
+}
+
 async function parseBackup(file: Blob): Promise<Backup> {
   let raw: unknown;
   try {
@@ -96,9 +107,9 @@ async function parseBackup(file: Blob): Promise<Backup> {
   const trip = raw.trip ?? null;
   if (trip !== null && (!isObj(trip) || !Array.isArray(trip.stopIds) || !trip.stopIds.every(isStr)
     || !(trip.startPlaceId === null || isStr(trip.startPlaceId)))) throw new BackupFormatError('Backup contains an invalid trip');
-  const settings = raw.settings ?? null;
-  if (settings !== null && !isObj(settings)) throw new BackupFormatError('Backup contains invalid settings');
-  return raw as unknown as Backup;
+  // Bad settings are ignored (current ones are kept) rather than rejecting the whole backup.
+  const settings = validSettings(raw.settings) ? raw.settings : null;
+  return { ...raw, settings } as unknown as Backup;
 }
 
 /** Validates exactly like importBackup but writes nothing. */

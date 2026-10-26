@@ -1,4 +1,11 @@
 export const STRINGS = {
+  loadError: {
+    sr: 'Подаци за мапу нису могли да се учитају. Освежите страницу.',
+    en: 'Could not load the map data. Please reload the page.',
+  },
+  retry: { sr: 'Покушај поново', en: 'Retry' },
+  info: { sr: 'Информације', en: 'Info' },
+  language: { sr: 'Језик', en: 'Language' },
   appTitle: { sr: 'Србија — истражено', en: 'Serbia Explored' },
   visitedCounter: { sr: 'Посећено', en: 'Visited' },
   markVisited: { sr: 'Означи као посећено', en: 'Mark as visited' },
@@ -47,8 +54,8 @@ export const STRINGS = {
   export: { sr: 'Извези податке', en: 'Export data' },
   import: { sr: 'Увези податке', en: 'Import data' },
   importConfirm: {
-    sr: 'Увоз ће заменити тренутне податке о посећеним местима и излету. Наставити?',
-    en: 'Importing will replace your current visited places and trip. Continue?',
+    sr: 'Увоз ће додати посете из ове датотеке ({visits} посета, {photos} фотографија) и заменити постојеће за иста места. Наставити?',
+    en: 'Importing will add the visits from this file ({visits} visits, {photos} photos), replacing any you already have for the same places. Continue?',
   },
   importDone: { sr: 'Подаци су увезени.', en: 'Data imported.' },
   importInvalid: { sr: 'Датотека није исправна.', en: 'That file is not valid.' },
@@ -61,8 +68,8 @@ export const STRINGS = {
     en: "Your progress can't be saved in this browser (private mode?).",
   },
   tooManyPhotos: {
-    sr: 'Превише фотографија — приказан је ограничен број.',
-    en: 'Too many photos — showing a limited number.',
+    sr: 'Можете додати највише 5 фотографија по месту.',
+    en: 'You can add up to 5 photos per place.',
   },
   visitedOf: { sr: 'посећено', en: 'visited' },
   tierShort1: { sr: 'УНЕСКО', en: 'UNESCO' },
@@ -79,7 +86,6 @@ export const STRINGS = {
     sr: 'Белешка и фотографије за ово место ће бити обрисане. Наставити?',
     en: 'The note and photos for this place will be deleted. Continue?',
   },
-  importCounts: { sr: 'Датотека садржи {visits} посета и {photos} фотографија.', en: 'The file contains {visits} visits and {photos} photos.' },
   noResults: { sr: 'Нема резултата.', en: 'No results.' },
   placeList: { sr: 'Списак места', en: 'Places' },
   photoBy: { sr: 'Фотографија', en: 'Photo' },

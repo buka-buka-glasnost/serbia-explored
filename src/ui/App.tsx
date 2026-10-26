@@ -17,6 +17,9 @@ export function App() {
   const narrow = useIsNarrow();
   const [drawerOpen, setDrawerOpen] = useState(false);
   useEffect(() => {
+    document.title = t('appTitle', lang);
+  }, [lang]);
+  useEffect(() => {
     void useApp.getState().init();
   }, []);
   // Selecting a place (from the list or a marker) closes the drawer.
@@ -31,8 +34,8 @@ export function App() {
   if (status === 'error') {
     return (
       <div className="fullscreen-msg" role="alert">
-        Could not load the map data. Please reload the page.
-        <button type="button" onClick={() => void useApp.getState().init()}>Retry</button>
+        {t('loadError', lang)}
+        <button type="button" onClick={() => void useApp.getState().init()}>{t('retry', lang)}</button>
       </div>
     );
   }

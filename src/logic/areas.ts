@@ -5,19 +5,28 @@ import { splitByArea } from './filters';
 export const MUNICIPALITY_ZOOM = 9;
 
 /** The municipality (zoom >= 9) or district (zoom < 9) containing the point, if any. */
-export function areaAt(areas: AreaFC, lat: number, lon: number, zoom: number): AreaProps | null {
+export function areaAt(
+  areas: AreaFC, lat: number, lon: number, zoom: number, kosovoShown = true,
+): AreaProps | null {
   const level = zoom >= MUNICIPALITY_ZOOM ? 'municipality' : 'district';
   const pt = point([lon, lat]);
-  const hit = areas.features.find((f) => f.properties.level === level && booleanPointInPolygon(pt, f));
+  const hit = areas.features.find((f) => f.properties.level === level && (kosovoShown || !f.properties.inKosovo) && booleanPointInPolygon(pt, f));
   return hit ? hit.properties : null;
 }
 
-/** Ids of places inside or near the area, or null when no area is selected. */
-export function activeIds(
+export const OPACITY_INSIDE = 1;
+export const OPACITY_NEARBY = 0.55;
+export const OPACITY_OTHER = 0.2;
+
+/** Marker opacity per place id (inside 1, nearby 0.55, others 0.2), or null when no area is selected. */
+export function areaOpacity(
   places: Place[],
   area: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps> | undefined,
-): Set<string> | null {
+): Map<string, number> | null {
   if (!area) return null;
   const { inside, nearby } = splitByArea(places, area);
-  return new Set([...inside, ...nearby].map((p) => p.id));
+  const out = new Map<string, number>(places.map((p) => [p.id, OPACITY_OTHER]));
+  for (const p of nearby) out.set(p.id, OPACITY_NEARBY);
+  for (const p of inside) out.set(p.id, OPACITY_INSIDE);
+  return out;
 }

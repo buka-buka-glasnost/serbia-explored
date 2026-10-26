@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDirectionsUrl } from './googleMaps';
+import { buildDirectionsUrl, routeStops } from './googleMaps';
 
 const stops = [
   { lat: 44.1, lon: 20.1 },
@@ -24,5 +24,19 @@ describe('buildDirectionsUrl', () => {
 
   it('omits waypoints for a single stop', () => {
     expect(buildDirectionsUrl([stops[0]])).not.toContain('waypoints');
+  });
+});
+
+describe('routeStops', () => {
+  const list = [{ id: 'a' }, { id: 'b' }];
+  it('drops the start place from the stops', () => {
+    expect(routeStops(list, 'a')).toEqual([{ id: 'b' }]);
+  });
+  it('keeps everything without a start or with an unrelated one', () => {
+    expect(routeStops(list, null)).toEqual(list);
+    expect(routeStops(list, 'z')).toEqual(list);
+  });
+  it('is empty when the only stop is the start', () => {
+    expect(routeStops([{ id: 'a' }], 'a')).toEqual([]);
   });
 });

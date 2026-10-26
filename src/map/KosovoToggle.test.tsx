@@ -24,6 +24,31 @@ describe('KosovoToggle', () => {
     expect(screen.getByRole('checkbox')).toHaveAccessibleDescription(t('kosovoNote', 'en'));
   });
 
+  it('closes on a second click of the info button', async () => {
+    render(<KosovoToggleView />);
+    const btn = screen.getByRole('button', { name: /info/i });
+    await userEvent.click(btn);
+    await userEvent.click(btn);
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('tooltip', { hidden: true })).not.toHaveClass('open');
+  });
+
+  it('closes on Escape', async () => {
+    render(<KosovoToggleView />);
+    const btn = screen.getByRole('button', { name: /info/i });
+    await userEvent.click(btn);
+    await userEvent.keyboard('{Escape}');
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes on a pointer press outside the control', async () => {
+    render(<div><span>outside</span><KosovoToggleView /></div>);
+    const btn = screen.getByRole('button', { name: /info/i });
+    await userEvent.click(btn);
+    await userEvent.click(screen.getByText('outside'));
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('unticking calls setSettings({kosovoShown:false})', async () => {
     render(<KosovoToggleView />);
     await userEvent.click(screen.getByRole('checkbox', { name: 'Show Kosovo' }));

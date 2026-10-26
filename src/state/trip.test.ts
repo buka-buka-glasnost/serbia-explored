@@ -49,6 +49,13 @@ describe('trip rules', () => {
     expect(useApp.getState().trip.stopIds).toEqual(['near', 'mid', 'far']);
   });
 
+  it('keeps a start that is also a stop first and orders the rest from it', () => {
+    load([mk('far', 44, 23), mk('start', 44, 20), mk('mid', 44, 22)]);
+    useApp.getState().setTripStart('start');
+    ['far', 'start', 'mid'].forEach((id) => useApp.getState().addToTrip(id));
+    expect(useApp.getState().trip.stopIds).toEqual(['start', 'mid', 'far']);
+  });
+
   it('moveTripStop swaps without re-ordering', () => {
     load([mk('a', 44, 20), mk('b', 44, 21), mk('c', 44, 22)]);
     ['a', 'b', 'c'].forEach((id) => useApp.getState().addToTrip(id));
@@ -61,5 +68,30 @@ describe('trip rules', () => {
     useApp.getState().addToTrip('k');
     useApp.getState().setSettings({ kosovoShown: false });
     expect(useApp.getState().trip.stopIds).toEqual(['k']);
+  });
+});
+
+describe('hiding Kosovo clears Kosovo selections', () => {
+  const sq: GeoJSON.Polygon = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] };
+  const areaFc = (inKosovo: boolean) => ({
+    type: 'FeatureCollection' as const,
+    features: [{ type: 'Feature' as const, geometry: sq,
+      properties: { id: 'a1', level: 'municipality' as const, nameSr: 'A', inKosovo } }],
+  });
+
+  it('clears a Kosovo area and a Kosovo place', () => {
+    load([mk('k', 42, 21, true)]);
+    useApp.setState({ areas: areaFc(true), areaId: 'a1', selectedId: 'k' });
+    useApp.getState().setSettings({ kosovoShown: false });
+    expect(useApp.getState().areaId).toBeNull();
+    expect(useApp.getState().selectedId).toBeNull();
+  });
+
+  it('keeps a Serbian area and place', () => {
+    load([mk('s', 44, 21)]);
+    useApp.setState({ areas: areaFc(false), areaId: 'a1', selectedId: 's' });
+    useApp.getState().setSettings({ kosovoShown: false });
+    expect(useApp.getState().areaId).toBe('a1');
+    expect(useApp.getState().selectedId).toBe('s');
   });
 });

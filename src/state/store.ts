@@ -71,10 +71,14 @@ export const useApp = create<AppState>((set, get) => {
   /** Stop ids re-ordered by nearest-neighbour + 2-opt, from the trip start if set. */
   const reorder = (stopIds: string[], startPlaceId: string | null): string[] => {
     const { placesById } = get();
-    const pts = stopIds.map((id) => placesById.get(id));
+    // The start is the route origin: it is not ordered, it just stays first if it is also a stop.
+    const startIsStop = !!startPlaceId && stopIds.includes(startPlaceId);
+    const rest = startIsStop ? stopIds.filter((id) => id !== startPlaceId) : stopIds;
+    const pts = rest.map((id) => placesById.get(id));
     if (pts.some((p) => !p)) return stopIds;
     const start = startPlaceId ? placesById.get(startPlaceId) : undefined;
-    return orderStops(pts as Place[], start).map((i) => stopIds[i]);
+    const ordered = orderStops(pts as Place[], start).map((i) => rest[i]);
+    return startIsStop ? [startPlaceId!, ...ordered] : ordered;
   };
 
   /** Applies `next` in memory, saves it, and rolls back to the previous visit on failure. */
@@ -141,6 +145,13 @@ export const useApp = create<AppState>((set, get) => {
     setSettings(patch) {
       const settings = { ...get().settings, ...patch };
       set({ settings });
+      if (patch.kosovoShown === false) {
+        // nothing Kosovo-related may stay selected while Kosovo is hidden
+        const { areas, areaId, selectedId, placesById } = get();
+        const area = areaId ? areas?.features.find((f) => f.properties.id === areaId) : undefined;
+        if (area?.properties.inKosovo) set({ areaId: null });
+        if (selectedId && placesById.get(selectedId)?.inKosovo) set({ selectedId: null });
+      }
       persistMeta('settings', settings);
     },
 

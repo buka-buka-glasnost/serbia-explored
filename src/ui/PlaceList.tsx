@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/store';
 import { placeName, t } from '../i18n/i18n';
-import { filterPlaces, splitByArea } from '../logic/filters';
+import { filterPlaces, sortForDisplay, splitByArea } from '../logic/filters';
 import type { AreaProps, Place } from '../shared/types';
 
 const ROW_HEIGHT = 36;
@@ -21,7 +21,8 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
   const select = useApp((s) => s.select);
   const { lang } = settings;
 
-  const filtered = useMemo(() => filterPlaces(places, settings, query), [places, settings, query]);
+  const filtered = useMemo(() => sortForDisplay(filterPlaces(places, settings, query), lang),
+    [places, settings, query, lang],);
   const area = useMemo(
     () => (areaId ? areas?.features.find((f) => f.properties.id === areaId) ?? null : null),
     [areas, areaId],

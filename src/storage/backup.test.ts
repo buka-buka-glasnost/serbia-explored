@@ -61,6 +61,21 @@ describe('backup', () => {
     expect(await getAllVisits()).toEqual([{ placeId: 'Q1', date: 'd', note: 'keep', photoIds: [] }]);
   });
 
+  it('ignores invalid settings but still imports the rest', async () => {
+    const base = { format: 'serbia-explored-backup', version: 1, exportedAt: 'x', photos: [], trip: null,
+      visits: [{ placeId: 'Q1', date: 'd', note: 'n', photoIds: [] }] };
+    const mine = { lang: 'en', kosovoShown: false, tiers: [1], kinds: ['nature'] };
+    await setMeta('settings', mine);
+    for (const bad of [{ evil: true }, { ...mine, lang: 'fr' }, { ...mine, tiers: [9] }, { ...mine, kosovoShown: 'yes' }, { ...mine, kinds: ['x'] }]) {
+      await importBackup(blobOf({ ...base, settings: bad }));
+      expect(await getMeta('settings')).toEqual(mine);
+    }
+    expect((await getAllVisits())[0].placeId).toBe('Q1');
+    const good = { lang: 'sr-Latn', kosovoShown: true, tiers: [1, 2], kinds: ['culture'] };
+    await importBackup(blobOf({ ...base, settings: good }));
+    expect(await getMeta('settings')).toEqual(good);
+  });
+
   it('backup wins on conflict and drops replaced visit photos missing from backup', async () => {
     await putVisit({ placeId: 'Q1', date: '2026-10-01', note: 'new', photoIds: ['keep'] });
     await putPhoto(mkPhoto('keep', 'Q1'));

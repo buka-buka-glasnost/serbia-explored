@@ -1,6 +1,6 @@
 import { useApp } from '../state/store';
 import { placeName, t } from '../i18n/i18n';
-import { buildDirectionsUrl } from '../trip/googleMaps';
+import { buildDirectionsUrl, routeStops } from '../trip/googleMaps';
 import type { Place } from '../shared/types';
 
 export function TripPanel() {
@@ -15,9 +15,10 @@ export function TripPanel() {
   const startPlace = trip.startPlaceId ? placesById.get(trip.startPlaceId) : undefined;
   const startOptions = startPlace && !trip.stopIds.includes(startPlace.id) ? [...stops, startPlace] : stops;
 
+  const driveStops = routeStops(stops, trip.startPlaceId);
   const open = () => {
-    if (stops.length === 0) return;
-    window.open(buildDirectionsUrl(stops, startPlace), '_blank', 'noopener');
+    if (driveStops.length === 0) return;
+    window.open(buildDirectionsUrl(driveStops, startPlace), '_blank', 'noopener');
   };
 
   return (
@@ -56,7 +57,7 @@ export function TripPanel() {
       )}
       <div className="trip-actions">
         <button type="button" disabled={stops.length < 2} onClick={optimiseTrip}>{t('optimiseOrder', lang)}</button>
-        <button type="button" disabled={stops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
+        <button type="button" disabled={driveStops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
       </div>
     </section>
   );

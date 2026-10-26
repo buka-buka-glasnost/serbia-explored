@@ -43,6 +43,8 @@ export async function resizeImage(file: Blob, maxDim = 1600, quality = 0.8): Pro
       const canvas = new OffscreenCanvas(w, h);
       const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D | null;
       if (!ctx) throw new Error('2D canvas unavailable');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
       ctx.drawImage(source, 0, 0, w, h);
       return await canvas.convertToBlob({ type: 'image/jpeg', quality });
     }
@@ -50,6 +52,8 @@ export async function resizeImage(file: Blob, maxDim = 1600, quality = 0.8): Pro
     canvas.width = w; canvas.height = h;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('2D canvas unavailable');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
     ctx.drawImage(source, 0, 0, w, h);
     return await canvasToBlob(canvas, quality);
   } finally {
