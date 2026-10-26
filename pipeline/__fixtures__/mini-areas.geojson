@@ -1,0 +1,189 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       20,
+       44
+      ],
+      [
+       20.2,
+       44
+      ],
+      [
+       20.2,
+       44.1
+      ],
+      [
+       20,
+       44.1
+      ],
+      [
+       20,
+       44
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "d-test",
+    "level": "district",
+    "nameSr": "Тест",
+    "inKosovo": false
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       20,
+       44
+      ],
+      [
+       20.1,
+       44
+      ],
+      [
+       20.1,
+       44.1
+      ],
+      [
+       20,
+       44.1
+      ],
+      [
+       20,
+       44
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "m-a",
+    "level": "municipality",
+    "nameSr": "А",
+    "districtId": "d-test",
+    "inKosovo": false
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       20.1,
+       44
+      ],
+      [
+       20.200000000000003,
+       44
+      ],
+      [
+       20.200000000000003,
+       44.1
+      ],
+      [
+       20.1,
+       44.1
+      ],
+      [
+       20.1,
+       44
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "m-b",
+    "level": "municipality",
+    "nameSr": "Б",
+    "districtId": "d-test",
+    "inKosovo": false
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       21,
+       42
+      ],
+      [
+       21.1,
+       42
+      ],
+      [
+       21.1,
+       42.1
+      ],
+      [
+       21,
+       42.1
+      ],
+      [
+       21,
+       42
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "m-osm-1",
+    "level": "municipality",
+    "nameSr": "Alfa",
+    "nameSq": "Alfa",
+    "inKosovo": true
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       21.1,
+       42
+      ],
+      [
+       21.200000000000003,
+       42
+      ],
+      [
+       21.200000000000003,
+       42.1
+      ],
+      [
+       21.1,
+       42.1
+      ],
+      [
+       21.1,
+       42
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "id": "m-osm-2",
+    "level": "municipality",
+    "nameSr": "Beta",
+    "nameSq": "Beta",
+    "inKosovo": true
+   }
+  }
+ ]
+}

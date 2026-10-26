@@ -1,0 +1,302 @@
+{
+  "note": "Serbia's administrative division of Kosovo (5 districts, 29 municipalities). Boundaries are assembled from OpenStreetMap's Kosovo-scheme municipalities (matched by their Serbian name, name:sr, without the 'Opština' prefix). Municipalities created after 2000 (Mališevo, Gračanica, Junik, Mamuša, Elez Han, Klokot, Parteš, Ranilug, Severna Kosovska Mitrovica) were carved from several Serbian municipalities; each is mapped whole to the Serbian municipality holding most of its area. This is an accepted approximation.",
+  "districts": [
+    {
+      "id": "d-kosovski",
+      "nameSr": "Косовски округ",
+      "nameSq": "Rajoni i Prishtinës"
+    },
+    {
+      "id": "d-pecki",
+      "nameSr": "Пећки округ",
+      "nameSq": "Rajoni i Pejës"
+    },
+    {
+      "id": "d-prizrenski",
+      "nameSr": "Призренски округ",
+      "nameSq": "Rajoni i Prizrenit"
+    },
+    {
+      "id": "d-kosovsko-mitrovacki",
+      "nameSr": "Косовскомитровачки округ",
+      "nameSq": "Rajoni i Mitrovicës"
+    },
+    {
+      "id": "d-kosovsko-pomoravski",
+      "nameSr": "Косовскопоморавски округ",
+      "nameSq": "Rajoni i Gjilanit"
+    }
+  ],
+  "municipalities": [
+    {
+      "id": "m-pristina",
+      "nameSr": "Приштина",
+      "nameSq": "Prishtinë",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Priština",
+        "Gračanica"
+      ]
+    },
+    {
+      "id": "m-kosovo-polje",
+      "nameSr": "Косово Поље",
+      "nameSq": "Fushë Kosovë",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Kosovo Polje"
+      ]
+    },
+    {
+      "id": "m-obilic",
+      "nameSr": "Обилић",
+      "nameSq": "Obiliq",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Obilić"
+      ]
+    },
+    {
+      "id": "m-lipljan",
+      "nameSr": "Липљан",
+      "nameSq": "Lipjan",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Lipljan"
+      ]
+    },
+    {
+      "id": "m-glogovac",
+      "nameSr": "Глоговац",
+      "nameSq": "Drenas",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Glogovac"
+      ]
+    },
+    {
+      "id": "m-podujevo",
+      "nameSr": "Подујево",
+      "nameSq": "Podujevë",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Podujevo"
+      ]
+    },
+    {
+      "id": "m-kacanik",
+      "nameSr": "Качаник",
+      "nameSq": "Kaçanik",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Kačanik",
+        "Elez Han"
+      ]
+    },
+    {
+      "id": "m-urosevac",
+      "nameSr": "Урошевац",
+      "nameSq": "Ferizaj",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Uroševac"
+      ]
+    },
+    {
+      "id": "m-stimlje",
+      "nameSr": "Штимље",
+      "nameSq": "Shtime",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Štimlje"
+      ]
+    },
+    {
+      "id": "m-strpce",
+      "nameSr": "Штрпце",
+      "nameSq": "Shtërpcë",
+      "districtId": "d-kosovski",
+      "osmNames": [
+        "Štrpce"
+      ]
+    },
+    {
+      "id": "m-pec",
+      "nameSr": "Пећ",
+      "nameSq": "Pejë",
+      "districtId": "d-pecki",
+      "osmNames": [
+        "Peć"
+      ]
+    },
+    {
+      "id": "m-istok",
+      "nameSr": "Исток",
+      "nameSq": "Istog",
+      "districtId": "d-pecki",
+      "osmNames": [
+        "Istok"
+      ]
+    },
+    {
+      "id": "m-klina",
+      "nameSr": "Клина",
+      "nameSq": "Klinë",
+      "districtId": "d-pecki",
+      "osmNames": [
+        "Klina"
+      ]
+    },
+    {
+      "id": "m-decani",
+      "nameSr": "Дечани",
+      "nameSq": "Deçan",
+      "districtId": "d-pecki",
+      "osmNames": [
+        "Dečani",
+        "Junik"
+      ]
+    },
+    {
+      "id": "m-djakovica",
+      "nameSr": "Ђаковица",
+      "nameSq": "Gjakovë",
+      "districtId": "d-pecki",
+      "osmNames": [
+        "Đakovica"
+      ]
+    },
+    {
+      "id": "m-prizren",
+      "nameSr": "Призрен",
+      "nameSq": "Prizren",
+      "districtId": "d-prizrenski",
+      "osmNames": [
+        "Prizren",
+        "Mamuša"
+      ]
+    },
+    {
+      "id": "m-orahovac",
+      "nameSr": "Ораховац",
+      "nameSq": "Rahovec",
+      "districtId": "d-prizrenski",
+      "osmNames": [
+        "Orahovac",
+        "Mališevo"
+      ]
+    },
+    {
+      "id": "m-suva-reka",
+      "nameSr": "Сува Река",
+      "nameSq": "Suharekë",
+      "districtId": "d-prizrenski",
+      "osmNames": [
+        "Suva Reka"
+      ]
+    },
+    {
+      "id": "m-gora",
+      "nameSr": "Гора",
+      "nameSq": "Dragash",
+      "districtId": "d-prizrenski",
+      "osmNames": [
+        "Dragaš"
+      ]
+    },
+    {
+      "id": "m-kosovska-mitrovica",
+      "nameSr": "Косовска Митровица",
+      "nameSq": "Mitrovicë",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Kosovska Mitrovica",
+        "Severna Kosovska Mitrovica"
+      ]
+    },
+    {
+      "id": "m-zvecan",
+      "nameSr": "Звечан",
+      "nameSq": "Zveçan",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Zvečan"
+      ]
+    },
+    {
+      "id": "m-zubin-potok",
+      "nameSr": "Зубин Поток",
+      "nameSq": "Zubin Potok",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Zubin Potok"
+      ]
+    },
+    {
+      "id": "m-leposavic",
+      "nameSr": "Лепосавић",
+      "nameSq": "Leposaviq",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Leposavić"
+      ]
+    },
+    {
+      "id": "m-srbica",
+      "nameSr": "Србица",
+      "nameSq": "Skënderaj",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Srbica"
+      ]
+    },
+    {
+      "id": "m-vucitrn",
+      "nameSr": "Вучитрн",
+      "nameSq": "Vushtrri",
+      "districtId": "d-kosovsko-mitrovacki",
+      "osmNames": [
+        "Vučitrn"
+      ]
+    },
+    {
+      "id": "m-gnjilane",
+      "nameSr": "Гњилане",
+      "nameSq": "Gjilan",
+      "districtId": "d-kosovsko-pomoravski",
+      "osmNames": [
+        "Gnjilane",
+        "Parteš"
+      ]
+    },
+    {
+      "id": "m-vitina",
+      "nameSr": "Витина",
+      "nameSq": "Viti",
+      "districtId": "d-kosovsko-pomoravski",
+      "osmNames": [
+        "Vitina",
+        "Klokot"
+      ]
+    },
+    {
+      "id": "m-kosovska-kamenica",
+      "nameSr": "Косовска Каменица",
+      "nameSq": "Kamenicë",
+      "districtId": "d-kosovsko-pomoravski",
+      "osmNames": [
+        "Kamenica",
+        "Ranilug"
+      ]
+    },
+    {
+      "id": "m-novo-brdo",
+      "nameSr": "Ново Брдо",
+      "nameSq": "Novobërdë",
+      "districtId": "d-kosovsko-pomoravski",
+      "osmNames": [
+        "Novo Brdo"
+      ]
+    }
+  ]
+}
