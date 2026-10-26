@@ -8,6 +8,7 @@ import { PlaceMarkers } from './PlaceMarkers';
 import { KosovoLayer } from './KosovoLayer';
 import { AreaLayer } from './AreaLayer';
 import { KosovoToggle } from './KosovoToggle';
+import { Legend } from './Legend';
 import { canFit } from './canFit';
 import { useIsNarrow } from '../ui/useIsNarrow';
 
@@ -50,7 +51,13 @@ function FitToPlaces() {
   return null;
 }
 
-/** Flies to the selected place, zooming in to at least 12. */
+const reducedMotion = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/**
+ * Brings the selected place into view at zoom 12 or more: a pan when it is already
+ * on screen at that zoom, a short flight otherwise, an instant jump with reduced motion.
+ */
 function FlyToSelected() {
   const map = useMap();
   const selected = useApp((s) => (s.selectedId ? s.placesById.get(s.selectedId) : undefined));
@@ -58,13 +65,16 @@ function FlyToSelected() {
   useEffect(() => {
     if (!selected) return;
     const zoom = Math.max(map.getZoom(), 12);
-    let target = L.latLng(selected.lat, selected.lon);
+    const place = L.latLng(selected.lat, selected.lon);
+    let target = place;
     if (narrow) {
       // The bottom sheet covers the lower part of the map: keep the place in the visible top part.
       const size = map.getSize();
-      target = map.unproject(map.project(target, zoom).add([0, size.y * 0.25]), zoom);
+      target = map.unproject(map.project(place, zoom).add([0, size.y * 0.25]), zoom);
     }
-    map.flyTo(target, zoom);
+    if (reducedMotion()) map.setView(target, zoom, { animate: false });
+    else if (zoom === map.getZoom() && map.getBounds().pad(-0.1).contains(place)) map.panTo(target, { duration: 0.35 });
+    else map.flyTo(target, zoom, { duration: 0.6, easeLinearity: 0.2 });
   }, [map, selected]); // `narrow` is read at selection time only
   return null;
 }
@@ -79,6 +89,7 @@ export function MapView() {
       <AreaLayer />
       <PlaceMarkers />
       <KosovoToggle />
+      <Legend />
     </MapContainer>
   );
 }

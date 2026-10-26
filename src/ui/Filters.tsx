@@ -24,28 +24,33 @@ export function Filters() {
         aria-label={t('searchPlaceholder', lang)}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <div className="filter-group">
+      <div className="chips" role="group">
         {TIERS.map((n) => (
-          <label key={n}>
-            <input
-              type="checkbox"
-              checked={settings.tiers.includes(n)}
-              onChange={() => setSettings({ tiers: toggle(settings.tiers, n).sort() })}
-            />
-            {t(`tier${n}`, lang)}
-          </label>
+          <button
+            key={n}
+            type="button"
+            className="chip"
+            title={t(`tier${n}`, lang)}
+            aria-pressed={settings.tiers.includes(n)}
+            onClick={() => setSettings({ tiers: toggle(settings.tiers, n).sort() })}
+          >
+            <span className={`dot tier${n}`} aria-hidden="true" />
+            {t(`tierShort${n}`, lang)}
+          </button>
         ))}
       </div>
-      <div className="filter-group">
+      <div className="chips" role="group">
         {KINDS.map((k) => (
-          <label key={k}>
-            <input
-              type="checkbox"
-              checked={settings.kinds.includes(k)}
-              onChange={() => setSettings({ kinds: toggle(settings.kinds, k) })}
-            />
+          <button
+            key={k}
+            type="button"
+            className="chip"
+            aria-pressed={settings.kinds.includes(k)}
+            onClick={() => setSettings({ kinds: toggle(settings.kinds, k) })}
+          >
+            <span aria-hidden="true">{k === 'culture' ? '🏛' : '🌲'}</span>
             {t(k, lang)}
-          </label>
+          </button>
         ))}
       </div>
     </section>

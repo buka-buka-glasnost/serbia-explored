@@ -57,7 +57,7 @@ export function TripPanel() {
       )}
       <div className="trip-actions">
         <button type="button" disabled={stops.length < 2} onClick={optimiseTrip}>{t('optimiseOrder', lang)}</button>
-        <button type="button" disabled={driveStops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
+        <button type="button" className="btn-primary" disabled={driveStops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
       </div>
     </section>
   );

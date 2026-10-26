@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
 import { filterPlaces } from '../logic/filters';
@@ -12,6 +11,13 @@ import { markerStyle } from './markerStyle';
 import type { AreaProps } from '../shared/types';
 
 export { markerStyle } from './markerStyle';
+
+/** Neutral clusters: size shows the count, colour is left to tiers and visit state. */
+function clusterIcon(cluster: L.MarkerCluster): L.DivIcon {
+  const n = cluster.getChildCount();
+  const size = n < 10 ? 30 : n < 100 ? 36 : 44;
+  return L.divIcon({ html: String(n), className: 'cluster', iconSize: [size, size] });
+}
 
 export function PlaceMarkers() {
   const map = useMap();
@@ -26,7 +32,11 @@ export function PlaceMarkers() {
   const groupRef = useRef<L.MarkerClusterGroup | null>(null);
 
   useEffect(() => {
-    const group = L.markerClusterGroup({ disableClusteringAtZoom: 10, showCoverageOnHover: false });
+    const group = L.markerClusterGroup({
+      disableClusteringAtZoom: 10,
+      showCoverageOnHover: false,
+      iconCreateFunction: clusterIcon,
+    });
     groupRef.current = group;
     map.addLayer(group);
     return () => {

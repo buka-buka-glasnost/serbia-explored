@@ -7,6 +7,7 @@ import { PlaceCard } from './PlaceCard';
 import { ProgressSummary } from './ProgressSummary';
 import { Toast } from './Toast';
 import { useIsNarrow } from './useIsNarrow';
+import { usePresence } from './usePresence';
 import './app.css';
 
 export function App() {
@@ -16,6 +17,8 @@ export function App() {
   const selected = useApp((s) => (s.selectedId ? s.placesById.get(s.selectedId) : undefined));
   const narrow = useIsNarrow();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawer = usePresence(narrow && drawerOpen ? true : null, 200);
+  const card = usePresence(selected, 200);
   useEffect(() => {
     document.title = t('appTitle', lang);
   }, [lang]);
@@ -42,7 +45,17 @@ export function App() {
   return (
     <div className="app">
       {!narrow && <SidePanel />}
-      {narrow && drawerOpen && <SidePanel onClose={() => setDrawerOpen(false)} />}
+      {narrow && drawer.shown && (
+        <>
+          <div
+            className="drawer-backdrop"
+            aria-hidden="true"
+            data-state={drawer.closing ? 'closing' : 'open'}
+            onClick={() => setDrawerOpen(false)}
+          />
+          <SidePanel onClose={() => setDrawerOpen(false)} closing={drawer.closing} />
+        </>
+      )}
       <main className="map-area">
         {narrow && (
           <div className="top-bar">
@@ -53,7 +66,7 @@ export function App() {
           </div>
         )}
         <MapView />
-        {selected && <PlaceCard place={selected} />}
+        {card.shown && <PlaceCard place={card.shown} closing={card.closing} />}
       </main>
       <Toast />
     </div>

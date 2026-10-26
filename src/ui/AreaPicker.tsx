@@ -97,6 +97,16 @@ export function AreaPicker() {
         {areaId && (
           <button type="button" className="area-clear" aria-label={t('clearArea', lang)} onClick={clear}>×</button>
         )}
+        <button
+          type="button"
+          className={picking ? 'area-pick active' : 'area-pick'}
+          aria-label={t('pickOnMap', lang)}
+          title={t('pickOnMap', lang)}
+          aria-pressed={picking}
+          onClick={() => setPicking(!picking)}
+        >
+          ⌖
+        </button>
       </div>
       {suggestions.length > 0 && (
         <ul id="area-suggestions" role="listbox" className="area-suggestions">
@@ -120,13 +130,6 @@ export function AreaPicker() {
           ))}
         </ul>
       )}
-      <button
-        type="button"
-        className={picking ? 'area-pick active' : 'area-pick'}
-        onClick={() => setPicking(!picking)}
-      >
-        {t('pickOnMap', lang)}
-      </button>
       {picking && <p className="area-hint">{t('pickOnMapHint', lang)}</p>}
     </section>
   );

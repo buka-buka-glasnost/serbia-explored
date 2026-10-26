@@ -123,7 +123,7 @@ export function VisitEditor({ placeId }: { placeId: string }) {
           onChange={(e) => void onFiles(e.target.files, e.target)}
         />
       </label>
-      <button type="button" onClick={onUnmark}>{t('unmarkVisited', lang)}</button>
+      <button type="button" className="btn-link unmark" onClick={onUnmark}>{t('unmarkVisited', lang)}</button>
     </section>
   );
 }

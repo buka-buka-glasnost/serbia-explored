@@ -61,8 +61,8 @@ export function BackupControls() {
     <footer className="backup">
       {!storageOk && <div className="banner" role="alert">{t('storageUnavailableBanner', lang)}</div>}
       <div className="backup-buttons">
-        <button type="button" onClick={() => void onExport()}>{t('export', lang)}</button>
-        <button type="button" onClick={() => fileInput.current?.click()}>{t('import', lang)}</button>
+        <button type="button" className="btn-link" onClick={() => void onExport()}>{t('export', lang)}</button>
+        <button type="button" className="btn-link" onClick={() => fileInput.current?.click()}>{t('import', lang)}</button>
         <input
           ref={fileInput}
           type="file"

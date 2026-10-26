@@ -23,6 +23,18 @@ describe('PlaceCard', () => {
     expect(screen.getByText('Hike / boat only')).toBeInTheDocument();
   });
 
+  it('turns the primary button into a disabled "✓ Visited" once visited', () => {
+    useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-10-26', note: '', photoIds: [] } } });
+    render(<PlaceCard place={makePlace('Q1')} />);
+    expect(screen.getByRole('button', { name: '✓ Visited' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Mark as visited' })).not.toBeInTheDocument();
+  });
+
+  it('is hidden from assistive tech while closing', () => {
+    render(<PlaceCard place={makePlace('Q1', { nameEn: 'Gone' })} closing />);
+    expect(screen.queryByRole('article', { name: 'Gone' })).not.toBeInTheDocument();
+  });
+
   it('marks an estimated access label with an asterisk and a note', () => {
     render(<PlaceCard place={makePlace('Q1', { access: 'door', accessEstimated: true })} />);
     expect(screen.getByText('Drive to the door').textContent).toBe('Drive to the door*');
