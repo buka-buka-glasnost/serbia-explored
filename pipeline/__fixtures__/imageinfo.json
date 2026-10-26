@@ -1,0 +1,27 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "normalized": [{ "from": "File:Studenica_front.jpg", "to": "File:Studenica front.jpg" }],
+    "pages": {
+      "1": {
+        "pageid": 1, "ns": 6, "title": "File:Studenica front.jpg",
+        "imageinfo": [{
+          "thumburl": "https://upload.wikimedia.org/thumb/Studenica_front.jpg/640px-Studenica_front.jpg",
+          "descriptionurl": "https://commons.wikimedia.org/wiki/File:Studenica_front.jpg",
+          "extmetadata": {
+            "Artist": { "value": "<a href=\"//commons.wikimedia.org/wiki/User:Jane\" title=\"User:Jane\">Jane</a>" },
+            "LicenseShortName": { "value": "CC BY-SA 4.0" }
+          }
+        }]
+      },
+      "2": {
+        "pageid": 2, "ns": 6, "title": "File:No licence.jpg",
+        "imageinfo": [{
+          "thumburl": "https://upload.wikimedia.org/thumb/No_licence.jpg/640px-No_licence.jpg",
+          "descriptionurl": "https://commons.wikimedia.org/wiki/File:No_licence.jpg",
+          "extmetadata": { "Artist": { "value": "Someone" } }
+        }]
+      }
+    }
+  }
+}

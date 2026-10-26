@@ -3,7 +3,11 @@ import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cachePath } from './http';
 import { runSparql } from './sparql';
+
+const ENDPOINT = 'https://query.wikidata.org/sparql';
+const qinit = (q: string) => ({ body: new URLSearchParams({ query: q }).toString() });
 
 const body = {
   results: {
@@ -33,10 +37,10 @@ afterEach(async () => {
 describe('runSparql', () => {
   it('returns the cached file without calling fetch', async () => {
     await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, 'k.json'), JSON.stringify([{ item: 'Q9' }]));
+    await writeFile(cachePath(path.join(dir, 'k'), ENDPOINT, qinit('SELECT 1')), JSON.stringify(body));
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    expect(await runSparql('SELECT 1', 'k')).toEqual([{ item: 'Q9' }]);
+    expect(await runSparql('SELECT 1', 'k')).toEqual([{ item: 'Q1', labelEn: 'Thing' }]);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -50,11 +54,11 @@ describe('runSparql', () => {
     expect(init.method).toBe('POST');
     expect(init.headers.Accept).toBe('application/sparql-results+json');
     expect(init.headers['User-Agent']).toBe('SerbiaExplored/0.1 (data pipeline)');
-    expect(JSON.parse(await readFile(path.join(dir, 'fresh.json'), 'utf8'))).toEqual(rows);
+    expect(JSON.parse(await readFile(cachePath(path.join(dir, 'fresh'), ENDPOINT, qinit('SELECT 1')), 'utf8'))).toEqual(body);
   });
 
   it('REFRESH=1 ignores the cache', async () => {
-    await writeFile(path.join(dir, 'r.json'), JSON.stringify([{ item: 'Q9' }]));
+    await writeFile(cachePath(path.join(dir, 'r'), ENDPOINT, qinit('SELECT 1')), JSON.stringify({ results: { bindings: [] } }));
     vi.stubEnv('REFRESH', '1');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok()));
     expect(await runSparql('SELECT 1', 'r')).toEqual([{ item: 'Q1', labelEn: 'Thing' }]);
@@ -87,6 +91,28 @@ describe('runSparql', () => {
     }
     await settled;
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not reuse a cache file written for a different query', async () => {
+    await writeFile(cachePath(path.join(dir, 'k'), ENDPOINT, qinit('SELECT 1')), JSON.stringify({ results: { bindings: [] } }));
+    const fetchMock = vi.fn().mockResolvedValue(ok());
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await runSparql('SELECT 2', 'k')).toEqual([{ item: 'Q1', labelEn: 'Thing' }]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not write a cache file when the body is not JSON', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => new Response('<html>', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.useFakeTimers();
+    const p = runSparql('SELECT 1', 'junk');
+    const settled = expect(p).rejects.toThrow();
+    for (const [n, wait] of [[1, 5000], [2, 15000], [3, 45000]] as const) {
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(n));
+      await vi.advanceTimersByTimeAsync(wait);
+    }
+    await settled;
+    await expect(readFile(cachePath(path.join(dir, 'junk'), ENDPOINT, qinit('SELECT 1')), 'utf8')).rejects.toThrow();
   });
 
   it('does not retry on a 400', async () => {

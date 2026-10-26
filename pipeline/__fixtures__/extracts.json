@@ -1,0 +1,12 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "normalized": [{ "from": "studenica_monastery", "to": "Studenica monastery" }],
+    "redirects": [{ "from": "Nis Fortress", "to": "Niš Fortress" }],
+    "pages": {
+      "111": { "pageid": 111, "ns": 0, "title": "Studenica monastery", "extract": "Studenica is a monastery in Serbia. It was founded in the 12th century." },
+      "222": { "pageid": 222, "ns": 0, "title": "Niš Fortress", "extract": "The Niš Fortress is a fortress in Niš." },
+      "-1": { "ns": 0, "title": "Missing page", "missing": "" }
+    }
+  }
+}
