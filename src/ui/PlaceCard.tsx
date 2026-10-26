@@ -39,6 +39,8 @@ export function PlaceCard({ place }: { place: Place }) {
   const markVisited = useApp((s) => s.markVisited);
   const addToTrip = useApp((s) => s.addToTrip);
   const removeFromTrip = useApp((s) => s.removeFromTrip);
+  const isStart = useApp((s) => s.trip.startPlaceId === place.id);
+  const setTripStart = useApp((s) => s.setTripStart);
   const select = useApp((s) => s.select);
 
   const municipality = place.municipalityId
@@ -93,6 +95,9 @@ export function PlaceCard({ place }: { place: Place }) {
         )}
         <button type="button" onClick={() => (inTrip ? removeFromTrip(place.id) : addToTrip(place.id))}>
           {t(inTrip ? 'removeFromTrip' : 'addToTrip', lang)}
+        </button>
+        <button type="button" disabled={isStart} onClick={() => setTripStart(place.id)}>
+          {t('setTripStart', lang)}
         </button>
       </div>
       {visited && <VisitEditor key={place.id} placeId={place.id} />}

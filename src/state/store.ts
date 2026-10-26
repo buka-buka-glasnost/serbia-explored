@@ -19,6 +19,7 @@ import {
   type Visit,
 } from '../storage/db';
 import { MAX_PHOTOS_PER_VISIT, resizeImage } from '../storage/photos';
+import { MAX_TRIP_STOPS, orderStops } from '../trip/order';
 
 export interface AppState {
   status: 'loading' | 'ready' | 'error';
@@ -44,6 +45,7 @@ export interface AppState {
   removeFromTrip(id: string): void;
   moveTripStop(id: string, dir: -1 | 1): void;
   setTripStart(placeId: string | null): void;
+  optimiseTrip(): void;
   showToast(key: StringKey, kind?: 'info' | 'error'): void;
 }
 
@@ -64,6 +66,15 @@ export const useApp = create<AppState>((set, get) => {
   const setTrip = (trip: TripState) => {
     set({ trip });
     persistMeta('trip', trip);
+  };
+
+  /** Stop ids re-ordered by nearest-neighbour + 2-opt, from the trip start if set. */
+  const reorder = (stopIds: string[], startPlaceId: string | null): string[] => {
+    const { placesById } = get();
+    const pts = stopIds.map((id) => placesById.get(id));
+    if (pts.some((p) => !p)) return stopIds;
+    const start = startPlaceId ? placesById.get(startPlaceId) : undefined;
+    return orderStops(pts as Place[], start).map((i) => stopIds[i]);
   };
 
   /** Applies `next` in memory, saves it, and rolls back to the previous visit on failure. */
@@ -194,7 +205,11 @@ export const useApp = create<AppState>((set, get) => {
     addToTrip(id) {
       const { trip } = get();
       if (trip.stopIds.includes(id)) return;
-      setTrip({ ...trip, stopIds: [...trip.stopIds, id] });
+      if (trip.stopIds.length >= MAX_TRIP_STOPS) {
+        get().showToast('tripFull', 'info');
+        return;
+      }
+      setTrip({ ...trip, stopIds: reorder([...trip.stopIds, id], trip.startPlaceId) });
     },
     removeFromTrip(id) {
       const { trip } = get();
@@ -211,6 +226,11 @@ export const useApp = create<AppState>((set, get) => {
     },
     setTripStart(placeId) {
       setTrip({ ...get().trip, startPlaceId: placeId });
+    },
+
+    optimiseTrip() {
+      const { trip } = get();
+      setTrip({ ...trip, stopIds: reorder(trip.stopIds, trip.startPlaceId) });
     },
 
     showToast: (key, kind = 'info') => set({ toast: { key, kind } }),
