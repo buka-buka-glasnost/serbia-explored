@@ -123,6 +123,12 @@ describe('parseOverrides', () => {
     expect(() => parseOverrides({ ...ok, places: { Q1: { id: 'Q3' } } })).toThrow(/unknown field\(s\) id/);
     expect(() => parseOverrides({ ...ok, places: { Q1: { designations: ['unesco'] } } })).toThrow(/designations/);
   });
+  it('checks note maps: string values, keyed by removed / patched ids', () => {
+    expect(parseOverrides({ ...ok, _overrideNotes: { Q1: 'why' } })).toMatchObject({ _overrideNotes: { Q1: 'why' } });
+    expect(() => parseOverrides({ ...ok, _overrideNotes: { Q7: 'why' } })).toThrow(/_overrideNotes.*not patched: Q7/);
+    expect(() => parseOverrides({ ...ok, _removedNotes: { Q1: 'why' } })).toThrow(/_removedNotes.*not removed: Q1/);
+    expect(() => parseOverrides({ ...ok, _removedNotes: { Q2: 3 } })).toThrow(/must map ids to strings/);
+  });
   it('rejects an id that is both patched and removed', () => {
     expect(() => parseOverrides({ ...ok, removed: ['Q1'] })).toThrow(/both patched and removed: Q1/);
   });

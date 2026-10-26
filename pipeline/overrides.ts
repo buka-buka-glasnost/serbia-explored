@@ -16,6 +16,8 @@ export interface Overrides {
   partOfNames?: Record<string, { nameSr: string; nameEn?: string }>;
   /** Why each id in `removed` is removed; documentation only. */
   _removedNotes?: Record<string, string>;
+  /** Why each id in `places` is patched; documentation only. */
+  _overrideNotes?: Record<string, string>;
 }
 
 /** Every Place field; `satisfies` makes the compiler flag a field added to Place but not here. */
@@ -26,7 +28,7 @@ const PLACE_FIELDS = {
   access: true, accessEstimated: true, wikipediaSr: true, wikipediaEn: true,
 } satisfies Record<keyof Place, true>;
 const PATCH_KEYS = new Set(Object.keys(PLACE_FIELDS).filter((k) => k !== 'id'));
-const TOP_KEYS = new Set(['places', 'added', 'removed', 'partOfNames', '_removedNotes']);
+const TOP_KEYS = new Set(['places', 'added', 'removed', 'partOfNames', '_removedNotes', '_overrideNotes']);
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -55,7 +57,6 @@ export function parseOverrides(json: unknown): Overrides {
     throw new Error(`${where}: "removed" must be an array of ids`);
   }
   if (json.partOfNames !== undefined && !isObject(json.partOfNames)) throw new Error(`${where}: "partOfNames" must be an object`);
-  if (json._removedNotes !== undefined && !isObject(json._removedNotes)) throw new Error(`${where}: "_removedNotes" must be an object`);
 
   for (const [id, patch] of Object.entries(json.places)) {
     if (!isObject(patch)) throw new Error(`${where}: patch for ${id} must be an object`);
@@ -64,6 +65,17 @@ export function parseOverrides(json: unknown): Overrides {
   const removed = new Set(json.removed);
   const both = Object.keys(json.places).filter((id) => removed.has(id));
   if (both.length > 0) throw new Error(`${where}: id(s) both patched and removed: ${both.join(', ')}`);
+  // Notes document entries elsewhere in the file: string values, keyed by an id that is removed / patched.
+  const patched = new Set(Object.keys(json.places));
+  for (const [key, ids, what] of [['_removedNotes', removed, 'removed'], ['_overrideNotes', patched, 'patched']] as const) {
+    const notes = json[key];
+    if (notes === undefined) continue;
+    if (!isObject(notes) || !Object.values(notes).every((v) => typeof v === 'string')) {
+      throw new Error(`${where}: "${key}" must map ids to strings`);
+    }
+    const stray = Object.keys(notes).filter((id) => !ids.has(id));
+    if (stray.length > 0) throw new Error(`${where}: "${key}" has note(s) for id(s) not ${what}: ${stray.join(', ')}`);
+  }
 
   const addKeys = new Set(Object.keys(PLACE_FIELDS));
   for (const [i, p] of json.added.entries()) {

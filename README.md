@@ -60,16 +60,16 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 
 - `places`: patch an existing place by id (Wikidata QID). Any subset of its fields can be given, e.g. `access` (`"door"`, `"rough"`, `"hike_boat"` or `null`), `nameSr` (Cyrillic), `lat`/`lon`, `kind` (`"culture"` or `"nature"`), `tier` (1-4), `designations`, `districtId`/`municipalityId` (such as `"m-uzice"`), `inKosovo`.
 - `added`: manual places. Only `id`, `nameSr`, `lat`, `lon` and `designations` (at least one) are required; `tier` and `kind` are derived from the designations, `districtId`/`municipalityId`/`inKosovo` from the coordinates, and `access` defaults to `null`. Any other place field may be given and is kept as is. Ids should look like `x-<slug>` (a convention, not enforced) and must not collide with an existing id.
-- `removed`: ids to drop. `_removedNotes` maps a removed id to the reason (documentation only).
+- `removed`: ids to drop. `_removedNotes` maps a removed id to the reason, and `_overrideNotes` a patched id to the reason for its patch (documentation only; each note must refer to an id that is removed or patched).
 - `partOfNames`: display names for World Heritage composites whose Wikidata labels are missing.
 
 ### Access estimates
 
 `npm run data` estimates `access` for each place from OpenStreetMap roads within 300 m: a paved road within 150 m means "drive to the door", a closer gravel/dirt road or track means "rough road", nothing drivable means "hike / boat only". Large areas (national parks, biosphere reserves, the geopark, Ramsar sites) get no estimate. Estimates are marked `"accessEstimated": true` and the app shows them with an asterisk. Setting `access` in `places` replaces the estimate and removes the asterisk.
 
-Patches re-derive what they invalidate: changing `designations` recomputes `tier` and `kind`, and changing `lat`/`lon` recomputes `districtId`, `municipalityId` and `inKosovo`, unless the same patch sets those fields itself. The build checks that every place's `tier` matches its designations, so set `designations` rather than `tier`.
+When a Wikidata item has several coordinates, the pipeline picks one deterministically (the smallest by value), and the build summary lists places whose coordinates are more than 1 km apart; pin the right one with a `lat`/`lon` patch. Patches re-derive what they invalidate: changing `designations` recomputes `tier` and `kind`, and changing `lat`/`lon` recomputes `districtId`, `municipalityId` and `inKosovo`, unless the same patch sets those fields itself. The build checks that every place's `tier` matches its designations, so set `designations` rather than `tier`.
 
-The file is validated when it is loaded: only the keys `places`, `added`, `removed`, `partOfNames` and `_removedNotes` are allowed, patches may only use place fields, designations must be known values, and an id may not be both patched and removed. Unknown ids in `places` or `removed`, or an `added` id that already exists, make the build throw; when the id exists in Wikidata but the pipeline dropped it (for example for missing coordinates), the error names the reason. This is deliberate typo protection. See `pipeline/overrides.ts` and `src/shared/types.ts` for the exact shape.
+The file is validated when it is loaded: only the keys `places`, `added`, `removed`, `partOfNames`, `_removedNotes` and `_overrideNotes` are allowed, patches may only use place fields, designations must be known values, and an id may not be both patched and removed. Unknown ids in `places` or `removed`, or an `added` id that already exists, make the build throw; when the id exists in Wikidata but the pipeline dropped it (for example for missing coordinates), the error names the reason. This is deliberate typo protection. See `pipeline/overrides.ts` and `src/shared/types.ts` for the exact shape.
 
 ## Backups
 

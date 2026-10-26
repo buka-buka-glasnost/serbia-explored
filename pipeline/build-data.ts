@@ -138,6 +138,17 @@ async function main() {
   if (noName.length > 0) {
     console.log(`Items with no name at all (QID used as name): ${noName.map((r) => `${r.id}(${displayName(r)})`).join(', ')}`);
   }
+  const rawById = new Map(raw.map((r) => [r.id, r]));
+  const spread = places
+    .map((p) => ({ p, km: rawById.get(p.id)?.coordSpreadKm ?? 0 }))
+    .filter(({ km }) => km > 1)
+    .sort((a, b) => b.km - a.km);
+  if (spread.length > 0) {
+    console.log(
+      `Places whose Wikidata coordinates are more than 1 km apart (${spread.length}; pin with a lat/lon override if the pick is wrong): ` +
+      spread.map(({ p, km }) => `${p.id} ${p.nameSr} (${km.toFixed(1)} km)`).join(', '),
+    );
+  }
   if (reconciled) {
     console.log(
       `Register (exceptional+great): ${reconciled.total} entries, matched by id ${reconciled.byId}, ` +

@@ -13,6 +13,8 @@ export interface RawPlace {
   designations: Designation[];
   partOfIds: string[];
   coord: LatLon | null;
+  /** When the item has several coordinates: the largest distance between them, in km. */
+  coordSpreadKm?: number;
   imageFile?: string;
   wikipediaSr?: string;
   wikipediaEn?: string;
@@ -70,14 +72,34 @@ interface Collected {
   enwiki: Set<string>;
 }
 
+/** Classes with both labels first, then sr only, then en only. */
+const labelRank = (t: { sr?: string; en?: string }) => (t.sr && t.en ? 0 : t.sr ? 1 : 2);
+
 /**
- * The type shown for a place: the P31 class with the lowest numeric QID that has an sr or en label,
- * with both labels taken from that one class so typeSr and typeEn always describe the same thing.
+ * The type shown for a place: among its P31 classes with an sr or en label, the best labelled
+ * (both, then sr only, then en only), ties broken by the lowest numeric QID. Both labels come
+ * from that one class, so typeSr and typeEn always describe the same thing.
  */
 function pickType(types: Collected['types']): { sr?: string; en?: string } {
   const labelled = [...types.entries()].filter(([, t]) => t.sr || t.en);
-  labelled.sort(([a], [b]) => qidNumber(a) - qidNumber(b) || (a < b ? -1 : a > b ? 1 : 0));
+  labelled.sort(([a, ta], [b, tb]) =>
+    labelRank(ta) - labelRank(tb) || qidNumber(a) - qidNumber(b) || (a < b ? -1 : a > b ? 1 : 0));
   return labelled[0]?.[1] ?? {};
+}
+
+/** Largest distance in km between any two of the coordinates (haversine). */
+export function coordSpreadKm(coords: LatLon[]): number {
+  const rad = Math.PI / 180;
+  let best = 0;
+  for (let i = 0; i < coords.length; i++) {
+    for (let j = i + 1; j < coords.length; j++) {
+      const a = coords[i], b = coords[j];
+      const h = Math.sin(((b.lat - a.lat) * rad) / 2) ** 2 +
+        Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(((b.lon - a.lon) * rad) / 2) ** 2;
+      best = Math.max(best, 2 * 6371 * Math.asin(Math.sqrt(h)));
+    }
+  }
+  return best;
 }
 
 export function groupRows(
@@ -137,6 +159,10 @@ export function groupRows(
       const [lat, lon] = coord.split(',').map(Number);
       p.coord = { lat, lon };
     }
+    if (c.coords.size > 1) {
+      const all = [...c.coords].map((k) => { const [lat, lon] = k.split(',').map(Number); return { lat, lon }; });
+      p.coordSpreadKm = coordSpreadKm(all);
+    }
     const image = smallest(c.images);
     if (image !== undefined) p.imageFile = image;
     const sr = smallest(c.srwiki);
@@ -164,6 +190,7 @@ export function mergeRaw(a: RawPlace[], b: RawPlace[]): RawPlace[] {
       if (cur[key] === undefined && p[key] !== undefined) cur[key] = p[key];
     }
     if (!cur.coord) cur.coord = p.coord;
+    if (p.coordSpreadKm !== undefined) cur.coordSpreadKm = Math.max(cur.coordSpreadKm ?? 0, p.coordSpreadKm);
     cur.imageFile ??= p.imageFile;
     cur.wikipediaSr ??= p.wikipediaSr;
     cur.wikipediaEn ??= p.wikipediaEn;

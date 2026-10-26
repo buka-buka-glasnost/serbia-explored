@@ -70,14 +70,29 @@ describe('groupRows', () => {
     expect(p.nameSrLatn).toBe('Caričin Grad');
   });
 
-  it('never mixes labels of two types, and skips a type without sr/en labels', () => {
-    const rows: SparqlRow[] = [
-      { item: 'Q1', code: 'Q9259', type: 'Q5', typeEn: 'five' },
-      { item: 'Q1', code: 'Q9259', type: 'Q3' },
-      { item: 'Q1', code: 'Q9259', type: 'Q7', typeSr: 'седам', typeEn: 'seven' },
-    ];
-    const [p] = groupRows(rows, classifyHeritage);
-    expect([p.typeSr, p.typeEn]).toEqual([undefined, 'five']);
+  it('prefers a type with both labels, then sr only, then en only, and never mixes two types', () => {
+    const rows = (types: SparqlRow[]): SparqlRow[] => types.map((t) => ({ item: 'Q1', code: 'Q9259', ...t }));
+    const pick = (types: SparqlRow[]) => {
+      const [p] = groupRows(rows(types), classifyHeritage);
+      return [p.typeSr, p.typeEn];
+    };
+    const both = { type: 'Q7', typeSr: 'седам', typeEn: 'seven' };
+    const srOnly = { type: 'Q6', typeSr: 'шест' };
+    const enOnly = { type: 'Q5', typeEn: 'five' };
+    const none = { type: 'Q3' };
+    expect(pick([enOnly, none, srOnly, both])).toEqual(['седам', 'seven']);
+    expect(pick([enOnly, none, srOnly])).toEqual(['шест', undefined]);
+    expect(pick([enOnly, none])).toEqual([undefined, 'five']);
+    expect(pick([both, { type: 'Q4', typeSr: 'четири', typeEn: 'four' }])).toEqual(['четири', 'four']);
+  });
+
+  it('records how far apart several coordinates are', () => {
+    const [p] = groupRows([
+      { item: 'Q1', code: 'Q9259', coord: 'Point(20 44)' },
+      { item: 'Q1', code: 'Q9259', coord: 'Point(20 44.1)' },
+    ], classifyHeritage);
+    expect(p.coordSpreadKm).toBeCloseTo(11.1, 1);
+    expect(groupRows([{ item: 'Q2', code: 'Q9259', coord: 'Point(20 44)' }], classifyHeritage)[0].coordSpreadKm).toBeUndefined();
   });
 
   it('gives the item with two coordinates the smallest by "lat,lon"', () => {

@@ -94,6 +94,38 @@
         "ramsar",
         "special_nature_reserve"
       ]
+    },
+    "Q12754271": {
+      "lat": 44.18356,
+      "lon": 21.60938
+    },
+    "Q2936920": {
+      "lat": 43.426962,
+      "lon": 19.934295
+    },
+    "Q1412844": {
+      "lat": 42.21666667,
+      "lon": 21.01666667
+    },
+    "Q1231824": {
+      "lat": 44.73277778,
+      "lon": 21.23055556
+    },
+    "Q3583428": {
+      "lat": 42.2486,
+      "lon": 21.0728
+    },
+    "Q85998366": {
+      "lat": 45.8946,
+      "lon": 19.4667
+    },
+    "Q3485398": {
+      "lat": 44.339494,
+      "lon": 22.087591
+    },
+    "Q12757663": {
+      "lat": 43.795277777,
+      "lon": 19.933888888
     }
   },
   "added": [],
@@ -142,6 +174,16 @@
     "Q118214705": "same as Q16088014 (Peštersko polje)",
     "Q22771836": "Golija–Studenica biosphere reserve merged into Q16087985 (Golija Nature Park), which it is part of",
     "Q1118811": "Kopački rit is in Croatia"
+  },
+  "_overrideNotes": {
+    "Q12754271": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 110.1 km",
+    "Q2936920": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 8.5 km",
+    "Q1412844": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 7.7 km",
+    "Q1231824": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 5.4 km",
+    "Q3583428": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 4.4 km",
+    "Q85998366": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 2.2 km",
+    "Q3485398": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 2.2 km",
+    "Q12757663": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 1.3 km"
   },
   "partOfNames": {
     "Q10913999": {
