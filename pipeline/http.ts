@@ -15,6 +15,14 @@ export class HttpError extends Error {
   }
 }
 
+/** Thrown by a `validate` callback to reject a 200 response; `retryable` decides whether to back off and retry. */
+export class ApiError extends Error {
+  constructor(message: string, public readonly retryable: boolean) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Cache file path: `<cacheBase>-<10 hex of sha1(url + body)>.json`, so a changed request never hits a stale file. */
@@ -31,9 +39,11 @@ export function cachePath(cacheBase: string, url: string, init?: RequestInit): s
 /**
  * GET/POST JSON with a User-Agent, retry (5/15/45 s) on 429/5xx/network errors,
  * and a file cache. `cacheBase` is a path without extension (e.g. data/cache/wiki/extracts-en-1).
- * REFRESH=1 bypasses reading the cache. The cache is written only after a successful parse.
+ * REFRESH=1 bypasses reading the cache. The cache is written only after a successful parse and `validate` (which throws to reject).
  */
-export async function fetchJson<T>(url: string, cacheBase: string, init: RequestInit = {}): Promise<T> {
+export async function fetchJson<T>(url: string, cacheBase: string, init: RequestInit = {},
+  validate?: (json: T) => void,
+): Promise<T> {
   const file = cachePath(cacheBase, url, init);
   if (process.env.REFRESH !== '1') {
     try {
@@ -51,11 +61,12 @@ export async function fetchJson<T>(url: string, cacheBase: string, init: Request
       const res = await fetch(url, { ...init, headers });
       if (!res.ok) throw new HttpError(res.status, url);
       const json = (await res.json()) as T;
+      validate?.(json);
       await mkdir(path.dirname(file), { recursive: true });
       await writeFile(file, JSON.stringify(json));
       return json;
     } catch (e) {
-      if (e instanceof HttpError && !e.retryable) throw e;
+      if ((e instanceof HttpError || e instanceof ApiError) && !e.retryable) throw e;
       lastError = e;
     }
   }

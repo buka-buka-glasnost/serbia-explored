@@ -68,6 +68,52 @@ describe('fetchPhotoInfo', () => {
   });
 });
 
+describe('fetchPhotoInfo edge cases', () => {
+  const files = ['studenica side.jpg', 'Credit only.jpg', 'No author.jpg'];
+
+  it('follows normalized and redirects back to a lowercase-initial requested name', async () => {
+    const fetchMock = respond('imageinfo.json');
+    vi.stubGlobal('fetch', fetchMock);
+    const map = await fetchPhotoInfo(files);
+    expect(map.get('studenica side.jpg')?.author).toBe('John');
+    expect(map.get('studenica side.jpg')?.file).toBe('studenica side.jpg');
+    expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get('redirects')).toBe('1');
+  });
+
+  it('falls back to Credit when Artist is blank, and drops the photo when both are blank', async () => {
+    vi.stubGlobal('fetch', respond('imageinfo.json'));
+    const map = await fetchPhotoInfo(files);
+    expect(map.get('Credit only.jpg')?.author).toBe('Own work & edit');
+    expect(map.has('No author.jpg')).toBe(false);
+  });
+});
+
+describe('MediaWiki errors returned with HTTP 200', () => {
+  it('throws a non-transient API error and does not cache it', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ error: { code: 'badvalue', info: 'x' } }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(fetchExtracts(['A'], 'en')).rejects.toThrow(/badvalue/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.stubGlobal('fetch', respond('extracts.json'));
+    expect((await fetchExtracts(['A'], 'en')).size).toBe(0);
+    expect((await fetchExtracts(['studenica_monastery'], 'en')).size).toBe(1);
+  });
+
+  it('retries a maxlag error and then succeeds', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { code: 'maxlag' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(fixture('imageinfo.json'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = fetchPhotoInfo(['Studenica_front.jpg']);
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect((await p).size).toBe(1);
+    vi.useRealTimers();
+  });
+});
+
 describe('trimExtract', () => {
   it('cuts a long three-sentence text at a sentence end within 450 chars', () => {
     const s = (c: string) => `${c.repeat(199)}.`;
