@@ -16,6 +16,9 @@ export function checkPlaces(places: Place[], areas: AreaFC): string[] {
     if (k !== undefined && k !== p.inKosovo) {
       out.push(`${p.id} (${p.nameSr}): inKosovo=${p.inKosovo} but municipality ${p.municipalityId} has inKosovo=${k}`);
     }
+    if (!p.municipalityId && !p.inKosovo) {
+      out.push(`${p.id} (${p.nameSr}): no municipality and not in Kosovo (coordinates ${p.lat}, ${p.lon} outside Serbia?)`);
+    }
     if (p.designations.length === 0) {
       out.push(`${p.id} (${p.nameSr}): no designations`);
     } else if (p.tier !== tierFor(p.designations)) {

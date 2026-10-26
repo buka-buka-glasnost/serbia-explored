@@ -56,7 +56,33 @@ async function writeAll(files: [string, string][]): Promise<void> {
     for (const [f] of files) await rm(tmp(f), { force: true });
     throw e;
   }
-  for (const [f] of files) await rename(tmp(f), f);
+  const done: string[] = [];
+  for (const [f] of files) {
+    try {
+      await renameWithRetry(tmp(f), f);
+    } catch (e) {
+      throw new Error(
+        `Could not replace ${f} (${(e as Error).message}). Already replaced: ${done.join(', ') || 'none'}; ` +
+        `the remaining new files are left as *.${process.pid}.tmp.`,
+      );
+    }
+    done.push(f);
+  }
+}
+
+/** OneDrive sync or a running dev server can briefly lock a file on Windows; retry those errors. */
+async function renameWithRetry(from: string, to: string): Promise<void> {
+  const waits = [200, 500, 1000, 2000, 4000];
+  for (let i = 0; ; i++) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (i >= waits.length || !['EPERM', 'EBUSY', 'EACCES'].includes(code ?? '')) throw e;
+      await new Promise((r) => setTimeout(r, waits[i]));
+    }
+  }
 }
 
 async function main() {
@@ -90,8 +116,12 @@ async function main() {
   const files = [...new Set(survivors.map((r) => r.imageFile).filter((f): f is string => !!f))];
   const photos: Map<string, Photo> = await fetchPhotoInfo(files);
   console.log('Estimating access from road data');
+  // Manual (`added`) places are not estimated: assemble applies estimates to Wikidata places only,
+  // so an added place keeps the access it sets (null by default).
+  const rawIds = new Set(raw.map((r) => r.id));
   const accessEstimates = await estimateAccess(
-    first.places.filter((p) => shouldEstimate(p.designations)).map((p) => ({ id: p.id, lat: p.lat, lon: p.lon })),
+    first.places.filter((p) => rawIds.has(p.id) && shouldEstimate(p.designations))
+      .map((p) => ({ id: p.id, lat: p.lat, lon: p.lon })),
   );
 
   const { places, dropped } = assemblePlaces({ ...base, extractsSr, extractsEn, photos, accessEstimates });
@@ -144,9 +174,11 @@ async function main() {
     .filter(({ km }) => km > 1)
     .sort((a, b) => b.km - a.km);
   if (spread.length > 0) {
+    const pinned = (id: string) => { const o = overrides.places[id]; return !!o && ('lat' in o || 'lon' in o); };
     console.log(
-      `Places whose Wikidata coordinates are more than 1 km apart (${spread.length}; pin with a lat/lon override if the pick is wrong): ` +
-      spread.map(({ p, km }) => `${p.id} ${p.nameSr} (${km.toFixed(1)} km)`).join(', '),
+      `Places whose Wikidata coordinates are more than 1 km apart (${spread.length}; ` +
+      'pin the unpinned ones with a lat/lon override if the pick is wrong): ' +
+      spread.map(({ p, km }) => `${p.id} ${p.nameSr} (${km.toFixed(1)} km${pinned(p.id) ? ', pinned' : ''})`).join(', '),
     );
   }
   if (reconciled) {

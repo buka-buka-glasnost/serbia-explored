@@ -10,7 +10,7 @@ const areas: AreaFC = {
 };
 const place = (id: string, extra: Partial<Place> = {}): Place => ({
   id, nameSr: 'Име', kind: 'culture', tier: 2, designations: ['heritage_exceptional'],
-  lat: 0.5, lon: 0.5, districtId: null, municipalityId: null, inKosovo: false, access: null, ...extra,
+  lat: 0.5, lon: 0.5, districtId: 'd-x', municipalityId: 'm-x', inKosovo: false, access: null, ...extra,
 });
 
 describe('checkPlaces', () => {
@@ -27,6 +27,11 @@ describe('checkPlaces', () => {
   it('flags inKosovo disagreeing with the municipality', () => {
     expect(checkPlaces([place('Q1', { municipalityId: 'm-k', inKosovo: false })], areas)).toHaveLength(1);
     expect(checkPlaces([place('Q1', { municipalityId: 'm-k', inKosovo: true })], areas)).toEqual([]);
+  });
+  it('flags a place with no municipality outside Kosovo (e.g. a lat/lon pin outside Serbia)', () => {
+    expect(checkPlaces([place('Q1', { municipalityId: null, districtId: null })], areas))
+      .toEqual([expect.stringMatching(/Q1.*no municipality and not in Kosovo/)]);
+    expect(checkPlaces([place('Q1', { municipalityId: null, districtId: null, inKosovo: true })], areas)).toEqual([]);
   });
   it('flags a tier that does not follow from the designations', () => {
     const problems = checkPlaces([place('Q1', { tier: 1 })], areas);

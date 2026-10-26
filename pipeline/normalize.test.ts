@@ -84,6 +84,8 @@ describe('groupRows', () => {
     expect(pick([enOnly, none, srOnly])).toEqual(['шест', undefined]);
     expect(pick([enOnly, none])).toEqual([undefined, 'five']);
     expect(pick([both, { type: 'Q4', typeSr: 'четири', typeEn: 'four' }])).toEqual(['четири', 'four']);
+    expect(pick([{ type: 'Q60', typeSr: 'шездесет' }, srOnly, enOnly])).toEqual(['шест', undefined]);
+    expect(pick([{ type: 'Q50', typeEn: 'fifty' }, enOnly, none])).toEqual([undefined, 'five']);
   });
 
   it('records how far apart several coordinates are', () => {

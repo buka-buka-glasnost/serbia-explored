@@ -83,6 +83,18 @@ describe('applyOverrides re-derives fields', () => {
     expect(far).toMatchObject({ districtId: null, municipalityId: null, inKosovo: false });
   });
 
+  it('derives nameSq from inKosovo after a move, unless the patch sets it', () => {
+    const c: OverrideContext = { ...ctx, nameSqFor: (id) => (id === 'Q1' ? 'Emri' : undefined) };
+    const [into] = applyOverrides([base], { places: { Q1: { lat: 42.5, lon: 20.8 } }, added: [], removed: [] }, c);
+    expect(into.nameSq).toBe('Emri');
+    const inK = place('Q1', { lat: 42.5, lon: 20.8, inKosovo: true, municipalityId: 'm-k', nameSq: 'Emri' });
+    const [out] = applyOverrides([inK], { places: { Q1: { lat: 44, lon: 21 } }, added: [], removed: [] }, c);
+    expect(out.inKosovo).toBe(false);
+    expect(out.nameSq).toBeUndefined();
+    const [kept] = applyOverrides([inK], { places: { Q1: { lat: 44, lon: 21, nameSq: 'X' } }, added: [], removed: [] }, c);
+    expect(kept.nameSq).toBe('X');
+  });
+
   it('keeps an explicitly patched municipality', () => {
     const [p] = applyOverrides([base], { places: { Q1: { lat: 42.5, lon: 20.8, municipalityId: 'm-a' } }, added: [], removed: [] }, ctx);
     expect(p).toMatchObject({ districtId: 'd-k', municipalityId: 'm-a', inKosovo: true });
@@ -128,6 +140,23 @@ describe('parseOverrides', () => {
     expect(() => parseOverrides({ ...ok, _overrideNotes: { Q7: 'why' } })).toThrow(/_overrideNotes.*not patched: Q7/);
     expect(() => parseOverrides({ ...ok, _removedNotes: { Q1: 'why' } })).toThrow(/_removedNotes.*not removed: Q1/);
     expect(() => parseOverrides({ ...ok, _removedNotes: { Q2: 3 } })).toThrow(/must map ids to strings/);
+  });
+  it('type-checks patch values', () => {
+    const bad = (patch: Record<string, unknown>) => () => parseOverrides({ ...ok, places: { Q1: patch } });
+    expect(bad({ tier: 5 })).toThrow(/tier must be 1, 2, 3 or 4/);
+    expect(bad({ tier: '1' })).toThrow(/tier/);
+    expect(bad({ lat: 95 })).toThrow(/lat must be a number between -90 and 90/);
+    expect(bad({ lon: '21' })).toThrow(/lon/);
+    expect(bad({ inKosovo: 'yes' })).toThrow(/inKosovo must be true or false/);
+    expect(bad({ access: 'car' })).toThrow(/access/);
+    expect(bad({ kind: 'other' })).toThrow(/kind/);
+    expect(bad({ municipalityId: 3 })).toThrow(/municipalityId/);
+    expect(bad({ nameEn: 1 })).toThrow(/nameEn must be a string/);
+    expect(() => parseOverrides({ ...ok, places: { Q1: { tier: 2, lat: 44, lon: 21, access: null, municipalityId: null, inKosovo: false } } })).not.toThrow();
+  });
+  it('rejects duplicate ids in added', () => {
+    const a = { id: 'x-a', nameSr: 'А', lat: 44, lon: 21, designations: ['nature_other'] };
+    expect(() => parseOverrides({ ...ok, added: [a, { ...a }] })).toThrow(/x-a more than once/);
   });
   it('rejects an id that is both patched and removed', () => {
     expect(() => parseOverrides({ ...ok, removed: ['Q1'] })).toThrow(/both patched and removed: Q1/);

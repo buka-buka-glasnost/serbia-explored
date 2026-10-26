@@ -89,6 +89,21 @@ describe('estimateAccess', () => {
     expect(await readdir(dir)).toEqual(['access-by-point.v1.json']);
   });
 
+  it('does not trust an empty answer for a whole batch: asks each point alone', async () => {
+    const far = { lat: 43, lon: 20 };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ elements: [] }), { status: 200 })) // batch of 2
+      .mockResolvedValueOnce(new Response(JSON.stringify(pavedNearP), { status: 200 })) // P alone
+      .mockResolvedValueOnce(new Response(JSON.stringify({ elements: [] }), { status: 200 })); // far alone
+    vi.stubGlobal('fetch', fetchMock);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const out = await estimateAccess([{ id: 'Q1', ...P }, { id: 'Q2', ...far }]);
+    warn.mockRestore();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(out.get('Q1')).toBe('door');
+    expect(out.get('Q2')).toBe('hike_boat');
+  }, 10_000);
+
   it('adopts the unversioned cache file once, so nothing is refetched', async () => {
     await writeFile(path.join(dir, 'access-by-point.json'), JSON.stringify({ '44.00000,21.00000': 'rough' }));
     const fetchMock = vi.fn();

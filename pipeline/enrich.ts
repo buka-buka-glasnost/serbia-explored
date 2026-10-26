@@ -17,6 +17,12 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  * Sorted, de-duplicated items cut into batches of at most `max`, where a batch ends after an item whose
  * hash hits 1 in `max / 2`. Boundaries depend on the items themselves, not their positions, so adding or
  * removing one title changes only its own batch (and the cache entry for it) instead of shifting all later ones.
+ *
+ * Trade-off: batches average well under `max` (roughly max/2, less where the cap forces a cut), so a full
+ * fetch makes about twice as many requests as fixed-size chunks would, in exchange for cheap incremental
+ * refreshes. A cap-forced cut is position-based, so an insertion into a capped run can shift batches up to
+ * the next hash boundary. Changing `max` or the cutting rule changes every batch and refetches the whole
+ * cache, so leave them alone unless a full refetch is intended.
  */
 export function stableBatches(items: string[], max: number): string[][] {
   const every = Math.max(1, Math.floor(max / 2));

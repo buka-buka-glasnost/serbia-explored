@@ -39,10 +39,40 @@ function checkDesignations(where: string, v: unknown): void {
   }
 }
 
+const isStr = (v: unknown) => typeof v === 'string';
+const isNum = (lo: number, hi: number) => (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
+const oneOf = (...xs: unknown[]) => (v: unknown) => xs.includes(v);
+const strOrNull = (v: unknown) => v === null || typeof v === 'string';
+const isPhoto = (v: unknown) =>
+  isObject(v) && ['url', 'file', 'author', 'license', 'sourceUrl'].every((k) => typeof v[k] === 'string');
+const isPartOf = (v: unknown) =>
+  isObject(v) && typeof v.id === 'string' && typeof v.nameSr === 'string' && (v.nameEn === undefined || typeof v.nameEn === 'string');
+
+/** Value checks per Place field (designations are checked separately, with a clearer message). */
+const VALUE_CHECKS: Record<Exclude<keyof Place, 'designations'>, [(v: unknown) => boolean, string]> = {
+  id: [isStr, 'a string'], nameSr: [isStr, 'a string'], nameEn: [isStr, 'a string'], nameSq: [isStr, 'a string'],
+  typeSr: [isStr, 'a string'], typeEn: [isStr, 'a string'],
+  kind: [oneOf('culture', 'nature'), '"culture" or "nature"'],
+  tier: [oneOf(1, 2, 3, 4), '1, 2, 3 or 4'],
+  partOf: [isPartOf, 'an object with id and nameSr'],
+  lat: [isNum(-90, 90), 'a number between -90 and 90'], lon: [isNum(-180, 180), 'a number between -180 and 180'],
+  districtId: [strOrNull, 'a string or null'], municipalityId: [strOrNull, 'a string or null'],
+  inKosovo: [(v) => typeof v === 'boolean', 'true or false'],
+  photo: [isPhoto, 'a photo object (url, file, author, license, sourceUrl)'],
+  descSr: [isStr, 'a string'], descEn: [isStr, 'a string'],
+  access: [oneOf('door', 'rough', 'hike_boat', null), '"door", "rough", "hike_boat" or null'],
+  accessEstimated: [(v) => typeof v === 'boolean', 'true or false'],
+  wikipediaSr: [isStr, 'a string'], wikipediaEn: [isStr, 'a string'],
+};
+
 function checkFields(where: string, obj: Record<string, unknown>, allowed: Set<string>): void {
   const bad = Object.keys(obj).filter((k) => !allowed.has(k));
   if (bad.length > 0) throw new Error(`${where}: unknown field(s) ${bad.join(', ')}`);
-  if ('designations' in obj) checkDesignations(where, obj.designations);
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'designations') { checkDesignations(where, v); continue; }
+    const [ok, want] = VALUE_CHECKS[k as keyof typeof VALUE_CHECKS];
+    if (!ok(v)) throw new Error(`${where}: ${k} must be ${want}, got ${JSON.stringify(v)}`);
+  }
 }
 
 /** Validate the shape of data/overrides.json and return it typed. Throws naming the first problem. */
@@ -78,6 +108,7 @@ export function parseOverrides(json: unknown): Overrides {
   }
 
   const addKeys = new Set(Object.keys(PLACE_FIELDS));
+  const addedIds = new Set<string>();
   for (const [i, p] of json.added.entries()) {
     if (!isObject(p)) throw new Error(`${where}: added[${i}] must be an object`);
     const label = `${where} added[${i}]${typeof p.id === 'string' ? ` (${p.id})` : ''}`;
@@ -86,6 +117,8 @@ export function parseOverrides(json: unknown): Overrides {
     if (typeof p.nameSr !== 'string' || !p.nameSr) throw new Error(`${label}: nameSr is required`);
     if (typeof p.lat !== 'number' || typeof p.lon !== 'number') throw new Error(`${label}: lat and lon are required numbers`);
     checkDesignations(label, p.designations);
+    if (addedIds.has(p.id)) throw new Error(`${where}: added has the id ${p.id} more than once`);
+    addedIds.add(p.id);
   }
   return json as unknown as Overrides;
 }
@@ -96,6 +129,8 @@ export interface OverrideContext {
   kosovo: GeoJSON.Feature;
   /** Ids the pipeline dropped before overrides, with the reason, for clearer errors. */
   dropped?: Map<string, string>;
+  /** Albanian name from Wikidata, used when a moved place ends up in Kosovo. */
+  nameSqFor?: (id: string) => string | undefined;
 }
 
 const kindFor = (ds: Designation[]): Place['kind'] =>
@@ -113,6 +148,12 @@ function rederive(p: Place, patch: PlacePatch, ctx: OverrideContext | undefined)
     if (!('districtId' in patch)) p.districtId = area.districtId;
     if (!('municipalityId' in patch)) p.municipalityId = area.municipalityId;
     if (!('inKosovo' in patch)) p.inKosovo = area.inKosovo ?? isInKosovo(p, ctx.kosovo);
+  }
+  // nameSq is shown only in Kosovo: follow inKosovo unless the patch sets it
+  if (!('nameSq' in patch)) {
+    const sq = p.inKosovo ? (p.nameSq ?? ctx?.nameSqFor?.(p.id)) : undefined;
+    if (sq === undefined) delete p.nameSq;
+    else p.nameSq = sq;
   }
   return p;
 }

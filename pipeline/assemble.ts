@@ -127,7 +127,10 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
   for (const id of overrides.removed) {
     if (names.has(id)) dropped.push({ id, name: names.get(id)!, reason: 'removed_by_override' });
   }
-  const final = applyOverrides(places, overrides, { assign, kosovo, dropped: droppedReasons });
+  const rawById = new Map(raw.map((r) => [r.id, r]));
+  const final = applyOverrides(places, overrides, {
+    assign, kosovo, dropped: droppedReasons, nameSqFor: (id) => rawById.get(id)?.nameSq,
+  });
 
   return { places: final.sort(byTierThenName), dropped };
 }

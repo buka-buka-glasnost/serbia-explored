@@ -82,6 +82,31 @@ async function accessCacheFile(): Promise<string> {
   return file;
 }
 
+async function fetchRoads(points: LatLon[]): Promise<Road[]> {
+  const json = await overpass(roadsQuery(points), null, { allowEmpty: true });
+  return (json.elements as OsmWay[])
+    .filter((e) => e.type === 'way' && e.geometry)
+    .map((e) => ({ paved: isPaved(e.tags ?? {}), coords: e.geometry!.map((g) => [g.lon, g.lat] as [number, number]) }));
+}
+
+const pause = () => new Promise((r) => setTimeout(r, 2000)); // be gentle with the public Overpass server
+
+/**
+ * Classify a batch. An empty answer is trusted only for a single point ("no road within 300 m");
+ * for a whole batch it more likely means a server problem, so each point is then asked alone.
+ */
+async function classifyBatch(batch: LatLon[]): Promise<Access[]> {
+  const roads = await fetchRoads(batch);
+  if (roads.length > 0 || batch.length === 1) return batch.map((p) => classifyAccess(p, roads));
+  console.warn(`  ! no roads at all for ${batch.length} points; asking for each point alone`);
+  const out: Access[] = [];
+  for (const p of batch) {
+    await pause();
+    out.push(classifyAccess(p, await fetchRoads([p])));
+  }
+  return out;
+}
+
 /**
  * Access estimate per place id. Results are cached per coordinate, so adding,
  * removing or renaming places only queries OpenStreetMap for points not seen before.
@@ -95,13 +120,10 @@ export async function estimateAccess(points: (LatLon & { id: string })[]): Promi
   for (let i = 0; i < todo.length; i += BATCH) {
     const batch = todo.slice(i, i + BATCH);
     console.log(`  roads ${i + 1}-${i + batch.length} of ${todo.length} new points`);
-    const json = await overpass(roadsQuery(batch), null, { allowEmpty: true });
-    const roads: Road[] = (json.elements as OsmWay[])
-      .filter((e) => e.type === 'way' && e.geometry)
-      .map((e) => ({ paved: isPaved(e.tags ?? {}), coords: e.geometry!.map((g) => [g.lon, g.lat] as [number, number]) }));
-    for (const p of batch) cache[pointKey(p)] = classifyAccess(p, roads);
+    const access = await classifyBatch(batch);
+    batch.forEach((p, j) => { cache[pointKey(p)] = access[j]; });
     await writeFileAtomic(file, JSON.stringify(cache));
-    if (i + BATCH < todo.length) await new Promise((r) => setTimeout(r, 2000)); // be gentle with the public Overpass server
+    if (i + BATCH < todo.length) await pause();
   }
   return new Map(points.map((p) => [p.id, cache[pointKey(p)]]));
 }
