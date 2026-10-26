@@ -59,10 +59,12 @@ export function App() {
     if (selectedId) setDrawerOpen(false);
   }, [selectedId]);
   useEffect(() => {
-    if (!picking) return;
-    setDrawerOpen(false);
-    if (narrow) focusQuietly(cancelPick.current);
-  }, [picking]); // `narrow` is read at that moment only
+    if (picking) setDrawerOpen(false);
+  }, [picking]);
+  // Once the drawer is gone (the top bar is no longer inert), Cancel takes focus.
+  useEffect(() => {
+    if (picking && !drawerShown) focusQuietly(cancelPick.current);
+  }, [picking, drawerShown]);
   useEffect(() => {
     if (!narrow) setDrawerOpen(false);
   }, [narrow]);
