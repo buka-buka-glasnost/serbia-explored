@@ -18,7 +18,7 @@ import {
   type TripState,
   type Visit,
 } from '../storage/db';
-import { resizeImage } from '../storage/photos';
+import { MAX_PHOTOS_PER_VISIT, resizeImage } from '../storage/photos';
 
 export interface AppState {
   status: 'loading' | 'ready' | 'error';
@@ -165,6 +165,10 @@ export const useApp = create<AppState>((set, get) => {
     async addPhoto(id, file) {
       const prev = get().visits[id];
       if (!prev) return;
+      if (prev.photoIds.length >= MAX_PHOTOS_PER_VISIT) {
+        get().showToast('tooManyPhotos', 'info');
+        return;
+      }
       const photoId = crypto.randomUUID();
       try {
         const blob = await resizeImage(file);

@@ -94,6 +94,16 @@ describe('trip', () => {
   });
 });
 
+describe('addPhoto', () => {
+  it('refuses a sixth photo with a toast and stores nothing', async () => {
+    useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: ['a', 'b', 'c', 'd', 'e'] } } });
+    await useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'));
+    expect(useApp.getState().visits.Q1.photoIds).toHaveLength(5);
+    expect(useApp.getState().toast).toEqual({ key: 'tooManyPhotos', kind: 'info' });
+    expect(db.putPhoto).not.toHaveBeenCalled();
+  });
+});
+
 describe('settings', () => {
   it('merges and persists', () => {
     useApp.getState().setSettings({ kosovoShown: false });

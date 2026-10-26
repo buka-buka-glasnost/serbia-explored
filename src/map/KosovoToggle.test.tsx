@@ -15,7 +15,11 @@ describe('KosovoToggle', () => {
     render(<KosovoToggleView />);
     const tip = screen.getByRole('tooltip', { hidden: true });
     expect(tip).not.toHaveClass('open');
-    await userEvent.click(screen.getByRole('button', { name: /info/i }));
+    const btn = screen.getByRole('button', { name: /info/i });
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(btn);
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('tooltip')).toHaveClass('open');
     expect(screen.getByRole('tooltip')).toHaveTextContent(t('kosovoNote', 'en'));
     expect(screen.getByRole('checkbox')).toHaveAccessibleDescription(t('kosovoNote', 'en'));
   });
