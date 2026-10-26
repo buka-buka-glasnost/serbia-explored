@@ -12,10 +12,43 @@
     "Q2860053": { "nameSr": "Архиепископски двор у Београду", "nameEn": "Archbishopric Palace, Belgrade" },
     "Q56304919": { "nameSr": "Дрвена црква у Брестовцу", "nameEn": "Wooden church in Brestovac" },
     "Q56304958": { "nameSr": "Дрвена црква у Поповици", "nameEn": "Wooden church in Popovica" },
-    "Q56304959": { "nameSr": "Дрвена црква у Трњанима", "nameEn": "Wooden church in Trnjane" }
+    "Q56304959": { "nameSr": "Дрвена црква у Трњанима", "nameEn": "Wooden church in Trnjane" },
+    "Q295408": { "nameSr": "Мраморје (Перућац)", "nameEn": "Mramorje (Perućac)" },
+    "Q64495118": { "nameSr": "Мраморје (Растиште)", "nameEn": "Mramorje (Rastište)" },
+    "Q64495121": { "nameSr": "Грчко гробље (Хрта)", "nameEn": "Grčko groblje (Hrta)" },
+    "Q3583367": { "nameSr": "Црква Светог Николе у Средској (Драјчићи)", "nameEn": "St. Nicholas Church, Sredska (Drajčići)" },
+    "Q20435253": { "nameSr": "Рудник угља у Врднику", "nameEn": "Vrdnik coal mine" },
+    "Q118214704": { "nameEn": "Osredak Special Nature Reserve" },
+    "Q2940431": { "designations": ["ramsar", "special_nature_reserve"] },
+    "Q16088014": { "designations": ["ramsar", "special_nature_reserve"] }
   },
   "added": [],
-  "removed": ["Q391195"],
+  "removed": [
+    "Q391195",
+    "Q31183217", "Q108211447", "Q12631168", "Q30974556", "Q120034181", "Q120034182", "Q118170717",
+    "Q98078408", "Q118170788", "Q108211929", "Q28039966", "Q108212127",
+    "Q122069185", "Q122069947", "Q118214291", "Q16081218", "Q118218426", "Q118214705"
+  ],
+  "_removedNotes": {
+    "Q31183217": "same site as Q64495118 (Mramorje, Rastište)",
+    "Q108211447": "same necropolis as Q64495121 (Grčko groblje, Hrta)",
+    "Q12631168": "same complex as Q20526216 (Franciscan monastery, Subotica)",
+    "Q30974556": "same site as Q3485398 (Rudna Glava)",
+    "Q120034181": "same cave as Q25048156 (Lazareva pećina)",
+    "Q120034182": "same cave as Q5240279 (Risovača)",
+    "Q118170717": "same cave as Q5240279 (Risovača)",
+    "Q98078408": "same reserve as Q118214704 (Osredak)",
+    "Q118170788": "same as Q31182173 (black pine, Ibar gorge)",
+    "Q108211929": "same building as Q98108876 (Obilićev venac 20, Niš)",
+    "Q28039966": "same as Q29830671 (Kamenac monastery)",
+    "Q108212127": "same church as Q26257875 (Transfiguration, Sokobanja)",
+    "Q122069185": "same as Q97204993 (Tupižnička ledenica)",
+    "Q122069947": "same as Q110045208 (Prerast, Zamna canyon)",
+    "Q118214291": "same as Q130609850 (Zemun loess profile)",
+    "Q16081218": "same as Q137478329 (Obrenovac Zabran)",
+    "Q118218426": "same as Q2940431 (Carska bara)",
+    "Q118214705": "same as Q16088014 (Peštersko polje)"
+  },
   "partOfNames": {
     "Q29000652": { "nameSr": "Стећци — средњовековни надгробни споменици", "nameEn": "Stećci medieval tombstone graveyards" }
   }
