@@ -54,9 +54,11 @@ describe('groupRows', () => {
     expect(p.partOfIds).toContain('Q10913999');
   });
 
-  it('keeps Kosovo items too (Gračanica) and de-duplicates repeated rows', () => {
+  it('keeps Gracanica (a monastery in Kosovo) with its id, designation and coordinate', () => {
+    // groupRows does no country filtering; Kosovo-only filtering happens later, by coordinate.
     const p = byId(heritage, 'Q1137661');
     expect(p.designations).toEqual(['unesco_whs_part']);
+    expect(p.coord).toEqual({ lat: 42.598333333, lon: 21.193333333 });
     expect(p.partOfIds).toEqual(['Q1982106']);
   });
 
