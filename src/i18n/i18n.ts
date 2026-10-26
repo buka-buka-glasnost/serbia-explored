@@ -24,6 +24,13 @@ export function placeName(p: Place, lang: Lang): string {
   return localName(p, lang);
 }
 
+/** Kind of place ("манастир", "monastery"), from Wikidata; English falls back to Latin Serbian. */
+export function placeType(p: Place, lang: Lang): string | undefined {
+  if (lang === 'en') return p.typeEn ?? (p.typeSr ? toLatin(p.typeSr) : undefined);
+  if (!p.typeSr) return undefined;
+  return lang === 'sr-Latn' ? toLatin(p.typeSr) : p.typeSr;
+}
+
 export function areaName(a: AreaProps, lang: Lang): string {
   return localName(a, lang);
 }

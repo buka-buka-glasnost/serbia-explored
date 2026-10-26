@@ -21,6 +21,7 @@ export function ProgressSummary({ compact = false }: { compact?: boolean }) {
       <div className="progress-overall">
         <span className="progress-count">{overall.visited}</span>
         <span className="progress-total">/ {overall.total} {t('visitedOf', lang)}</span>
+        {!compact && <span className="progress-pct">{pct(overall.visited, overall.total)}%</span>}
       </div>
       {!compact && (
         <ul>

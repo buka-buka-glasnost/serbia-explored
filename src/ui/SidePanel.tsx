@@ -22,7 +22,16 @@ export function SidePanel({ onClose, closing = false }: { onClose?: () => void; 
       inert={closing || undefined}
     >
       <header className="panel-header">
-        <h1>{t('appTitle', lang)}</h1>
+        <h1>
+          <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 2.5c-4 0-7 3-7 6.9 0 5 7 12.1 7 12.1s7-7.1 7-12.1C19 5.5 16 2.5 12 2.5z"
+              fill="currentColor"
+            />
+            <circle cx="12" cy="9.4" r="2.6" fill="#fffdf9" />
+          </svg>
+          {t('appTitle', lang)}
+        </h1>
         <LanguageSwitch />
         {onClose && (
           <button type="button" className="drawer-close" aria-label={t('close', lang)} onClick={onClose}>

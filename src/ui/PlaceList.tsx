@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/store';
-import { placeName, t } from '../i18n/i18n';
+import { areaName, placeName, placeType, t } from '../i18n/i18n';
 import { filterPlaces, sortForDisplay, splitByArea } from '../logic/filters';
 import type { AreaProps, Place } from '../shared/types';
 
-const ROW_HEIGHT = 36;
+const ROW_HEIGHT = 52;
 const VIRTUALISE_ABOVE = 500;
 const OVERSCAN = 8;
 
@@ -41,6 +41,15 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
     ];
   }, [filtered, split, lang]);
 
+  const municipalities = useMemo(
+    () => new Map((areas?.features ?? []).map((f) => [f.properties.id, f.properties])),
+    [areas],
+  );
+  const metaLine = (p: Place) => {
+    const m = p.municipalityId ? municipalities.get(p.municipalityId) : undefined;
+    return [placeType(p, lang), m && areaName(m, lang)].filter(Boolean).join(' · ');
+  };
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewport, setViewport] = useState(600);
@@ -70,7 +79,10 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
         onClick={() => { select(row.place.id); onSelect?.(); }}
       >
         <span className={`dot tier${row.place.tier}`} aria-hidden="true" />
-        <span className="place-row-name">{placeName(row.place, lang)}</span>
+        <span className="place-row-text">
+          <span className="place-row-name">{placeName(row.place, lang)}</span>
+          {metaLine(row.place) && <span className="place-row-meta">{metaLine(row.place)}</span>}
+        </span>
         {visits[row.place.id] && <span className="place-row-check" aria-label={t('visitedCounter', lang)}>✓</span>}
       </button>
     );

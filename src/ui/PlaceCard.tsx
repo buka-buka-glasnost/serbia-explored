@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useApp } from '../state/store';
-import { areaName, placeDescription, placeName, t } from '../i18n/i18n';
+import { areaName, placeDescription, placeName, placeType, t } from '../i18n/i18n';
 import { toLatin } from '../shared/translit';
 import type { Access, Designation, Lang, Place } from '../shared/types';
 import type { StringKey } from '../i18n/strings';
@@ -18,12 +18,6 @@ const WORLD_CLASS: ReadonlySet<Designation> = new Set(['unesco_whs', 'unesco_whs
 // Bottom-sheet drag: close past this distance, or on a quick downward flick.
 const DISMISS_PX = 120;
 const DISMISS_VELOCITY = 0.11; // px per ms
-
-function placeType(p: Place, lang: Lang): string | undefined {
-  if (lang === 'en') return p.typeEn ?? (p.typeSr ? toLatin(p.typeSr) : undefined);
-  if (!p.typeSr) return undefined;
-  return lang === 'sr-Latn' ? toLatin(p.typeSr) : p.typeSr;
-}
 
 function partOfName(p: NonNullable<Place['partOf']>, lang: Lang): string {
   if (lang === 'sr-Cyrl') return p.nameSr;

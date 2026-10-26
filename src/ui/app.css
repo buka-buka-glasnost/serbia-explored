@@ -1,12 +1,13 @@
 /* ---------- Tokens ---------- */
 :root {
-  --accent: #1a5fb4;
-  --accent-soft: #e8f0fb;
-  --text: #1d2125;
-  --muted: #6b7280;
-  --border: #e3e5e8;
-  --surface: #fff;
-  --surface-2: #f6f7f8;
+  --accent: #24508a;
+  --accent-soft: #e8eef6;
+  --text: #1f1b16;
+  --muted: #6f675d;
+  --border: #e7e0d5;
+  --surface: #fffdf9;
+  --surface-2: #f5f1ea;
+  --font-display: 'Literata', Georgia, 'Times New Roman', serif;
   --danger: #a93226;
   --visited: #1e8449;
   --tier1: #c0392b;
@@ -66,7 +67,8 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .side-panel { width: 300px; flex: none; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--border); min-height: 0; overflow-y: auto; }
 .side-panel > * { flex-shrink: 0; }
 .panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; }
-.panel-header h1 { flex: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; }
+.panel-header h1 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+.brand-mark { flex: none; width: 22px; height: 22px; color: var(--tier1); }
 
 .lang-switch { display: inline-flex; flex: none; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
 .lang-switch button { padding: 3px 8px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: transform 160ms var(--ease-out); }
@@ -74,7 +76,8 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .progress { padding: 4px 14px 12px; }
 .progress-overall { display: flex; align-items: baseline; gap: 6px; }
-.progress-count { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.progress-count { font-family: var(--font-display); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.progress-pct { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .progress-total { color: var(--muted); }
 .progress ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .progress li { display: grid; grid-template-columns: 76px 1fr auto; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
@@ -108,12 +111,14 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .side-panel > .place-list { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
 .place-list.empty { padding: 12px 14px; color: var(--muted); }
-.place-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 36px; box-sizing: border-box; padding: 0 14px; border: 0; background: var(--surface); color: inherit; text-align: left; font: inherit; cursor: pointer; }
-.place-row.selected { background: var(--accent-soft); }
+.place-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 52px; box-sizing: border-box; padding: 0 14px; border: 0; border-bottom: 1px solid var(--surface-2); background: var(--surface); color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.place-row.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
 .place-row.dim { opacity: 0.55; }
-.place-row-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.place-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.place-row-name, .place-row-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.place-row-meta { color: var(--muted); font-size: 12px; }
 .place-row-check { color: var(--visited); font-weight: 700; }
-.list-heading { margin: 0; height: 36px; box-sizing: border-box; padding: 12px 14px 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); }
+.list-heading { margin: 0; height: 52px; display: flex; align-items: flex-end; padding-bottom: 8px !important; box-sizing: border-box; padding: 12px 14px 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); }
 .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .dot.tier1 { background: var(--tier1); } .dot.tier2 { background: var(--tier2); } .dot.tier3 { background: var(--tier3); } .dot.tier4 { background: var(--tier4); }
 
@@ -140,7 +145,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 @starting-style { .place-card { opacity: 0; transform: translateY(8px) scale(0.98); } }
 .place-card[data-state='closing'] { opacity: 0; transform: translateY(8px) scale(0.98); transition-duration: 150ms; pointer-events: none; }
 .card-body { padding: 14px 16px 0; }
-.place-card h2 { margin: 0 0 6px; font-size: 19px; font-weight: 650; letter-spacing: -0.01em; line-height: 1.25; padding-right: 28px; }
+.place-card h2 { margin: 0 0 6px; font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; padding-right: 28px; }
 .card-close { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(255,255,255,.9); box-shadow: 0 1px 3px rgba(0,0,0,.2); font-size: 18px; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out); }
 .card-close:active { transform: scale(0.94); }
 .card-photo { position: relative; margin: 0; aspect-ratio: 16 / 9; background: #eef0f2; border-radius: 12px 12px 0 0; overflow: hidden; }
@@ -178,6 +183,11 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .thumb { position: relative; width: 60px; height: 60px; border-radius: 6px; overflow: hidden; background: #eee; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb button { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 0; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; line-height: 1; }
+
+/* ---------- Map ---------- */
+/* Quieter base map so the tier colours carry the meaning; markers and overlays are unaffected. */
+.leaflet-container { background: #ece7de; font-family: inherit; }
+.leaflet-tile-pane { filter: saturate(0.5) contrast(0.95) brightness(1.04) sepia(0.08); }
 
 /* ---------- Map controls ---------- */
 .leaflet-bar.kosovo-control, .leaflet-bar.legend { border: 0; box-shadow: 0 1px 4px rgba(16, 24, 40, .2); }
@@ -234,7 +244,6 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
   @starting-style { .drawer-backdrop { opacity: 0; } }
   .drawer-backdrop[data-state='closing'] { opacity: 0; }
   .drawer-close { display: block; min-width: 36px; min-height: 36px; border: 0; background: none; font-size: 1.6rem; line-height: 1; cursor: pointer; }
-  .place-row { height: 44px; }
   .legend { display: none; }
   /* Kosovo toggle stays top-right, below the top bar and the attribution */
   .leaflet-top.leaflet-right { top: calc(74px + env(safe-area-inset-top)); }
