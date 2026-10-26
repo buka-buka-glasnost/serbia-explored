@@ -34,6 +34,18 @@ export function displayName(r: RawPlace): string {
   return r.nameSrLatn ?? r.nameSr ?? r.nameEn ?? r.id;
 }
 
+/** Display name of a WHS composite; an override supplies one when the raw labels have none. */
+function partOfFor(w: RawPlace, overrides: Overrides): NonNullable<Place['partOf']> {
+  const o = overrides.partOfNames?.[w.id];
+  const part: NonNullable<Place['partOf']> = {
+    id: w.id,
+    nameSr: o?.nameSr ?? displayName(w),
+    nameEn: o?.nameEn ?? w.nameEn,
+  };
+  if (part.nameEn === undefined) delete part.nameEn;
+  return part;
+}
+
 const byTierThenName = (a: Place, b: Place) =>
   a.tier - b.tier || a.nameSr.localeCompare(b.nameSr, 'sr');
 
@@ -61,13 +73,13 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
     const whsParent = r.partOfIds.map((q) => whsById.get(q)).find((w) => w !== undefined);
     if (whsParent && !designations.includes('unesco_whs_part')) designations.push('unesco_whs_part');
 
-    // 4. Kosovo
-    const inKosovo = isInKosovo(r.coord, kosovo);
+    // 4. Kosovo: the assigned municipality decides; the outline only when no area matched
+    const area = assignArea(r.coord, areas);
+    const inKosovo = area.inKosovo ?? isInKosovo(r.coord, kosovo);
     const allNature = designations.every((d) => NATURE_DESIGNATIONS.has(d));
     if (inKosovo && allNature && !allowlist.has(r.id)) { drop(r, 'kosovo_nature_not_serbian'); continue; }
 
     // 5. area
-    const area = assignArea(r.coord, areas);
     if (!area.municipalityId && !inKosovo) { drop(r, 'outside_serbia'); continue; }
 
     const photo = r.imageFile ? input.photos.get(r.imageFile) : undefined;
@@ -83,9 +95,7 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
       kind: allNature ? 'nature' : 'culture',
       tier: tierFor(designations),
       designations,
-      partOf: whsParent
-        ? { id: whsParent.id, nameSr: displayName(whsParent), nameEn: whsParent.nameEn }
-        : undefined,
+      partOf: whsParent ? partOfFor(whsParent, overrides) : undefined,
       lat: r.coord.lat,
       lon: r.coord.lon,
       districtId: area.districtId,

@@ -68,6 +68,22 @@ describe('assemblePlaces', () => {
     expect(dropped.map((d) => [d.id, d.reason])).toEqual([['Q26928875', 'kosovo_nature_not_serbian']]);
   });
 
+  it('takes inKosovo from the assigned municipality when the point is just outside the outline', () => {
+    // 0.01 deg south of the Kosovo outline, snapped to m-k
+    const { places } = run([raw('Q50', { coord: { lat: 42.19, lon: 20.8 } })]);
+    expect(places[0]).toMatchObject({ municipalityId: 'm-k', inKosovo: true });
+  });
+
+  it('uses a partOfNames override when the composite has no labels', () => {
+    const whs = raw('Q10', { nameSr: undefined, designations: ['unesco_whs'] });
+    const part = raw('Q11', { partOfIds: ['Q10'] });
+    const overrides: Overrides = {
+      ...noOverrides, partOfNames: { Q10: { nameSr: 'Композит', nameEn: 'Composite' } },
+    };
+    const { places } = run([whs, part], { overrides });
+    expect(places[0].partOf).toEqual({ id: 'Q10', nameSr: 'Композит', nameEn: 'Composite' });
+  });
+
   it('keeps a Kosovo monastery with inKosovo and nameSq', () => {
     const { places } = run([
       raw('Q30', { coord: { lat: 42.65, lon: 20.4 }, nameSq: 'Manastiri' }),

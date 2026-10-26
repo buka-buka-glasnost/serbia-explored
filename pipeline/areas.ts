@@ -305,7 +305,7 @@ function distanceKm(pt: GeoJSON.Feature<GeoJSON.Point>, f: AreaFeature): number 
 export function assignArea(
   p: LatLon,
   areas: AreaFC,
-): { districtId: string | null; municipalityId: string | null } {
+): { districtId: string | null; municipalityId: string | null; inKosovo: boolean | null } {
   const pt = turf.point([p.lon, p.lat]);
   const muns = areas.features.filter((f) => f.properties.level === 'municipality' && nearBbox(p, f));
   let hit = muns.find((f) => turf.booleanPointInPolygon(pt, f));
@@ -316,8 +316,12 @@ export function assignArea(
       if (d <= best) { best = d; hit = f; }
     }
   }
-  if (!hit) return { districtId: null, municipalityId: null };
-  return { districtId: hit.properties.districtId ?? null, municipalityId: hit.properties.id };
+  if (!hit) return { districtId: null, municipalityId: null, inKosovo: null };
+  return {
+    districtId: hit.properties.districtId ?? null,
+    municipalityId: hit.properties.id,
+    inKosovo: hit.properties.inKosovo,
+  };
 }
 
 export function isInKosovo(p: LatLon, kosovo: GeoJSON.Feature): boolean {

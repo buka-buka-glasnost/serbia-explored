@@ -27,18 +27,21 @@ describe('assignArea', () => {
     expect(assignArea({ lat: 44.05, lon: 20.05 }, serbian)).toEqual({
       districtId: 'd-test',
       municipalityId: 'm-a',
+      inKosovo: false,
     });
   });
   it('snaps a point 500 m outside to the nearest municipality', () => {
     expect(assignArea({ lat: 44.05, lon: 19.9937 }, serbian)).toEqual({
       districtId: 'd-test',
       municipalityId: 'm-a',
+      inKosovo: false,
     });
   });
   it('returns nulls for a point 50 km away', () => {
     expect(assignArea({ lat: 44.05, lon: 21 }, serbian)).toEqual({
       districtId: null,
       municipalityId: null,
+      inKosovo: null,
     });
   });
 });

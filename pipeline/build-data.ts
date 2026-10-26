@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { Photo, PlacesFile } from '../src/shared/types';
 import { fetchAreas } from './areas';
 import { assemblePlaces, displayName, type DroppedPlace } from './assemble';
+import { checkPlaces } from './checks';
 import { DESIGNATION_BY_QID, NATURE_CLASS_BY_QID } from './designations';
 import { fetchExtracts, fetchPhotoInfo } from './enrich';
 import { groupRows, mergeRaw, type RawPlace } from './normalize';
@@ -116,9 +117,16 @@ async function main() {
       `by name ${reconciled.byName}, missing ${reconciled.missing.length}`,
     );
   }
+  const problems = checkPlaces(places, areas);
+  console.log(`Checks: ${problems.length} problem(s)`);
+  for (const p of problems) console.log(`  ! ${p}`);
   console.log('File sizes:');
   for (const f of ['places.json', 'areas.geojson', 'kosovo.geojson']) {
     console.log(`  ${f}: ${await size(path.join(OUT_DIR, f))}`);
+  }
+  if (problems.length > 0 && !process.argv.includes('--allow-warnings')) {
+    console.error('Data checks failed (use --allow-warnings to accept).');
+    process.exit(1);
   }
 }
 

@@ -4,6 +4,8 @@ export interface Overrides {
   places: Record<string, Partial<Omit<Place, 'id'>>>; // patch by id
   added: Place[]; // manual places (id "x-<slug>")
   removed: string[]; // ids to drop
+  /** Display names for WHS composites (partOf) whose raw labels are missing. */
+  partOfNames?: Record<string, { nameSr: string; nameEn?: string }>;
 }
 
 /** Patch, add and remove places. Unknown ids throw (they are almost always typos). */
