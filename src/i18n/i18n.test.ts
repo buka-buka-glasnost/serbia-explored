@@ -44,7 +44,7 @@ describe('i18n', () => {
   });
   it('translates strings', () => {
     expect(t('appTitle', 'en')).toBe('Serbia Explored');
-    expect(t('appTitle', 'sr-Latn')).toBe('Srbija — istraženo');
+    expect(t('appTitle', 'sr-Latn')).toBe('Istraži Srbiju');
   });
   it('has non-empty sr and en for every key', () => {
     for (const k of Object.keys(STRINGS) as StringKey[]) {

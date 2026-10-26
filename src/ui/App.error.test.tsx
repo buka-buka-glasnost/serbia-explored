@@ -19,7 +19,7 @@ describe('App error screen and title', () => {
     render(<App />);
     expect(screen.getByRole('alert')).toHaveTextContent('Подаци за мапу нису могли да се учитају.');
     expect(screen.getByRole('button', { name: 'Покушај поново' })).toBeInTheDocument();
-    expect(document.title).toBe('Србија — истражено');
+    expect(document.title).toBe('Истражи Србију');
     cleanup();
     useApp.setState({ settings: { ...initial.settings, lang: 'en' } });
     render(<App />);

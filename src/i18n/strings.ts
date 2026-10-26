@@ -5,7 +5,7 @@ export const STRINGS = {
   },
   retry: { sr: 'Покушај поново', en: 'Retry' },
   language: { sr: 'Језик', en: 'Language' },
-  appTitle: { sr: 'Србија — истражено', en: 'Serbia Explored' },
+  appTitle: { sr: 'Истражи Србију', en: 'Serbia Explored' },
   visited: { sr: 'Посећено', en: 'Visited' },
   markVisited: { sr: 'Означи као посећено', en: 'Mark as visited' },
   unmarkVisited: { sr: 'Уклони ознаку посећеног', en: 'Unmark as visited' },
@@ -85,7 +85,7 @@ export const STRINGS = {
   aboutApp: { sr: 'О апликацији', en: 'About this app' },
   welcomeTitle: { sr: 'Добродошли!', en: 'Welcome!' },
   welcomeIntro: {
-    sr: 'Србија — истражено је ваша лична мапа свега што вреди видети у Србији: манастира, тврђава, споменика културе и природних лепота. Обележавајте шта сте посетили и гледајте како се мапа попуњава.',
+    sr: '„Истражи Србију“ је ваша лична мапа свега што вреди видети у Србији: манастира, тврђава, споменика културе и природних лепота. Обележавајте шта сте посетили и гледајте како се мапа попуњава.',
     en: 'Serbia Explored is your personal map of everything worth seeing in Serbia: monasteries, fortresses, cultural monuments and natural wonders. Tick off what you have visited and watch the map fill up.',
   },
   welcomeMapTitle: { sr: 'Мапа', en: 'The map' },
