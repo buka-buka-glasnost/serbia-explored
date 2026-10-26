@@ -81,8 +81,7 @@
       "designations": [
         "unesco_biosphere",
         "nature_other"
-      ],
-      "tier": 1
+      ]
     },
     "Q2940431": {
       "designations": [
@@ -122,6 +121,7 @@
     "Q1118811"
   ],
   "_removedNotes": {
+    "Q391195": "duplicate Šar planina mountain range; the national park Q1412844 is kept",
     "Q31183217": "same site as Q64495118 (Mramorje, Rastište)",
     "Q108211447": "same necropolis as Q64495121 (Grčko groblje, Hrta)",
     "Q12631168": "same complex as Q20526216 (Franciscan monastery, Subotica)",

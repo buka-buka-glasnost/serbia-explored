@@ -1,9 +1,9 @@
-import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import * as turf from '@turf/turf';
 import type { Access, Designation, LatLon } from '../src/shared/types';
-import { overpass } from './areas';
+import { readJsonCache, writeFileAtomic } from './http';
+import { overpass } from './overpass';
 
 export interface Road { paved: boolean; coords: [number, number][] } // [lon, lat]
 
@@ -59,38 +59,49 @@ function roadsQuery(points: LatLon[]): string {
 
 const pointKey = (p: LatLon) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
 
-function accessCacheFile(): string {
-  return path.join(process.env.OSM_CACHE_DIR ?? path.join('data', 'cache', 'osm'), 'access-by-point.json');
+/**
+ * Bump when DRIVABLE, PAVED, SEARCH_M, DOOR_M or classifyAccess change: the per-point cache
+ * file is named after it, so changed rules start from an empty cache.
+ */
+export const ACCESS_RULES_VERSION = 1;
+
+function cacheDir(): string {
+  return process.env.OSM_CACHE_DIR ?? path.join('data', 'cache', 'osm');
+}
+
+const exists = (f: string) => stat(f).then(() => true, () => false);
+
+/** The versioned cache file; a pre-versioning `access-by-point.json` (same rules as v1) is adopted once. */
+async function accessCacheFile(): Promise<string> {
+  const file = path.join(cacheDir(), `access-by-point.v${ACCESS_RULES_VERSION}.json`);
+  const legacy = path.join(cacheDir(), 'access-by-point.json');
+  if (ACCESS_RULES_VERSION === 1 && !(await exists(file)) && (await exists(legacy))) {
+    await copyFile(legacy, file);
+    console.log(`  adopted ${legacy} as ${path.basename(file)}`);
+  }
+  return file;
 }
 
 /**
  * Access estimate per place id. Results are cached per coordinate, so adding,
  * removing or renaming places only queries OpenStreetMap for points not seen before.
+ * Road responses themselves are not cached: the per-point results are the cache.
  */
 export async function estimateAccess(points: (LatLon & { id: string })[]): Promise<Map<string, Access>> {
-  const file = accessCacheFile();
-  let cache: Record<string, Access> = {};
-  if (process.env.REFRESH !== '1') {
-    try {
-      cache = JSON.parse(await readFile(file, 'utf8')) as Record<string, Access>;
-    } catch {
-      /* no cache yet */
-    }
-  }
-  const todo = points.filter((p) => !(pointKey(p) in cache));
+  const file = await accessCacheFile();
+  const cache: Record<string, Access> =
+    (process.env.REFRESH !== '1' ? await readJsonCache<Record<string, Access>>(file) : undefined) ?? {};
+  const todo = [...new Map(points.filter((p) => !(pointKey(p) in cache)).map((p) => [pointKey(p), p])).values()];
   for (let i = 0; i < todo.length; i += BATCH) {
     const batch = todo.slice(i, i + BATCH);
-    const query = roadsQuery(batch);
-    const key = 'roads-' + createHash('sha1').update(query).digest('hex').slice(0, 10);
     console.log(`  roads ${i + 1}-${i + batch.length} of ${todo.length} new points`);
-    const json = await overpass(query, key);
+    const json = await overpass(roadsQuery(batch), null, { allowEmpty: true });
     const roads: Road[] = (json.elements as OsmWay[])
       .filter((e) => e.type === 'way' && e.geometry)
       .map((e) => ({ paved: isPaved(e.tags ?? {}), coords: e.geometry!.map((g) => [g.lon, g.lat] as [number, number]) }));
     for (const p of batch) cache[pointKey(p)] = classifyAccess(p, roads);
-    await mkdir(path.dirname(file), { recursive: true });
-    await writeFile(file, JSON.stringify(cache));
-    await new Promise((r) => setTimeout(r, 2000)); // be gentle with the public Overpass server
+    await writeFileAtomic(file, JSON.stringify(cache));
+    if (i + BATCH < todo.length) await new Promise((r) => setTimeout(r, 2000)); // be gentle with the public Overpass server
   }
   return new Map(points.map((p) => [p.id, cache[pointKey(p)]]));
 }

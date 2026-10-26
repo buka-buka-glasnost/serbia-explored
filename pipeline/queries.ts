@@ -1,5 +1,5 @@
 const SELECT =
-  '?item ?code ?coord ?image ?labelSr ?labelSrEl ?labelEn ?labelSq ?typeSr ?typeEn ?partOf ?srwiki ?enwiki';
+  '?item ?code ?coord ?image ?labelSr ?labelSrEl ?labelEn ?labelSq ?type ?typeSr ?typeEn ?partOf ?srwiki ?enwiki';
 
 function tail(): string {
   return `

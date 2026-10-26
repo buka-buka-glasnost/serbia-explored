@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { designatedItemsQuery, natureClassQuery } from './queries';
 
 const COLUMNS =
-  '?item ?code ?coord ?image ?labelSr ?labelSrEl ?labelEn ?labelSq ?typeSr ?typeEn ?partOf ?srwiki ?enwiki';
+  '?item ?code ?coord ?image ?labelSr ?labelSrEl ?labelEn ?labelSq ?type ?typeSr ?typeEn ?partOf ?srwiki ?enwiki';
 
 describe('query builders', () => {
   it('designatedItemsQuery selects all columns and joins on P1435', () => {

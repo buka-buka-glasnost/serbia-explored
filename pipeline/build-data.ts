@@ -1,20 +1,22 @@
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { readFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 import type { Photo, PlacesFile } from '../src/shared/types';
 import { estimateAccess, shouldEstimate } from './access';
 import { fetchAreas } from './areas';
 import { assemblePlaces, displayName, type DroppedPlace } from './assemble';
-import { checkPlaces } from './checks';
+import { checkAreaCounts, checkPlaces } from './checks';
 import { DESIGNATION_BY_QID, NATURE_CLASS_BY_QID } from './designations';
 import { fetchExtracts, fetchPhotoInfo } from './enrich';
 import { groupRows, mergeRaw, type RawPlace } from './normalize';
-import type { Overrides } from './overrides';
+import { writeFileAtomic } from './http';
+import { parseOverrides } from './overrides';
 import { designatedItemsQuery, natureClassQuery } from './queries';
-import { reconcile, type ReconcileResult } from './reconcile';
+import { missingCsv, reconcile, type ReconcileResult } from './reconcile';
 import { runSparql } from './sparql';
 
 const OUT_DIR = path.join('public', 'data');
-const REPORT = path.join('data', 'reports', 'dropped.csv');
+const DROPPED_REPORT = path.join('data', 'reports', 'dropped.csv');
+const MISSING_REPORT = path.join('data', 'reports', 'missing-from-map.csv');
 
 async function fetchRaw(): Promise<RawPlace[]> {
   let all: RawPlace[] = [];
@@ -40,8 +42,21 @@ function count<T>(items: T[], key: (t: T) => string): [string, number][] {
   return [...m.entries()].sort(([a], [b]) => a.localeCompare(b));
 }
 
-async function size(file: string): Promise<string> {
-  return `${((await stat(file)).size / 1024 / 1024).toFixed(2)} MB`;
+const size = (text: string) => `${(Buffer.byteLength(text) / 1024 / 1024).toFixed(2)} MB`;
+
+/**
+ * Write every output to a temp file first, then rename them all, so a failure while writing
+ * leaves the previous data in place rather than a mix of old and new files.
+ */
+async function writeAll(files: [string, string][]): Promise<void> {
+  const tmp = (f: string) => `${f}.${process.pid}.tmp`;
+  try {
+    for (const [f, text] of files) await writeFileAtomic(tmp(f), text);
+  } catch (e) {
+    for (const [f] of files) await rm(tmp(f), { force: true });
+    throw e;
+  }
+  for (const [f] of files) await rename(tmp(f), f);
 }
 
 async function main() {
@@ -54,7 +69,7 @@ async function main() {
   const allowlist = JSON.parse(
     await readFile(path.join('pipeline', 'data', 'kosovo-nature-allowlist.json'), 'utf8'),
   ) as string[];
-  const overrides = JSON.parse(await readFile(path.join('data', 'overrides.json'), 'utf8')) as Overrides;
+  const overrides = parseOverrides(JSON.parse(await readFile(path.join('data', 'overrides.json'), 'utf8')));
   const base = {
     raw, areas, kosovo, kosovoNatureAllowlist: allowlist, overrides,
   };
@@ -81,26 +96,32 @@ async function main() {
 
   const { places, dropped } = assemblePlaces({ ...base, extractsSr, extractsEn, photos, accessEstimates });
 
-  await mkdir(OUT_DIR, { recursive: true });
-  await mkdir(path.dirname(REPORT), { recursive: true });
-  const file: PlacesFile = { generatedAt: new Date().toISOString(), places };
-  await writeFile(path.join(OUT_DIR, 'places.json'), JSON.stringify(file));
-  await writeFile(path.join(OUT_DIR, 'areas.geojson'), JSON.stringify(areas));
-  await writeFile(path.join(OUT_DIR, 'kosovo.geojson'), JSON.stringify(kosovo));
-  await writeFile(path.join(OUT_DIR, 'outlines.geojson'), JSON.stringify(outlines));
-  const sortedDropped: DroppedPlace[] = [...dropped].sort(
-    (a, b) => a.reason.localeCompare(b.reason) || a.id.localeCompare(b.id, 'en', { numeric: true }),
-  );
-  await writeFile(
-    REPORT,
-    ['id,name,reason', ...sortedDropped.map((d) => [d.id, d.name, d.reason].map(csvCell).join(','))].join('\n') + '\n',
-  );
+  // All checks run before anything is written, so a bad run never replaces good data.
+  const areaProblems = checkAreaCounts(areas);
+  if (areaProblems.length > 0) {
+    throw new Error(`Unexpected area counts (OSM boundaries changed?):\n  ${areaProblems.join('\n  ')}`);
+  }
+  const problems = checkPlaces(places, areas);
 
   let reconciled: ReconcileResult | null = null;
   if (!process.argv.includes('--skip-reconcile')) {
     console.log('Reconciling against the official register');
-    reconciled = await reconcile(places, path.join('data', 'reports', 'missing-from-map.csv'));
+    reconciled = await reconcile(places, areas);
   }
+
+  const file: PlacesFile = { generatedAt: new Date().toISOString(), places };
+  const sortedDropped: DroppedPlace[] = [...dropped].sort(
+    (a, b) => a.reason.localeCompare(b.reason) || a.id.localeCompare(b.id, 'en', { numeric: true }),
+  );
+  const outputs: [string, string][] = [
+    [path.join(OUT_DIR, 'places.json'), JSON.stringify(file)],
+    [path.join(OUT_DIR, 'areas.geojson'), JSON.stringify(areas)],
+    [path.join(OUT_DIR, 'kosovo.geojson'), JSON.stringify(kosovo)],
+    [path.join(OUT_DIR, 'outlines.geojson'), JSON.stringify(outlines)],
+    [DROPPED_REPORT,
+      ['id,name,reason', ...sortedDropped.map((d) => [d.id, d.name, d.reason].map(csvCell).join(','))].join('\n') + '\n'],
+  ];
+  if (reconciled) outputs.push([MISSING_REPORT, missingCsv(reconciled.missing)]);
 
   console.log('\n=== Summary ===');
   console.log(`Places: ${places.length}   Dropped: ${dropped.length}`);
@@ -123,17 +144,17 @@ async function main() {
       `by name ${reconciled.byName}, missing ${reconciled.missing.length}`,
     );
   }
-  const problems = checkPlaces(places, areas);
   console.log(`Checks: ${problems.length} problem(s)`);
   for (const p of problems) console.log(`  ! ${p}`);
   console.log('File sizes:');
-  for (const f of ['places.json', 'areas.geojson', 'kosovo.geojson', 'outlines.geojson']) {
-    console.log(`  ${f}: ${await size(path.join(OUT_DIR, f))}`);
-  }
+  for (const [f, text] of outputs.slice(0, 4)) console.log(`  ${path.basename(f)}: ${size(text)}`);
+
   if (problems.length > 0 && !process.argv.includes('--allow-warnings')) {
-    console.error('Data checks failed (use --allow-warnings to accept).');
+    console.error('Data checks failed; nothing was written (use --allow-warnings to accept).');
     process.exit(1);
   }
+  await writeAll(outputs);
+  console.log(`Wrote ${outputs.map(([f]) => f).join(', ')}`);
 }
 
 main().catch((e) => {

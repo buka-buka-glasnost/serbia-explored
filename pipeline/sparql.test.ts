@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cachePath } from './http';
+import { cachePath, USER_AGENT } from './http';
 import { runSparql } from './sparql';
 
 const ENDPOINT = 'https://query.wikidata.org/sparql';
@@ -53,7 +53,8 @@ describe('runSparql', () => {
     expect(url).toBe('https://query.wikidata.org/sparql');
     expect(init.method).toBe('POST');
     expect(init.headers.Accept).toBe('application/sparql-results+json');
-    expect(init.headers['User-Agent']).toBe('SerbiaExplored/0.1 (data pipeline)');
+    expect(init.headers['User-Agent']).toBe(USER_AGENT);
+    expect(USER_AGENT).toContain('https://github.com/buka-buka-glasnost/serbia-explored');
     expect(JSON.parse(await readFile(cachePath(path.join(dir, 'fresh'), ENDPOINT, qinit('SELECT 1')), 'utf8'))).toEqual(body);
   });
 

@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchExtracts, fetchPhotoInfo, trimExtract } from './enrich';
+import { fetchExtracts, fetchPhotoInfo, stableBatches, stripHtml, trimExtract } from './enrich';
 
 const fixture = (n: string) => readFileSync(new URL(`./__fixtures__/${n}`, import.meta.url), 'utf8');
 const respond = (n: string) => vi.fn().mockImplementation(async () => new Response(fixture(n), { status: 200 }));
@@ -31,16 +31,60 @@ describe('fetchExtracts', () => {
     expect(map.has('Missing page')).toBe(false);
     const url = new URL(fetchMock.mock.calls[0][0]);
     expect(url.origin).toBe('https://en.wikipedia.org');
-    expect(url.searchParams.get('titles')).toBe('studenica_monastery|Nis Fortress|Missing page');
     expect(url.searchParams.get('exsentences')).toBe('10');
+    const requested = fetchMock.mock.calls.flatMap((c) => new URL(c[0]).searchParams.get('titles')!.split('|'));
+    expect(requested).toEqual(['Missing page', 'Nis Fortress', 'studenica_monastery']);
   });
 
-  it('requests 20 titles per call', async () => {
+  it('requests at most 20 titles per call, each title once', async () => {
     const fetchMock = respond('extracts.json');
     vi.stubGlobal('fetch', fetchMock);
-    await fetchExtracts(Array.from({ length: 45 }, (_, i) => `T${i}`), 'sr');
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const titles = Array.from({ length: 45 }, (_, i) => `T${i}`);
+    await fetchExtracts([...titles, 'T3', 'T7'], 'sr');
+    const sent = fetchMock.mock.calls.map((c) => new URL(c[0]).searchParams.get('titles')!.split('|'));
+    expect(sent.every((b) => b.length <= 20)).toBe(true);
+    expect(sent.flat().sort()).toEqual([...titles].sort());
     expect(String(fetchMock.mock.calls[0][0])).toContain('sr.wikipedia.org');
+  });
+
+  it('adding one title refetches only the batch it lands in', async () => {
+    const titles = Array.from({ length: 60 }, (_, i) => `Title ${i}`);
+    const first = respond('extracts.json');
+    vi.stubGlobal('fetch', first);
+    await fetchExtracts(titles, 'en');
+    const second = respond('extracts.json');
+    vi.stubGlobal('fetch', second);
+    await fetchExtracts([...titles, 'Title 27b'], 'en');
+    expect(first.mock.calls.length).toBeGreaterThan(2);
+    // its batch, or the two halves when the new title itself ends a batch
+    expect(second.mock.calls.length).toBeGreaterThanOrEqual(1);
+    expect(second.mock.calls.length).toBeLessThanOrEqual(2);
+    const sent = second.mock.calls.map((c) => new URL(c[0]).searchParams.get('titles')!);
+    expect(sent.some((t) => t.split('|').includes('Title 27b'))).toBe(true);
+  });
+
+  it('warns when MediaWiki returns continue', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const body = { continue: { excontinue: '1', continue: '||' }, query: { pages: {} } };
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify(body), { status: 200 })));
+    await fetchExtracts(['A', 'B'], 'en');
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/continue.*A \| B/));
+    warn.mockRestore();
+  });
+});
+
+describe('stableBatches', () => {
+  it('sorts, de-duplicates and caps the batch size', () => {
+    const items = Array.from({ length: 300 }, (_, i) => `x${i}`);
+    const batches = stableBatches([...items, 'x5'], 20);
+    expect(batches.flat()).toEqual([...items].sort());
+    expect(Math.max(...batches.map((b) => b.length))).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('stripHtml', () => {
+  it('decodes numeric and named entities, &amp; last', () => {
+    expect(stripHtml('A&#160;B&nbsp;C &#x110;or&#273;e &lt;i&gt; &#39;q&#039; &amp;lt;')).toBe("A B C Đorđe <i> 'q' &lt;");
   });
 });
 

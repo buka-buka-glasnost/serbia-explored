@@ -1,9 +1,10 @@
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Photo } from '../src/shared/types';
 import { ApiError, fetchJson } from './http';
 
-const EXTRACT_BATCH = 20;
-const PHOTO_BATCH = 50;
+const EXTRACT_BATCH = 20; // exlimit maximum for prop=extracts
+const PHOTO_BATCH = 50; // titles maximum per query
 const PAUSE_MS = 200;
 
 function cacheDir(): string {
@@ -12,9 +13,24 @@ function cacheDir(): string {
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-function chunks<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+/**
+ * Sorted, de-duplicated items cut into batches of at most `max`, where a batch ends after an item whose
+ * hash hits 1 in `max / 2`. Boundaries depend on the items themselves, not their positions, so adding or
+ * removing one title changes only its own batch (and the cache entry for it) instead of shifting all later ones.
+ */
+export function stableBatches(items: string[], max: number): string[][] {
+  const every = Math.max(1, Math.floor(max / 2));
+  const out: string[][] = [];
+  let cur: string[] = [];
+  for (const item of [...new Set(items)].sort()) {
+    cur.push(item);
+    const h = createHash('sha1').update(item).digest().readUInt32BE(0);
+    if (cur.length >= max || h % every === 0) {
+      out.push(cur);
+      cur = [];
+    }
+  }
+  if (cur.length > 0) out.push(cur);
   return out;
 }
 
@@ -26,8 +42,14 @@ function rejectApiError(json: unknown): void {
   throw new ApiError(`MediaWiki API error: ${err.code ?? 'unknown'} ${err.info ?? ''}`.trim(), TRANSIENT_CODES.has(err.code ?? ''));
 }
 
+/** A `continue` means MediaWiki returned only part of the batch; we do not follow it, so say so. */
+function warnContinue(json: { continue?: unknown }, what: string, batch: string[]): void {
+  if (json.continue) console.warn(`  ! ${what}: incomplete result (continue) for batch: ${batch.join(' | ')}`);
+}
+
 interface FromTo { from: string; to: string }
 interface QueryResult<P> {
+  continue?: Record<string, string>;
   query?: { normalized?: FromTo[]; redirects?: FromTo[]; pages?: Record<string, P> };
 }
 
@@ -43,7 +65,7 @@ function resolveTitle(requested: string, q: NonNullable<QueryResult<unknown>['qu
 
 export async function fetchExtracts(titles: string[], lang: 'sr' | 'en'): Promise<Map<string, string>> {
   const result = new Map<string, string>();
-  const batches = chunks(titles, EXTRACT_BATCH);
+  const batches = stableBatches(titles, EXTRACT_BATCH);
   for (const [i, batch] of batches.entries()) {
     const params = new URLSearchParams({
       action: 'query',
@@ -57,10 +79,11 @@ export async function fetchExtracts(titles: string[], lang: 'sr' | 'en'): Promis
     });
     const json = await fetchJson<QueryResult<{ title: string; extract?: string }>>(
       `https://${lang}.wikipedia.org/w/api.php?${params}`,
-      path.join(cacheDir(), `extracts-${lang}-${i + 1}`),
+      path.join(cacheDir(), `extracts-${lang}`),
       {},
       rejectApiError,
     );
+    warnContinue(json, `${lang} extracts`, batch);
     const q = json.query;
     if (!q?.pages) continue;
     const byTitle = new Map(Object.values(q.pages).map((p) => [p.title, p.extract]));
@@ -82,15 +105,18 @@ interface ImagePage {
   }[];
 }
 
-const stripHtml = (s: string) =>
+const codePoint = (n: number, raw: string) => (n <= 0x10ffff ? String.fromCodePoint(n) : raw);
+const NAMED_ENTITIES: Record<string, string> = { lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+/** Text of an HTML snippet: hidden spans and tags removed, entities decoded (&amp; last, so "&amp;lt;" stays "&lt;"). */
+export const stripHtml = (s: string) =>
   s
     .replace(/<span[^>]*display:\s*none[^>]*>.*?<\/span>/gis, '')
     .replace(/<[^>]*>/g, '')
+    .replace(/&#x([0-9a-f]+);/gi, (m, h: string) => codePoint(parseInt(h, 16), m))
+    .replace(/&#(\d+);/g, (m, d: string) => codePoint(Number(d), m))
+    .replace(/&(lt|gt|quot|apos|nbsp);/g, (_, n: string) => NAMED_ENTITIES[n])
     .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -98,7 +124,7 @@ const canonicalFile = (s: string) => s.replace(/^File:/i, '').replace(/_/g, ' ')
 
 export async function fetchPhotoInfo(files: string[]): Promise<Map<string, Photo>> {
   const result = new Map<string, Photo>();
-  const batches = chunks(files, PHOTO_BATCH);
+  const batches = stableBatches(files, PHOTO_BATCH);
   for (const [i, batch] of batches.entries()) {
     const params = new URLSearchParams({
       action: 'query',
@@ -111,10 +137,11 @@ export async function fetchPhotoInfo(files: string[]): Promise<Map<string, Photo
     });
     const json = await fetchJson<QueryResult<ImagePage>>(
       `https://commons.wikimedia.org/w/api.php?${params}`,
-      path.join(cacheDir(), `photos-${i + 1}`),
+      path.join(cacheDir(), 'photos'),
       {},
       rejectApiError,
     );
+    warnContinue(json, 'photo info', batch);
     const q = json.query;
     if (!q?.pages) continue;
     const byTitle = new Map(Object.values(q.pages).map((p) => [p.title, p]));

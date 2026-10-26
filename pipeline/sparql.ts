@@ -40,6 +40,8 @@ export async function runSparql(query: string, cacheKey: string): Promise<Sparql
       },
       body: new URLSearchParams({ query }).toString(),
     },
+    undefined,
+    { timeoutMs: 120_000 },
   );
   return toRows(json);
 }

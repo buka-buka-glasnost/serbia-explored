@@ -9,7 +9,7 @@ import natureRows from './__fixtures__/nature-rows.json';
 const classifyHeritage = (r: SparqlRow) => DESIGNATION_BY_QID[r.code] ?? null;
 const classifyNature = (r: SparqlRow) => NATURE_CLASS_BY_QID[r.code] ?? null;
 
-const heritage = groupRows(designatedRows as SparqlRow[], classifyHeritage);
+const heritage = groupRows(designatedRows as unknown as SparqlRow[], classifyHeritage);
 const nature = groupRows(natureRows as SparqlRow[], classifyNature);
 const byId = (places: RawPlace[], id: string) => {
   const p = places.find((x) => x.id === id);
@@ -32,7 +32,7 @@ describe('groupRows', () => {
     const ids = heritage.map((p) => p.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids.sort()).toEqual(
-      [...new Set((designatedRows as SparqlRow[]).map((r) => r.item))].sort(),
+      [...new Set((designatedRows as unknown as SparqlRow[]).map((r) => r.item))].sort(),
     );
   });
 
@@ -62,17 +62,51 @@ describe('groupRows', () => {
     expect(p.partOfIds).toEqual(['Q1982106']);
   });
 
-  it('takes the first type label seen and does not mix item rows', () => {
+  it('takes typeSr and typeEn together from the P31 class with the lowest QID', () => {
+    // Q164205 is an ancient city (Q15661340) and an archaeological site (Q839954)
     const p = byId(heritage, 'Q164205');
-    expect(p.typeEn).toBe('ancient city');
+    expect(p.typeEn).toBe('archaeological site');
+    expect(p.typeSr).toBe('археолошко налазиште');
     expect(p.nameSrLatn).toBe('Caričin Grad');
   });
 
-  it('gives the item with two coordinates its first coordinate', () => {
+  it('never mixes labels of two types, and skips a type without sr/en labels', () => {
+    const rows: SparqlRow[] = [
+      { item: 'Q1', code: 'Q9259', type: 'Q5', typeEn: 'five' },
+      { item: 'Q1', code: 'Q9259', type: 'Q3' },
+      { item: 'Q1', code: 'Q9259', type: 'Q7', typeSr: 'седам', typeEn: 'seven' },
+    ];
+    const [p] = groupRows(rows, classifyHeritage);
+    expect([p.typeSr, p.typeEn]).toEqual([undefined, 'five']);
+  });
+
+  it('gives the item with two coordinates the smallest by "lat,lon"', () => {
     const rows = (natureRows as SparqlRow[]).filter((r) => r.item === 'Q790075');
     const coords = [...new Set(rows.map((r) => r.coord))];
     expect(coords.length).toBe(2);
-    expect(byId(nature, 'Q790075').coord).toEqual(parseWktPoint(rows[0].coord));
+    expect(byId(nature, 'Q790075').coord).toEqual({ lat: 44.689962, lon: 20.51765 });
+  });
+
+  it('gives the same result for shuffled rows', () => {
+    const extra: SparqlRow[] = [
+      { item: 'Q9', code: 'Q9259', image: 'http://commons.wikimedia.org/wiki/Special:FilePath/B.jpg', coord: 'Point(21 44)' },
+      { item: 'Q9', code: 'Q3323436', image: 'http://commons.wikimedia.org/wiki/Special:FilePath/A.jpg', coord: 'Point(20 45)' },
+      { item: 'Q9', code: 'Q9259', partOf: 'Q20', enwiki: 'https://en.wikipedia.org/wiki/Z_title' },
+      { item: 'Q9', code: 'Q9259', partOf: 'Q10', enwiki: 'https://en.wikipedia.org/wiki/A_title' },
+    ];
+    const rows = [...(designatedRows as unknown as SparqlRow[]), ...extra];
+    const sortById = (ps: RawPlace[]) => [...ps].sort((a, b) => a.id.localeCompare(b.id));
+    const expected = sortById(groupRows(rows, classifyHeritage));
+    let seed = 7;
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 10; i++) {
+      const shuffled = [...rows].sort(() => rand() - 0.5);
+      expect(sortById(groupRows(shuffled, classifyHeritage))).toEqual(expected);
+    }
+    expect(byId(expected, 'Q9')).toMatchObject({
+      imageFile: 'A.jpg', coord: { lat: 44, lon: 21 }, wikipediaEn: 'A title',
+      partOfIds: ['Q10', 'Q20'], designations: ['unesco_whs', 'heritage_exceptional'],
+    });
   });
 
   it('keeps a Latin-only sr label as nameSr', () => {

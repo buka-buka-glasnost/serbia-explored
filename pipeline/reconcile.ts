@@ -1,33 +1,27 @@
 import { readFileSync } from 'node:fs';
-import { mkdir, stat, writeFile } from 'node:fs/promises';
+import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
-import type { Place } from '../src/shared/types';
-import { foldForSearch } from '../src/shared/translit';
-import { USER_AGENT } from './http';
+import type { AreaFC, Place } from '../src/shared/types';
+import { foldForSearch, toLatin } from '../src/shared/translit';
+import { USER_AGENT, writeFileAtomic } from './http';
 import { runSparql } from './sparql';
 
 export interface RegisterEntry {
   registerId: string; name: string; municipality: string;
-  category: 'exceptional' | 'great' | 'none';
+  category: 'exceptional' | 'great';
   type: 'SK' | 'PKIC' | 'AN' | 'ZM';
 }
 
 const BASE_URL = 'https://www.heritage.gov.rs/cirilica/Download/';
-export const EXCEL_DIR = path.join('data', 'cache', 'excel');
-export const REGISTER_FILES: { file: string; type: RegisterEntry['type'] }[] = [
-  { file: 'SK.xls', type: 'SK' }, { file: 'PKIC.xls', type: 'PKIC' },
-  { file: 'AN.xls', type: 'AN' }, { file: 'ZM.xls', type: 'ZM' },
-];
-export const CATEGORY_FILES: { file: string; category: 'exceptional' | 'great' }[] = [
+const EXCEL_DIR = path.join('data', 'cache', 'excel');
+export const CATEGORY_FILES: { file: string; category: RegisterEntry['category'] }[] = [
   { file: 'Kategorisani_izuz.xls', category: 'exceptional' },
   { file: 'Kategorisani_veliki.xls', category: 'great' },
 ];
 
 // Column mapping (0-based), found by inspecting the files: two title/header rows, then data.
-// SK/PKIC/AN/ZM: [name, "Број уписа" (register id), institute].
 // Categorised lists: [#, name, municipality, place/address, note, НКД (register id), gazette].
-export const REGISTER_COLS = { name: 0, id: 1 };
 export const CATEGORISED_COLS = { name: 1, municipality: 2, id: 5 };
 const FIRST_DATA_ROW = 2;
 
@@ -62,17 +56,8 @@ function rowsOf(file: string): unknown[][] {
 }
 const str = (v: unknown) => String(v ?? '').trim();
 
-/** Reads one of SK/PKIC/AN/ZM.xls. These carry no category or municipality column, so category is 'none'. */
-export function readRegisterXls(file: string, type: RegisterEntry['type']): RegisterEntry[] {
-  return rowsOf(file).slice(FIRST_DATA_ROW)
-    .filter((r) => str(r[REGISTER_COLS.id]) && str(r[REGISTER_COLS.name]))
-    .map((r) => ({
-      registerId: str(r[REGISTER_COLS.id]), name: str(r[REGISTER_COLS.name]), municipality: '', category: 'none', type,
-    }));
-}
-
 /** Reads Kategorisani_izuz.xls / Kategorisani_veliki.xls. */
-export function readCategorisedXls(file: string, category: 'exceptional' | 'great'): RegisterEntry[] {
+export function readCategorisedXls(file: string, category: RegisterEntry['category']): RegisterEntry[] {
   return rowsOf(file).slice(FIRST_DATA_ROW)
     .filter((r) => str(r[CATEGORISED_COLS.name]))
     .map((r) => ({
@@ -84,43 +69,75 @@ export function readCategorisedXls(file: string, category: 'exceptional' | 'grea
     }));
 }
 
-// Municipality ids are `m-` + this slug of the municipality name (see pipeline/areas.ts).
-const slug = (s: string) => foldForSearch(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const MIN_CONTAIN = 4;
+
+/** Municipality name as a match key: Latin, folded, without "Град"/"Општина"/"Градска општина". */
+const muniKey = (s: string) =>
+  foldForSearch(toLatin(s)).replace(/^(gradska opstina|opstina|grad)\s+/, '').trim();
+
+/** Register ids (normalised, e.g. "SK1403") to every QID carrying them; one id can be on several items. */
+export type RegisterIdMap = Map<string, Set<string>>;
 
 export type MatchKind = 'id' | 'name' | null;
 
-export function matchKind(
-  e: RegisterEntry, places: Place[], registerIdToQid: Map<string, string>,
-): MatchKind {
+/**
+ * Matches register entries against places: by register id (Wikidata P4245), else by name among the
+ * places in the municipality whose area name matches the entry's municipality.
+ */
+export function makeMatcher(places: Place[], areas: AreaFC, registerIdToQids: RegisterIdMap): (e: RegisterEntry) => MatchKind {
   const qids = new Set(places.map((p) => p.id));
-  for (const id of parseRegisterIds(e.registerId)) {
-    const qid = registerIdToQid.get(id);
-    if (qid && qids.has(qid)) return 'id';
+  const munIdsByKey = new Map<string, string[]>();
+  for (const f of areas.features) {
+    if (f.properties.level !== 'municipality') continue;
+    const k = muniKey(f.properties.nameSr);
+    munIdsByKey.set(k, [...(munIdsByKey.get(k) ?? []), f.properties.id]);
   }
-  const name = foldForSearch(e.name).trim();
-  if (!e.municipality || !name) return null;
-  const muni = `m-${slug(e.municipality)}`;
-  const candidates = places.filter((p) => p.municipalityId === muni);
+  const placesByMun = new Map<string, Place[]>();
+  for (const p of places) {
+    if (p.municipalityId) placesByMun.set(p.municipalityId, [...(placesByMun.get(p.municipalityId) ?? []), p]);
+  }
   const names = (p: Place) => [p.nameSr, p.nameEn].filter((n): n is string => !!n).map((n) => foldForSearch(n).trim());
-  if (candidates.some((p) => names(p).includes(name))) return 'name';
   const contains = (a: string, b: string) => b.length >= MIN_CONTAIN && a.includes(b);
-  return candidates.some((p) => names(p).some((n) => contains(name, n) || contains(n, name))) ? 'name' : null;
+
+  return (e) => {
+    for (const id of parseRegisterIds(e.registerId)) {
+      for (const qid of registerIdToQids.get(id) ?? []) if (qids.has(qid)) return 'id';
+    }
+    const name = foldForSearch(e.name).trim();
+    if (!e.municipality || !name) return null;
+    const candidates = (munIdsByKey.get(muniKey(e.municipality)) ?? []).flatMap((m) => placesByMun.get(m) ?? []);
+    if (candidates.some((p) => names(p).includes(name))) return 'name';
+    return candidates.some((p) => names(p).some((n) => contains(name, n) || contains(n, name))) ? 'name' : null;
+  };
 }
 
-/** Categorised (exceptional/great) entries that match no place by register id, nor by name within the municipality. */
+/** Entries that match no place by register id, nor by name within the municipality. */
 export function findMissing(
-  entries: RegisterEntry[], places: Place[], registerIdToQid: Map<string, string>,
+  entries: RegisterEntry[], places: Place[], areas: AreaFC, registerIdToQids: RegisterIdMap,
 ): RegisterEntry[] {
-  return entries.filter((e) => e.category !== 'none' && matchKind(e, places, registerIdToQid) === null);
+  const match = makeMatcher(places, areas, registerIdToQids);
+  return entries.filter((e) => match(e) === null);
 }
 
 /** Wikidata P4245 values mapped to QIDs, keyed by normalised register id. */
-export async function fetchRegisterIdMap(): Promise<Map<string, string>> {
+export async function fetchRegisterIdMap(): Promise<RegisterIdMap> {
   const rows = await runSparql('SELECT ?item ?id WHERE { ?item wdt:P4245 ?id }', 'register-ids-p4245');
-  const map = new Map<string, string>();
-  for (const r of rows) map.set(normaliseRegisterId(r.id), r.item);
+  const map: RegisterIdMap = new Map();
+  for (const r of rows) {
+    const k = normaliseRegisterId(r.id);
+    if (!map.has(k)) map.set(k, new Set());
+    map.get(k)!.add(r.item);
+  }
   return map;
+}
+
+const OLE2_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]; // .xls
+const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // .xlsx
+
+/** True when the bytes start like an Excel file (legacy .xls or .xlsx). */
+export function looksLikeExcel(buf: Uint8Array): boolean {
+  const starts = (magic: number[]) => magic.every((b, i) => buf[i] === b);
+  return starts(OLE2_MAGIC) || starts(ZIP_MAGIC);
 }
 
 async function download(file: string): Promise<string> {
@@ -130,10 +147,15 @@ async function download(file: string): Promise<string> {
     return target;
   } catch { /* not cached */ }
   console.log(`Downloading ${file}`);
-  const res = await fetch(BASE_URL + file, { headers: { 'User-Agent': USER_AGENT } });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${BASE_URL}${file}`);
-  await mkdir(EXCEL_DIR, { recursive: true });
-  await writeFile(target, Buffer.from(await res.arrayBuffer()));
+  const url = BASE_URL + file;
+  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(60_000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  const buf = new Uint8Array(await res.arrayBuffer());
+  // An error or maintenance page can come back as HTML with status 200; never cache that.
+  if (!looksLikeExcel(buf)) {
+    throw new Error(`${url} is not an Excel file (content-type ${res.headers.get('content-type') ?? 'none'})`);
+  }
+  await writeFileAtomic(target, buf);
   await new Promise((r) => setTimeout(r, 1000));
   return target;
 }
@@ -142,24 +164,27 @@ const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` 
 
 export interface ReconcileResult { total: number; byId: number; byName: number; missing: RegisterEntry[] }
 
-/** Downloads the lists, reconciles against `places`, writes the CSV report. */
-export async function reconcile(places: Place[], reportPath: string): Promise<ReconcileResult> {
-  for (const { file } of REGISTER_FILES) await download(file); // full register lists, cached for reference
+/** Downloads the categorised lists and reconciles them against `places`. Writes nothing but the Excel cache. */
+export async function reconcile(places: Place[], areas: AreaFC): Promise<ReconcileResult> {
   const entries: RegisterEntry[] = [];
   for (const { file, category } of CATEGORY_FILES) entries.push(...readCategorisedXls(await download(file), category));
-  const ids = await fetchRegisterIdMap();
+  const match = makeMatcher(places, areas, await fetchRegisterIdMap());
   let byId = 0;
   let byName = 0;
+  const missing: RegisterEntry[] = [];
   for (const e of entries) {
-    const k = matchKind(e, places, ids);
+    const k = match(e);
     if (k === 'id') byId++;
     else if (k === 'name') byName++;
+    else missing.push(e);
   }
-  const missing = findMissing(entries, places, ids);
-  await mkdir(path.dirname(reportPath), { recursive: true });
-  await writeFile(reportPath, [
+  return { total: entries.length, byId, byName, missing };
+}
+
+/** The missing-from-map.csv report. */
+export function missingCsv(missing: RegisterEntry[]): string {
+  return [
     'registerId,name,municipality,category,type',
     ...missing.map((e) => [e.registerId, e.name, e.municipality, e.category, e.type].map(csvCell).join(',')),
-  ].join('\n') + '\n');
-  return { total: entries.length, byId, byName, missing };
+  ].join('\n') + '\n';
 }

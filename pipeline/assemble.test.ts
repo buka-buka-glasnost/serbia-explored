@@ -143,6 +143,29 @@ describe('assemblePlaces', () => {
     expect(dropped).toEqual([{ id: 'Q61', name: 'Име Q61', reason: 'removed_by_override' }]);
   });
 
+  it('keeps a WHS whose only parts have no coordinate', () => {
+    const whs = raw('Q10', { designations: ['unesco_whs'] });
+    const part = raw('Q11', { partOfIds: ['Q10'], coord: null });
+    const { places, dropped } = run([whs, part]);
+    expect(places.map((p) => p.id)).toEqual(['Q10']);
+    expect(dropped.map((d) => [d.id, d.reason])).toEqual([['Q11', 'no_coordinates']]);
+  });
+
+  it('re-derives tier and area for patched places and names the drop reason for a dropped id', () => {
+    const { places } = run([raw('Q1')], {
+      overrides: { places: { Q1: { designations: ['nature_other'], lat: 42.5, lon: 20.8 } }, added: [], removed: [] },
+    });
+    expect(places[0]).toMatchObject({ tier: 4, kind: 'nature', municipalityId: 'm-k', inKosovo: true });
+    expect(() => run([raw('Q1'), raw('Q2', { coord: null })], {
+      overrides: { places: { Q2: { nameEn: 'x' } }, added: [], removed: [] },
+    })).toThrow(/Q2.*no_coordinates/);
+  });
+
+  it('breaks name ties by id', () => {
+    const { places } = run([raw('Q9', { nameSr: 'Исто' }), raw('Q10', { nameSr: 'Исто' }), raw('Q1', { nameSr: 'Исто' })]);
+    expect(places.map((p) => p.id)).toEqual(['Q1', 'Q10', 'Q9']);
+  });
+
   it('sorts by tier then name', () => {
     const { places } = run([
       raw('Q71', { nameSr: 'Б' }),

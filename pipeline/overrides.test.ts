@@ -1,6 +1,23 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import type { Place } from '../src/shared/types';
-import { applyOverrides } from './overrides';
+import type { AreaFC, Place } from '../src/shared/types';
+import { makeAssigner } from './areas';
+import { applyOverrides, parseOverrides, type OverrideContext } from './overrides';
+
+const square = (w: number, s: number, e: number, n: number): GeoJSON.Polygon => ({
+  type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
+});
+const areas: AreaFC = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', geometry: square(20, 43, 22, 45),
+      properties: { id: 'm-a', level: 'municipality', nameSr: 'A', districtId: 'd-a', inKosovo: false } },
+    { type: 'Feature', geometry: square(20, 42.2, 21.5, 42.8),
+      properties: { id: 'm-k', level: 'municipality', nameSr: 'K', districtId: 'd-k', inKosovo: true } },
+  ],
+};
+const kosovo: GeoJSON.Feature = { type: 'Feature', properties: {}, geometry: square(20, 42.2, 21.5, 42.8) };
+const ctx: OverrideContext = { assign: makeAssigner(areas, kosovo), kosovo };
 
 const place = (id: string, extra: Partial<Place> = {}): Place => ({
   id, nameSr: id, kind: 'culture', tier: 2, designations: ['heritage_exceptional'],
@@ -35,5 +52,87 @@ describe('applyOverrides', () => {
   it('throws naming an unknown removed id', () => {
     expect(() => applyOverrides([place('Q1')], { places: {}, added: [], removed: ['Q888'] }))
       .toThrow(/Q888/);
+  });
+
+  it('names the drop reason when a patched id was dropped earlier', () => {
+    const c = { ...ctx, dropped: new Map([['Q5', 'no_coordinates']]) };
+    expect(() => applyOverrides([place('Q1')], { places: { Q5: { nameEn: 'x' } }, added: [], removed: [] }, c))
+      .toThrow(/Q5.*dropped earlier \(no_coordinates\)/);
+  });
+});
+
+describe('applyOverrides re-derives fields', () => {
+  const base = place('Q1', { lat: 44, lon: 21, municipalityId: 'm-a', districtId: 'd-a' });
+
+  it('recomputes tier and kind when designations change', () => {
+    const [p] = applyOverrides([base], { places: { Q1: { designations: ['unesco_biosphere', 'nature_other'] } }, added: [], removed: [] }, ctx);
+    expect(p).toMatchObject({ tier: 1, kind: 'nature' });
+    const [q] = applyOverrides([base], { places: { Q1: { designations: ['heritage_great', 'ramsar'] } }, added: [], removed: [] }, ctx);
+    expect(q).toMatchObject({ tier: 3, kind: 'culture' });
+  });
+
+  it('keeps an explicitly patched tier or kind', () => {
+    const [p] = applyOverrides([base], { places: { Q1: { designations: ['nature_other'], kind: 'culture' } }, added: [], removed: [] }, ctx);
+    expect(p).toMatchObject({ tier: 4, kind: 'culture' });
+  });
+
+  it('recomputes the area and inKosovo when lat/lon change', () => {
+    const [p] = applyOverrides([base], { places: { Q1: { lat: 42.5, lon: 20.8 } }, added: [], removed: [] }, ctx);
+    expect(p).toMatchObject({ districtId: 'd-k', municipalityId: 'm-k', inKosovo: true });
+    const [far] = applyOverrides([base], { places: { Q1: { lat: 48, lon: 10 } }, added: [], removed: [] }, ctx);
+    expect(far).toMatchObject({ districtId: null, municipalityId: null, inKosovo: false });
+  });
+
+  it('keeps an explicitly patched municipality', () => {
+    const [p] = applyOverrides([base], { places: { Q1: { lat: 42.5, lon: 20.8, municipalityId: 'm-a' } }, added: [], removed: [] }, ctx);
+    expect(p).toMatchObject({ districtId: 'd-k', municipalityId: 'm-a', inKosovo: true });
+  });
+
+  it('completes a minimal added place', () => {
+    const out = applyOverrides([], {
+      places: {}, removed: [],
+      added: [{ id: 'x-spot', nameSr: 'Место', lat: 42.5, lon: 20.8, designations: ['nature_other'] }],
+    }, ctx);
+    expect(out).toEqual([{
+      id: 'x-spot', nameSr: 'Место', lat: 42.5, lon: 20.8, designations: ['nature_other'],
+      tier: 4, kind: 'nature', districtId: 'd-k', municipalityId: 'm-k', inKosovo: true, access: null,
+    }]);
+  });
+
+  it('keeps given fields of an added place', () => {
+    const [p] = applyOverrides([], {
+      places: {}, removed: [],
+      added: [{ id: 'x-a', nameSr: 'А', lat: 44, lon: 21, designations: ['heritage_great'], access: 'rough', municipalityId: null }],
+    }, ctx);
+    expect(p).toMatchObject({ tier: 3, kind: 'culture', access: 'rough', municipalityId: null, districtId: 'd-a', inKosovo: false });
+  });
+});
+
+describe('parseOverrides', () => {
+  const ok = { places: { Q1: { nameEn: 'X' } }, added: [], removed: ['Q2'], _removedNotes: { Q2: 'dup' } };
+  it('accepts a valid file', () => {
+    expect(parseOverrides(ok)).toEqual(ok);
+  });
+  it('rejects unknown top-level keys and missing arrays', () => {
+    expect(() => parseOverrides({ ...ok, extra: 1 })).toThrow(/top-level key\(s\) extra/);
+    expect(() => parseOverrides({ places: {}, removed: [] })).toThrow(/"added" must be an array/);
+    expect(() => parseOverrides({ places: {}, added: [] })).toThrow(/"removed"/);
+  });
+  it('rejects unknown patch fields and bad designations', () => {
+    expect(() => parseOverrides({ ...ok, places: { Q1: { nmaeEn: 'X' } } })).toThrow(/Q1: unknown field\(s\) nmaeEn/);
+    expect(() => parseOverrides({ ...ok, places: { Q1: { id: 'Q3' } } })).toThrow(/unknown field\(s\) id/);
+    expect(() => parseOverrides({ ...ok, places: { Q1: { designations: ['unesco'] } } })).toThrow(/designations/);
+  });
+  it('rejects an id that is both patched and removed', () => {
+    expect(() => parseOverrides({ ...ok, removed: ['Q1'] })).toThrow(/both patched and removed: Q1/);
+  });
+  it('requires the minimal fields of an added place', () => {
+    expect(() => parseOverrides({ ...ok, added: [{ id: 'x-a', nameSr: 'А', lat: 44, designations: ['nature_other'] }] }))
+      .toThrow(/x-a.*lat and lon/);
+  });
+  it('accepts the real data/overrides.json', async () => {
+    const { readFileSync } = await import('node:fs');
+    const json: unknown = JSON.parse(readFileSync(new URL('../data/overrides.json', import.meta.url), 'utf8'));
+    expect(() => parseOverrides(json)).not.toThrow();
   });
 });

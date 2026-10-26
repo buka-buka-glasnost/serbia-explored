@@ -1,6 +1,6 @@
 import type { Access, AreaFC, Designation, Photo, Place } from '../src/shared/types';
 import { hasCyrillic } from '../src/shared/translit';
-import { assignArea, isInKosovo } from './areas';
+import { isInKosovo, makeAssigner } from './areas';
 import { NATURE_DESIGNATIONS, tierFor } from './designations';
 import { trimExtract } from './enrich';
 import type { RawPlace } from './normalize';
@@ -49,7 +49,7 @@ function partOfFor(w: RawPlace, overrides: Overrides): NonNullable<Place['partOf
 }
 
 const byTierThenName = (a: Place, b: Place) =>
-  a.tier - b.tier || a.nameSr.localeCompare(b.nameSr, 'sr');
+  a.tier - b.tier || a.nameSr.localeCompare(b.nameSr, 'sr') || a.id.localeCompare(b.id);
 
 export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped: DroppedPlace[] } {
   const { raw, areas, kosovo, overrides } = input;
@@ -58,30 +58,34 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
     dropped.push({ id: r.id, name: displayName(r), reason });
 
   const whsById = new Map(raw.filter((r) => r.designations.includes('unesco_whs')).map((r) => [r.id, r]));
+  // A WHS is a container only when some part of it can be shown (has a coordinate).
   const composites = new Set<string>();
-  for (const r of raw) for (const q of r.partOfIds) if (whsById.has(q)) composites.add(q);
+  for (const r of raw) {
+    if (r.coord) for (const q of r.partOfIds) if (whsById.has(q)) composites.add(q);
+  }
   const allowlist = new Set(input.kosovoNatureAllowlist);
+  const assign = makeAssigner(areas, kosovo);
 
   const places: Place[] = [];
   for (const r of raw) {
-    // 1. coordinates
+    // coordinates
     if (!r.coord) { drop(r, 'no_coordinates'); continue; }
 
-    // 3. a WHS that other items are parts of is only a container
+    // a WHS that other items are parts of is only a container
     if (composites.has(r.id)) { drop(r, 'whs_composite'); continue; }
 
-    // 2. parts of a WHS
+    // parts of a WHS
     const designations: Designation[] = [...r.designations];
     const whsParent = r.partOfIds.map((q) => whsById.get(q)).find((w) => w !== undefined);
     if (whsParent && !designations.includes('unesco_whs_part')) designations.push('unesco_whs_part');
 
-    // 4. Kosovo: the assigned municipality decides; the outline only when no area matched
-    const area = assignArea(r.coord, areas);
+    // Kosovo: the assigned municipality decides; the outline only when no area matched
+    const area = assign(r.coord);
     const inKosovo = area.inKosovo ?? isInKosovo(r.coord, kosovo);
     const allNature = designations.every((d) => NATURE_DESIGNATIONS.has(d));
     if (inKosovo && allNature && !allowlist.has(r.id)) { drop(r, 'kosovo_nature_not_serbian'); continue; }
 
-    // 5. area
+    // area
     if (!area.municipalityId && !inKosovo) { drop(r, 'outside_serbia'); continue; }
 
     const photo = r.imageFile ? input.photos.get(r.imageFile) : undefined;
@@ -117,13 +121,13 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
     places.push(place);
   }
 
-  // 9. overrides last
+  // overrides last
   const names = new Map(places.map((p) => [p.id, p.nameSr]));
+  const droppedReasons = new Map(dropped.map((d) => [d.id, d.reason]));
   for (const id of overrides.removed) {
     if (names.has(id)) dropped.push({ id, name: names.get(id)!, reason: 'removed_by_override' });
   }
-  const final = applyOverrides(places, overrides);
+  const final = applyOverrides(places, overrides, { assign, kosovo, dropped: droppedReasons });
 
-  // 10. order
   return { places: final.sort(byTierThenName), dropped };
 }

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { AreaFC } from '../src/shared/types';
 import {
   assignArea,
+  makeAssigner,
   buildKosovoSerbianScheme,
   isInKosovo,
   type KosovoScheme,
@@ -43,6 +44,34 @@ describe('assignArea', () => {
       municipalityId: null,
       inKosovo: null,
     });
+  });
+});
+
+describe('makeAssigner snapping', () => {
+  const sq = (w: number, s: number, e: number, n: number): GeoJSON.Polygon => ({
+    type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
+  });
+  // a 0.02° (~1.6 km) gap between a Serbian and a Kosovo municipality; the Kosovo outline covers the gap
+  const two: AreaFC = {
+    type: 'FeatureCollection',
+    features: [
+      { type: 'Feature', geometry: sq(20, 43, 21, 44), properties: { id: 'm-s', level: 'municipality', nameSr: 'С', districtId: 'd-s', inKosovo: false } },
+      { type: 'Feature', geometry: sq(20, 42, 21, 42.98), properties: { id: 'm-k', level: 'municipality', nameSr: 'К', districtId: 'd-k', inKosovo: true } },
+    ],
+  };
+  const outline: GeoJSON.Feature = { type: 'Feature', properties: {}, geometry: sq(20, 42, 21, 42.996) };
+  const gapPoint = { lat: 42.995, lon: 20.5 }; // ~0.5 km from m-s, ~1.7 km from m-k, inside the outline
+
+  it('without an outline snaps to the nearest municipality', () => {
+    expect(makeAssigner(two)(gapPoint).municipalityId).toBe('m-s');
+  });
+  it('prefers a municipality on the same side of the Kosovo outline', () => {
+    const assign = makeAssigner(two, outline);
+    expect(assign(gapPoint)).toEqual({ districtId: 'd-k', municipalityId: 'm-k', inKosovo: true });
+    expect(assign({ lat: 42.999, lon: 20.5 }).municipalityId).toBe('m-s'); // outside the outline
+  });
+  it('agrees with assignArea', () => {
+    expect(makeAssigner(serbian)({ lat: 44.05, lon: 20.05 })).toEqual(assignArea({ lat: 44.05, lon: 20.05 }, serbian));
   });
 });
 

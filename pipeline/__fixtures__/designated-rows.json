@@ -139,7 +139,8 @@
   "coord": "Point(21.67 42.952)",
   "image": "http://commons.wikimedia.org/wiki/Special:FilePath/%D0%A6%D0%B0%D1%80%D0%B8%D1%87%D0%B8%D0%BD%20%D0%B3%D1%80%D0%B0%D0%B4-Cari%C4%8Din%20grad%202.jpg",
   "labelSrEl": "Caričin Grad",
-  "labelSq": "Justiniana Prima"
+  "labelSq": "Justiniana Prima",
+  "type": "Q15661340"
  },
  {
   "item": "Q164205",
@@ -153,6 +154,7 @@
   "coord": "Point(21.67 42.952)",
   "image": "http://commons.wikimedia.org/wiki/Special:FilePath/%D0%A6%D0%B0%D1%80%D0%B8%D1%87%D0%B8%D0%BD%20%D0%B3%D1%80%D0%B0%D0%B4-Cari%C4%8Din%20grad%202.jpg",
   "labelSrEl": "Caričin Grad",
-  "labelSq": "Justiniana Prima"
+  "labelSq": "Justiniana Prima",
+  "type": "Q839954"
  }
 ]
