@@ -51,6 +51,7 @@ export const STRINGS = {
   areaPicker: { sr: 'Изабери област', en: 'Choose an area' },
   areaSearch: { sr: 'Претражи области…', en: 'Search districts and municipalities…' },
   pickOnMap: { sr: 'Изабери на мапи', en: 'Pick on map' },
+  pickOnMapHintTouch: { sr: 'Додирните мапу да изаберете област.', en: 'Tap the map to choose an area.' },
   pickOnMapHint: { sr: 'Кликните на мапу да изаберете област (Esc за одустајање).', en: 'Click the map to choose an area (Esc to cancel).' },
   clearArea: { sr: 'Уклони област', en: 'Clear area' },
   nearby: { sr: 'У близини', en: 'Nearby' },

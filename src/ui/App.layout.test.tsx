@@ -86,7 +86,7 @@ describe('App picking on a phone', () => {
     await userEvent.click(screen.getByRole('button', { name: 'List' }));
     await userEvent.click(screen.getByRole('button', { name: 'Pick on map' }));
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Click the map to choose an area');
+    expect(screen.getByRole('status')).toHaveTextContent('Tap the map to choose an area.');
     const cancel = screen.getByRole('button', { name: 'Cancel' });
     expect(cancel).toHaveFocus();
     await userEvent.click(cancel);

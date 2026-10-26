@@ -154,7 +154,7 @@ export function App() {
           <div className="top-bar">
             {picking ? (
               <>
-                <p className="top-bar-hint" role="status">{t('pickOnMapHint', lang)}</p>
+                <p className="top-bar-hint" role="status">{t('pickOnMapHintTouch', lang)}</p>
                 <button ref={cancelPick} type="button" className="btn" onClick={() => setPicking(false)}>
                   {t('cancel', lang)}
                 </button>
