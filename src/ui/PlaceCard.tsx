@@ -4,6 +4,7 @@ import { toLatin } from '../shared/translit';
 import type { Access, Lang, Place } from '../shared/types';
 import type { StringKey } from '../i18n/strings';
 import { VisitEditor } from './VisitEditor';
+import { useIsNarrow } from './useIsNarrow';
 
 const ACCESS_KEY: Record<Access, StringKey> = {
   door: 'accessDoor',
@@ -42,6 +43,7 @@ export function PlaceCard({ place }: { place: Place }) {
   const isStart = useApp((s) => s.trip.startPlaceId === place.id);
   const setTripStart = useApp((s) => s.setTripStart);
   const select = useApp((s) => s.select);
+  const narrow = useIsNarrow();
 
   const municipality = place.municipalityId
     ? areas?.features.find((f) => f.properties.id === place.municipalityId)?.properties
@@ -51,7 +53,7 @@ export function PlaceCard({ place }: { place: Place }) {
   const wiki = wikipediaLink(place, lang);
 
   return (
-    <article className="place-card" aria-label={placeName(place, lang)}>
+    <article className={narrow ? 'place-card bottom-sheet' : 'place-card'}aria-label={placeName(place, lang)}>
       <button type="button" className="card-close" aria-label={t('close', lang)} onClick={() => select(null)}>
         ×
       </button>

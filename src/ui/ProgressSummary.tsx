@@ -5,7 +5,7 @@ import { computeProgress } from '../logic/progress';
 
 const TIERS = [1, 2, 3] as const;
 
-export function ProgressSummary() {
+export function ProgressSummary({ compact = false }: { compact?: boolean }) {
   const places = useApp((s) => s.places);
   const visits = useApp((s) => s.visits);
   const kosovoShown = useApp((s) => s.settings.kosovoShown);
@@ -15,17 +15,19 @@ export function ProgressSummary() {
     [places, visits, kosovoShown],
   );
   return (
-    <section className="progress" aria-label={t('visitedCounter', lang)}>
+    <section className={compact ? 'progress compact' : 'progress'} aria-label={t('visitedCounter', lang)}>
       <div className="progress-overall">
         {overall.visited} / {overall.total} {t('visitedOf', lang)}
       </div>
-      <ul>
-        {TIERS.map((n) => (
-          <li key={n}>
-            {t(`tierShort${n}`, lang)}: {byTier[n].visited} / {byTier[n].total}
-          </li>
-        ))}
-      </ul>
+      {!compact && (
+        <ul>
+          {TIERS.map((n) => (
+            <li key={n}>
+              {t(`tierShort${n}`, lang)}: {byTier[n].visited} / {byTier[n].total}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

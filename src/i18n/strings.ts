@@ -7,6 +7,7 @@ export const STRINGS = {
   removeFromTrip: { sr: 'Уклони из излета', en: 'Remove from trip' },
   openInGoogleMaps: { sr: 'Отвори у Гугл мапама', en: 'Open in Google Maps' },
   tripFull: { sr: 'Излет може имати највише 9 места.', en: 'A trip can have at most 9 places.' },
+  listButton: { sr: 'Листа', en: 'List' },
   placesTab: { sr: 'Места', en: 'Places' },
   tripTab: { sr: 'Излет', en: 'Trip' },
   startFrom: { sr: 'Крени из', en: 'Start from' },

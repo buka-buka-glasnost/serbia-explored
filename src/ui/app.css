@@ -81,3 +81,26 @@ body { font-family: system-ui, sans-serif; }
 .trip-stops button, .trip-actions button { padding: 2px 8px; border: 1px solid #999; background: #fff; cursor: pointer; font: inherit; }
 .trip-actions { display: flex; flex-direction: column; gap: 6px; }
 .trip-actions button:disabled { opacity: .5; cursor: default; }
+
+/* Phone layout (below 768 px) */
+.top-bar, .drawer-close { display: none; }
+button { -webkit-tap-highlight-color: transparent; }
+@media (max-width: 767px) {
+  html, body, #root { height: 100vh; height: 100dvh; }
+  body { overflow-x: hidden; }
+  input, select, textarea { font-size: 16px; }
+  .app { position: relative; height: 100vh; height: 100dvh; }
+  .top-bar { display: flex; position: absolute; top: 0; left: 0; right: 0; z-index: 1000; align-items: center; justify-content: space-between; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left)); background: rgba(255,255,255,.95); box-shadow: 0 1px 6px rgba(0,0,0,.25); box-sizing: border-box; }
+  .top-bar .progress { padding: 0; border: 0; }
+  .list-button { min-height: 36px; padding: 4px 16px; border: 1px solid #1a5fb4; border-radius: 6px; background: #1a5fb4; color: #fff; font: inherit; cursor: pointer; }
+  .side-panel.drawer { position: fixed; top: 0; bottom: 0; left: 0; z-index: 3000; width: min(100vw, 360px); height: 100vh; height: 100dvh; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box; box-shadow: 4px 0 16px rgba(0,0,0,.35); }
+  .drawer-close { display: block; min-width: 36px; min-height: 36px; border: 0; background: none; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+  .place-row { height: 44px; }
+  /* Kosovo toggle stays top-right, below the top bar */
+  .leaflet-top.leaflet-right { top: calc(52px + env(safe-area-inset-top)); }
+  .leaflet-top.leaflet-left { top: calc(78px + env(safe-area-inset-top)); }
+  /* The sheet covers the bottom of the map, so the OSM attribution moves to the top-left, below the top bar */
+  .leaflet-bottom.leaflet-right { right: auto; left: 0; bottom: auto; top: calc(52px + env(safe-area-inset-top)); }
+  .place-card.bottom-sheet { left: 0; right: 0; bottom: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 12px 12px 0 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .kosovo-note { width: min(260px, calc(100vw - 32px)); }
+}

@@ -9,15 +9,21 @@ import { PlaceList } from './PlaceList';
 import { TripPanel } from './TripPanel';
 import { BackupControls } from './BackupControls';
 
-export function SidePanel() {
+/** `onClose` is given in the phone layout, where the panel is a drawer. */
+export function SidePanel({ onClose }: { onClose?: () => void }) {
   const lang = useApp((s) => s.settings.lang);
   const tripCount = useApp((s) => s.trip.stopIds.length);
   const [tab, setTab] = useState<'places' | 'trip'>('places');
   return (
-    <aside className="side-panel">
+    <aside className={onClose ? 'side-panel drawer' : 'side-panel'}>
       <header className="panel-header">
         <h1>{t('appTitle', lang)}</h1>
         <LanguageSwitch />
+        {onClose && (
+          <button type="button" className="drawer-close" aria-label={t('close', lang)} onClick={onClose}>
+            ×
+          </button>
+        )}
       </header>
       <ProgressSummary />
       <div className="tabs" role="tablist">
