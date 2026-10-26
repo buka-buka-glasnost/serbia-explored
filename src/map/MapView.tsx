@@ -9,6 +9,7 @@ import { KosovoLayer } from './KosovoLayer';
 import { AreaLayer } from './AreaLayer';
 import { KosovoToggle } from './KosovoToggle';
 import { Legend } from './Legend';
+import { InfoButton } from './InfoButton';
 import { canFit } from './canFit';
 import { useIsNarrow } from '../ui/useIsNarrow';
 
@@ -90,6 +91,7 @@ export function MapView() {
       <PlaceMarkers />
       <KosovoToggle />
       <Legend />
+      <InfoButton />
     </MapContainer>
   );
 }

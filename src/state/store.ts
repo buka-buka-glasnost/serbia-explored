@@ -28,6 +28,7 @@ export interface AppState {
   visits: Record<string, Visit>; trip: TripState; settings: Settings;
   selectedId: string | null; areaId: string | null; query: string;
   picking: boolean;
+  welcomeOpen: boolean;
   toast: { key: StringKey; kind: 'info' | 'error' } | null;
   storageOk: boolean;
   init(): Promise<void>;
@@ -36,6 +37,7 @@ export interface AppState {
   setSettings(patch: Partial<Settings>): void;
   setArea(id: string | null): void;
   setPicking(on: boolean): void;
+  setWelcomeOpen(open: boolean): void;
   markVisited(id: string): Promise<void>;
   unmarkVisited(id: string): Promise<void>;
   updateVisit(id: string, patch: Partial<Pick<Visit, 'date' | 'note'>>): Promise<void>;
@@ -105,7 +107,7 @@ export const useApp = create<AppState>((set, get) => {
     places: [], placesById: new Map(),
     areas: null, kosovo: null,
     visits: {}, trip: { stopIds: [], startPlaceId: null }, settings: defaultSettings(),
-    selectedId: null, areaId: null, query: '', picking: false,
+    selectedId: null, areaId: null, query: '', picking: false, welcomeOpen: false,
     toast: null,
     storageOk: true,
 
@@ -142,6 +144,7 @@ export const useApp = create<AppState>((set, get) => {
     setQuery: (query) => set({ query }),
     setArea: (areaId) => set({ areaId, picking: false }),
     setPicking: (picking) => set({ picking }),
+    setWelcomeOpen: (welcomeOpen) => set({ welcomeOpen }),
     setSettings(patch) {
       const settings = { ...get().settings, ...patch };
       set({ settings });

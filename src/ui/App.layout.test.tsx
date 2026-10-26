@@ -7,6 +7,7 @@ vi.mock('../map/MapView', () => ({ MapView: () => <div data-testid="map" /> }));
 import { App } from './App';
 import { useApp } from '../state/store';
 import { makePlace } from './testPlaces';
+import { setWelcomeDismissed } from './welcomePrefs';
 
 const initial = useApp.getState();
 
@@ -24,6 +25,7 @@ function mockMatchMedia(narrow: boolean) {
 }
 
 beforeEach(() => {
+  setWelcomeDismissed(true); // the welcome message is covered by its own tests
   const places = [makePlace('Q1', { nameEn: 'Alpha' }), makePlace('Q2', { nameEn: 'Beta' })];
   useApp.setState(initial, true);
   useApp.setState({

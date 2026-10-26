@@ -8,6 +8,8 @@ import { ProgressSummary } from './ProgressSummary';
 import { Toast } from './Toast';
 import { useIsNarrow } from './useIsNarrow';
 import { usePresence } from './usePresence';
+import { WelcomeDialog } from './WelcomeDialog';
+import { isWelcomeDismissed } from './welcomePrefs';
 import './app.css';
 
 export function App() {
@@ -25,6 +27,10 @@ export function App() {
   useEffect(() => {
     void useApp.getState().init();
   }, []);
+  // First visit (or until "do not show again" is ticked): introduce the app once the map is ready.
+  useEffect(() => {
+    if (status === 'ready' && !isWelcomeDismissed()) useApp.getState().setWelcomeOpen(true);
+  }, [status]);
   // Selecting a place (from the list or a marker) closes the drawer.
   useEffect(() => {
     if (selectedId) setDrawerOpen(false);
@@ -68,6 +74,7 @@ export function App() {
         <MapView />
         {card.shown && <PlaceCard place={card.shown} closing={card.closing} />}
       </main>
+      <WelcomeDialog />
       <Toast />
     </div>
   );
