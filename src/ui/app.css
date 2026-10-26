@@ -1,7 +1,8 @@
 html, body, #root { height: 100%; margin: 0; }
 body { font-family: system-ui, sans-serif; }
 .app { height: 100%; display: flex; flex-direction: row; }
-.side-panel { width: 300px; flex: none; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #ddd; min-height: 0; }
+.side-panel { width: 300px; flex: none; display: flex; flex-direction: column; background: #fff; border-right: 1px solid #ddd; min-height: 0; overflow-y: auto; }
+.side-panel > * { flex-shrink: 0; }
 .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #ddd; }
 .panel-header h1 { font-size: 1.05rem; margin: 0; }
 .progress { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
@@ -10,7 +11,7 @@ body { font-family: system-ui, sans-serif; }
 .filters { padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
 .filters input[type='search'] { padding: 6px 8px; font: inherit; }
 .filter-group { display: flex; flex-direction: column; gap: 2px; }
-.place-list { flex: 1; min-height: 0; overflow-y: auto; }
+.side-panel > .place-list { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
 .place-list.empty { padding: 12px; color: #666; }
 .place-row { display: flex; align-items: center; gap: 8px; width: 100%; height: 36px; box-sizing: border-box; padding: 0 12px; border: 0; border-bottom: 1px solid #f0f0f0; background: #fff; text-align: left; font: inherit; font-size: 0.9rem; cursor: pointer; }
 .place-row:hover, .place-row.selected { background: #eaf2fb; }
@@ -24,7 +25,7 @@ body { font-family: system-ui, sans-serif; }
 .backup-buttons { display: flex; gap: 8px; }
 .backup .button, .backup button { padding: 4px 10px; border: 1px solid #999; background: #fff; cursor: pointer; font-size: 0.85rem; }
 .map-area { position: relative; flex: 1; min-width: 0; display: flex; }
-.place-card { position: absolute; right: 12px; bottom: 36px; width: 320px; max-height: calc(100% - 48px); overflow-y: auto; box-sizing: border-box; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.3); z-index: 1000; font-size: 0.9rem; }
+.place-card { position: absolute; right: 12px; bottom: 36px; width: 320px; max-height: calc(100% - 100px); overflow-y: auto; box-sizing: border-box; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.3); z-index: 1000; font-size: 0.9rem; }
 .place-card h2 { margin: 0 0 6px; font-size: 1.1rem; padding-right: 24px; }
 .card-close { position: absolute; top: 6px; right: 8px; border: 0; background: none; font-size: 1.4rem; line-height: 1; cursor: pointer; }
 .card-photo { margin: 0 0 8px; }
