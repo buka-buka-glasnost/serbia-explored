@@ -103,14 +103,15 @@ Interface switch: **Ћирилица / Latinica / English**.
 ## Kosovo
 
 - Kosovo's places are **included and shown by default**.
-- The Kosovo area is drawn as a **distinct shaded overlay** (a purple tint with a dashed edge in mockups) so it reads as disputed. The overlay is drawn by the app, independent of the base map.
-- A **"Show Kosovo" switch in the top-right corner of the map** hides/shows Kosovo's places (and the overlay).
+- Everything **outside Serbia is shaded** (a soft grey mask drawn by the app, independent of the base map). *Revised 2026-10-26 by the owner, replacing the original purple Kosovo tint.*
+- With Kosovo shown, Kosovo is **clear like the rest of Serbia, with a dashed purple border** so its disputed status stays visible. With Kosovo hidden, Kosovo gets the **same grey shade as the world outside**.
+- A **"Show Kosovo" switch in the top-right corner of the map** hides/shows Kosovo's places and switches the shading.
 - **Hovering** over the switch (or its ⓘ icon) shows the note. On touch devices, tapping ⓘ shows it.
 - Note text (to be translated into all three languages):
 
   > Kosovo's status is disputed. Serbia considers it part of its territory under UN Security Council Resolution 1244. Kosovo declared independence in 2008 and is recognised by many, but not all, countries. Several Serbian heritage sites there are on UNESCO's World Heritage list.
 
-- The base map's own border rendering is not changed; the overlay is what conveys the dispute.
+- The base map's own border rendering is not changed; the dashed border and the note are what convey the dispute.
 - **Administrative areas (owner's decision):** Kosovo places are filed under **Serbia's administrative division** — the 5 districts (Kosovski, Pećki, Prizrenski, Kosovsko-Mitrovački, Kosovsko-Pomoravski) and their municipalities as defined by Serbian law. OSM mostly maps Kosovo's own 7-district scheme, so the pipeline must source or assemble the Serbian-scheme boundaries separately (e.g. from Serbian official data, or by grouping municipality polygons into Serbian districts).
 - **Names (owner's decision):** Serbian modes use Serbian names. English mode shows **both names** for Kosovo places and areas, Serbian first: "Peć / Peja". Where Wikidata's English label is the Albanian-derived form, the Serbian form is put first.
 - **Content (owner's decision):** only places designated by Serbia (cultural register, nature register), UNESCO, or Ramsar. Kosovo's own heritage register and protected areas are not used. Šar planina appears once, as the Serbian national park.

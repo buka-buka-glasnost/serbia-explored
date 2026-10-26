@@ -15,6 +15,11 @@ export function loadAreas(): Promise<AreaFC> {
   return fetchJson<AreaFC>('areas.geojson');
 }
 
+/** Serbia's outline without Kosovo ("serbia") and with it ("serbia-with-kosovo"). */
+export function loadOutlines(): Promise<GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon, { id: string }>> {
+  return fetchJson('outlines.geojson');
+}
+
 export function loadKosovoOutline(): Promise<GeoJSON.Feature> {
   return fetchJson<GeoJSON.Feature>('kosovo.geojson');
 }

@@ -50,7 +50,7 @@ async function main() {
   const noName = raw.filter((r) => !r.nameSr && !r.nameSrLatn && !r.nameEn);
 
   console.log('Fetching areas');
-  const { areas, kosovo } = await fetchAreas();
+  const { areas, kosovo, outlines } = await fetchAreas();
   const allowlist = JSON.parse(
     await readFile(path.join('pipeline', 'data', 'kosovo-nature-allowlist.json'), 'utf8'),
   ) as string[];
@@ -87,6 +87,7 @@ async function main() {
   await writeFile(path.join(OUT_DIR, 'places.json'), JSON.stringify(file));
   await writeFile(path.join(OUT_DIR, 'areas.geojson'), JSON.stringify(areas));
   await writeFile(path.join(OUT_DIR, 'kosovo.geojson'), JSON.stringify(kosovo));
+  await writeFile(path.join(OUT_DIR, 'outlines.geojson'), JSON.stringify(outlines));
   const sortedDropped: DroppedPlace[] = [...dropped].sort(
     (a, b) => a.reason.localeCompare(b.reason) || a.id.localeCompare(b.id, 'en', { numeric: true }),
   );
@@ -126,7 +127,7 @@ async function main() {
   console.log(`Checks: ${problems.length} problem(s)`);
   for (const p of problems) console.log(`  ! ${p}`);
   console.log('File sizes:');
-  for (const f of ['places.json', 'areas.geojson', 'kosovo.geojson']) {
+  for (const f of ['places.json', 'areas.geojson', 'kosovo.geojson', 'outlines.geojson']) {
     console.log(`  ${f}: ${await size(path.join(OUT_DIR, f))}`);
   }
   if (problems.length > 0 && !process.argv.includes('--allow-warnings')) {

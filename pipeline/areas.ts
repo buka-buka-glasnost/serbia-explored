@@ -144,6 +144,7 @@ function strip(f: OsmFeature, props: AreaProps): AreaFeature {
 export async function fetchAreas(): Promise<{
   areas: AreaFC;
   kosovo: GeoJSON.Feature<GeoJSON.MultiPolygon | GeoJSON.Polygon>;
+  outlines: OutlinesFC;
 }> {
   const { outline, municipalities: kosovoOsm } = await fetchKosovoOsm();
   const outsideKosovo = (f: OsmFeature) =>
@@ -219,7 +220,32 @@ export async function fetchAreas(): Promise<{
     { type: 'Feature', properties: {}, geometry: outline.geometry } as GeoJSON.Feature<Poly>,
     { tolerance: SIMPLIFY_TOLERANCE, highQuality: true },
   );
-  return { areas: { type: 'FeatureCollection', features }, kosovo };
+  const outlines = await fetchSerbiaOutlines(outline as GeoJSON.Feature<Poly>);
+  return { areas: { type: 'FeatureCollection', features }, kosovo, outlines };
+}
+
+/** Outlines used to shade everything outside Serbia: without Kosovo, and with it. */
+export type OutlinesFC = GeoJSON.FeatureCollection<Poly, { id: 'serbia' | 'serbia-with-kosovo' }>;
+
+async function fetchSerbiaOutlines(kosovo: GeoJSON.Feature<Poly>): Promise<OutlinesFC> {
+  const q = `[out:json][timeout:180];rel(${SERBIA_REL});out geom;`;
+  const serbia = toFeatures(await overpass(q, 'serbia-outline')).find((f) =>
+    String(f.id ?? (f.properties as { id?: string }).id).endsWith(String(SERBIA_REL)),
+  ) as GeoJSON.Feature<Poly> | undefined;
+  if (!serbia) throw new Error('Serbia outline relation not found');
+  // OSM's Serbia relation may or may not include Kosovo; derive both shapes either way.
+  const includesKosovo = turf.booleanPointInPolygon(turf.pointOnFeature(kosovo), serbia);
+  const without = includesKosovo ? turf.difference(turf.featureCollection([serbia, kosovo])) : serbia;
+  const withK = includesKosovo ? serbia : turf.union(turf.featureCollection([serbia, kosovo]));
+  if (!without || !withK) throw new Error('Serbia outline geometry failed');
+  const shape = (f: GeoJSON.Feature<Poly>, id: 'serbia' | 'serbia-with-kosovo') => {
+    const s = turf.simplify(f, { tolerance: SIMPLIFY_TOLERANCE, highQuality: true, mutate: false });
+    return turf.truncate({ type: 'Feature' as const, properties: { id }, geometry: s.geometry }, { precision: 5 });
+  };
+  return {
+    type: 'FeatureCollection',
+    features: [shape(without as GeoJSON.Feature<Poly>, 'serbia'), shape(withK as GeoJSON.Feature<Poly>, 'serbia-with-kosovo')],
+  };
 }
 
 // ---------- Kosovo scheme ----------
