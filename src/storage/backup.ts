@@ -114,19 +114,21 @@ export async function importBackup(file: Blob): Promise<ImportResult> {
   const existingByPlace = new Map(existing.map((v) => [v.placeId, v]));
   const backupPhotoIds = new Set(b.photos.map((p) => p.id));
 
-  for (const v of b.visits) {
-    const old = existingByPlace.get(v.placeId);
-    if (old) for (const id of old.photoIds) if (!backupPhotoIds.has(id)) await deletePhoto(id);
-    await putVisit(v);
-  }
+  // Write order keeps existing data intact if something fails midway:
+  // backup photos, then visits/trip/settings, then delete leftovers of replaced visits.
   for (const p of b.photos) {
     await putPhoto({
       id: p.id, placeId: p.placeId, createdAt: p.createdAt,
       blob: new Blob([base64ToBytes(p.dataBase64)], { type: p.type }),
     });
   }
+  for (const v of b.visits) await putVisit(v);
   let tripImported = false;
   if (b.trip) { await setMeta('trip', b.trip); tripImported = true; }
   if (b.settings) await setMeta('settings', b.settings);
+  for (const v of b.visits) {
+    const old = existingByPlace.get(v.placeId);
+    if (old) for (const id of old.photoIds) if (!backupPhotoIds.has(id)) await deletePhoto(id);
+  }
   return { visitsImported: b.visits.length, photosImported: b.photos.length, tripImported };
 }

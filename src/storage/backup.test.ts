@@ -1,8 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   putVisit, getAllVisits, putPhoto, getPhoto, getMeta, setMeta, __resetDbForTests, readBlobBytes,
 } from './db';
+import * as db from './db';
 import { exportBackup, importBackup, readBackupSummary, backupFileName, BackupFormatError } from './backup';
+
+vi.mock('./db', async (orig) => {
+  const m = await orig<typeof import('./db')>();
+  return { ...m, putPhoto: vi.fn(m.putPhoto) };
+});
 
 const blobOf = (o: unknown) => new Blob([JSON.stringify(o)], { type: 'application/json' });
 const bytes = [0, 1, 2, 250, 255, 128, 7];
@@ -83,5 +89,21 @@ describe('backup', () => {
     await expect(readBackupSummary(blobOf({ format: 'other' }))).rejects.toBeInstanceOf(BackupFormatError);
     await expect(readBackupSummary(blobOf({ format: 'serbia-explored-backup', version: 2 }))).rejects.toBeInstanceOf(BackupFormatError);
     await expect(readBackupSummary(new Blob(['{']))).rejects.toBeInstanceOf(BackupFormatError);
+  });
+
+  it('leaves existing visit and photos intact if import fails midway', async () => {
+    await putVisit({ placeId: 'Q1', date: '2026-10-01', note: 'new', photoIds: ['n1', 'n2'] });
+    await putPhoto(mkPhoto('n1', 'Q1'));
+    await putPhoto(mkPhoto('n2', 'Q1'));
+    const file = await exportBackup();
+    await __resetDbForTests();
+    await putVisit({ placeId: 'Q1', date: '2026-10-05', note: 'local', photoIds: ['old'] });
+    await putPhoto(mkPhoto('old', 'Q1'));
+
+    const real = vi.mocked(db.putPhoto).getMockImplementation()!;
+    vi.mocked(db.putPhoto).mockImplementationOnce(real).mockImplementationOnce(async () => { throw new Error('boom'); });
+    await expect(importBackup(file)).rejects.toThrow('boom');
+    expect((await getAllVisits())[0].note).toBe('local');
+    expect(await getPhoto('old')).toBeDefined();
   });
 });

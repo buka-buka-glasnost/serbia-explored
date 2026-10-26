@@ -5,9 +5,12 @@ export interface StoredPhoto { id: string; placeId: string; blob: Blob; createdA
 export interface TripState { stopIds: string[]; startPlaceId: string | null } // null = Google uses current location
 
 export class StorageUnavailableError extends Error {
+  /** True when the underlying failure was a full-storage (quota) error. */
+  readonly quota: boolean;
   constructor(message = 'Local storage is unavailable', options?: { cause?: unknown }) {
     super(message, options);
     this.name = 'StorageUnavailableError';
+    this.quota = (options?.cause as { name?: string } | undefined)?.name === 'QuotaExceededError';
   }
 }
 
@@ -20,16 +23,21 @@ let dbPromise: Promise<IDBPDatabase> | null = null;
 
 function getDb(): Promise<IDBPDatabase> {
   if (!dbPromise) {
-    dbPromise = openDB(DB_NAME, 1, {
-      upgrade(db) {
-        db.createObjectStore('visits', { keyPath: 'placeId' });
-        db.createObjectStore('photos', { keyPath: 'id' });
-        db.createObjectStore('meta');
-      },
-    }).catch((e) => {
-      dbPromise = null;
-      throw new StorageUnavailableError('Could not open local storage', { cause: e });
-    });
+    // async wrapper so a synchronous throw (e.g. indexedDB undefined) is also converted
+    dbPromise = (async () => {
+      try {
+        return await openDB(DB_NAME, 1, {
+          upgrade(db) {
+            db.createObjectStore('visits', { keyPath: 'placeId' });
+            db.createObjectStore('photos', { keyPath: 'id' });
+            db.createObjectStore('meta');
+          },
+        });
+      } catch (e) {
+        dbPromise = null;
+        throw new StorageUnavailableError('Could not open local storage', { cause: e });
+      }
+    })();
   }
   return dbPromise;
 }
@@ -77,8 +85,7 @@ export async function deleteVisit(placeId: string): Promise<void> {
   });
 }
 export async function putPhoto(p: StoredPhoto): Promise<void> {
-  const rec = await toRecord(p);
-  await run((db) => db.put('photos', rec));
+  await run(async (db) => db.put('photos', await toRecord(p)));
 }
 export async function getPhoto(id: string): Promise<StoredPhoto | undefined> {
   const rec = (await run((db) => db.get('photos', id))) as PhotoRecord | undefined;

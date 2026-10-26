@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   putVisit, getAllVisits, deleteVisit, putPhoto, getPhoto, deletePhoto, getMeta, setMeta,
-  requestPersistence, __resetDbForTests,
+  requestPersistence, __resetDbForTests, StorageUnavailableError,
 } from './db';
 
 const photo = (id: string, placeId: string) => ({
@@ -9,6 +9,7 @@ const photo = (id: string, placeId: string) => ({
 });
 
 beforeEach(async () => { await __resetDbForTests(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 describe('db', () => {
   it('round-trips visits', async () => {
@@ -39,5 +40,30 @@ describe('db', () => {
   });
   it('requestPersistence returns false when unsupported', async () => {
     expect(await requestPersistence()).toBe(false);
+  });
+
+  it('wraps a missing indexedDB in StorageUnavailableError', async () => {
+    await __resetDbForTests();
+    vi.stubGlobal('indexedDB', undefined);
+    const err = await getAllVisits().catch((e) => e);
+    expect(err).toBeInstanceOf(StorageUnavailableError);
+    expect(err.quota).toBe(false);
+  });
+
+  it('wraps a failing transaction and keeps the cause', async () => {
+    await putVisit({ placeId: 'Q1', date: 'd', note: '', photoIds: [] });
+    const cause = new DOMException('full', 'QuotaExceededError');
+    vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(() => { throw cause; });
+    const err = await putVisit({ placeId: 'Q2', date: 'd', note: '', photoIds: [] }).catch((e) => e);
+    expect(err).toBeInstanceOf(StorageUnavailableError);
+    expect(err.cause).toBe(cause);
+    expect(err.quota).toBe(true);
+  });
+
+  it('wraps a failing blob read in putPhoto', async () => {
+    const bad = { type: 'image/jpeg', arrayBuffer: () => Promise.reject(new Error('read failed')) } as unknown as Blob;
+    const err = await putPhoto({ id: 'x', placeId: 'Q1', createdAt: 't', blob: bad }).catch((e) => e);
+    expect(err).toBeInstanceOf(StorageUnavailableError);
+    expect(err.quota).toBe(false);
   });
 });
