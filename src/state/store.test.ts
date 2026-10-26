@@ -54,6 +54,16 @@ describe('init', () => {
     expect(s.places).toHaveLength(2);
   });
 
+  it('shares one load when called twice at once (StrictMode)', async () => {
+    const loadData = await import('../data/loadData');
+    const s = useApp.getState();
+    await Promise.all([s.init(), s.init()]);
+    expect(loadData.loadPlaces).toHaveBeenCalledTimes(1);
+    expect(db.getAllVisits).toHaveBeenCalledTimes(1);
+    await useApp.getState().init(); // a later call (e.g. Retry) loads again
+    expect(loadData.loadPlaces).toHaveBeenCalledTimes(2);
+  });
+
   it('loads stored visits, trip and settings', async () => {
     vi.mocked(db.getAllVisits).mockResolvedValue([{ placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] }]);
     vi.mocked(db.getMeta).mockImplementation((async (k: string) =>
@@ -109,22 +119,127 @@ describe('addPhoto', () => {
 });
 
 describe('actions never reject on storage failure', () => {
-  it('resolves and toasts for visit and photo actions', async () => {
+  const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: ['a'] };
+  beforeEach(() => {
     const boom = new Error('boom');
     vi.mocked(db.putVisit).mockRejectedValue(boom);
     vi.mocked(db.deleteVisit).mockRejectedValue(boom);
     vi.mocked(db.putPhoto).mockRejectedValue(boom);
     vi.mocked(db.deletePhoto).mockRejectedValue(boom);
-    const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: ['a'] };
     useApp.setState({ visits: { Q1: visit } });
-    const s = useApp.getState();
-    await expect(s.markVisited('Q2')).resolves.toBeUndefined();
-    await expect(s.updateVisit('Q1', { note: 'x' })).resolves.toBeUndefined();
-    await expect(s.addPhoto('Q1', new File(['x'], 'x.jpg'))).resolves.toBeUndefined();
-    await expect(s.removePhoto('Q1', 'a')).resolves.toBeUndefined();
-    await expect(s.unmarkVisited('Q1')).resolves.toBeUndefined();
+  });
+  const failsQuietly = async (action: () => Promise<void>) => {
+    await expect(action()).resolves.toBeUndefined();
     expect(useApp.getState().toast).toEqual({ key: 'storageError', kind: 'error' });
     expect(useApp.getState().visits.Q1).toEqual(visit);
+  };
+
+  it('markVisited', async () => {
+    await failsQuietly(() => useApp.getState().markVisited('Q2'));
+    expect(useApp.getState().visits.Q2).toBeUndefined();
+  });
+  it('updateVisit', () => failsQuietly(() => useApp.getState().updateVisit('Q1', { note: 'x' })));
+  it('addPhoto', () => failsQuietly(() => useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'))));
+  it('removePhoto', () => failsQuietly(() => useApp.getState().removePhoto('Q1', 'a')));
+  it('unmarkVisited', () => failsQuietly(() => useApp.getState().unmarkVisited('Q1')));
+});
+
+/** A promise with its resolve/reject exposed, for controlling when a mocked write settles. */
+function deferred() {
+  let resolve!: () => void;
+  let reject!: (e: unknown) => void;
+  const promise = new Promise<void>((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
+describe('overlapping writes', () => {
+  const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] };
+  beforeEach(() => useApp.setState({ visits: { Q1: visit } }));
+
+  it('a failed date write does not undo a later note write that succeeded', async () => {
+    vi.mocked(db.putVisit).mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce();
+    const s = useApp.getState();
+    const date = s.updateVisit('Q1', { date: '2026-02-02' });
+    const note = s.updateVisit('Q1', { note: 'hello' });
+    await Promise.all([date, note]);
+    expect(useApp.getState().visits.Q1).toEqual({ ...visit, date: '2026-02-02', note: 'hello' });
+    expect(db.putVisit).toHaveBeenLastCalledWith({ ...visit, date: '2026-02-02', note: 'hello' });
+  });
+
+  it('when both writes fail, rolls back to what is stored', async () => {
+    vi.mocked(db.putVisit).mockRejectedValue(new Error('boom'));
+    const s = useApp.getState();
+    await Promise.all([s.updateVisit('Q1', { date: '2026-02-02' }), s.updateVisit('Q1', { note: 'hello' })]);
+    expect(useApp.getState().visits.Q1).toEqual(visit);
+  });
+
+  it('a failed update does not bring back a visit that was unmarked meanwhile', async () => {
+    const put = deferred();
+    vi.mocked(db.putVisit).mockReturnValueOnce(put.promise);
+    vi.mocked(db.deleteVisit).mockResolvedValue();
+    const s = useApp.getState();
+    const update = s.updateVisit('Q1', { note: 'x' });
+    const unmark = s.unmarkVisited('Q1');
+    put.reject(new Error('boom'));
+    await Promise.all([update, unmark]);
+    expect(useApp.getState().visits.Q1).toBeUndefined();
+    expect(db.deleteVisit).toHaveBeenCalledWith('Q1');
+  });
+
+  it('writes reach storage in the order they were made', async () => {
+    const first = deferred();
+    vi.mocked(db.putVisit).mockReturnValueOnce(first.promise);
+    vi.mocked(db.deleteVisit).mockResolvedValue();
+    const s = useApp.getState();
+    const update = s.updateVisit('Q1', { note: 'x' });
+    const unmark = s.unmarkVisited('Q1');
+    await Promise.resolve();
+    expect(db.deleteVisit).not.toHaveBeenCalled(); // waits for the put
+    first.resolve();
+    await Promise.all([update, unmark]);
+    expect(db.deleteVisit).toHaveBeenCalledWith('Q1');
+  });
+});
+
+describe('addPhoto while the visit changes', () => {
+  const visit = { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] as string[] };
+  beforeEach(() => {
+    useApp.setState({ visits: { Q1: visit } });
+    vi.mocked(db.deleteVisit).mockResolvedValue();
+    vi.mocked(db.deletePhoto).mockResolvedValue();
+  });
+
+  it('does not resurrect a visit unmarked before the photo was stored', async () => {
+    const stored = deferred();
+    vi.mocked(db.putPhoto).mockReturnValueOnce(stored.promise);
+    const adding = useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'));
+    await useApp.getState().unmarkVisited('Q1');
+    stored.resolve();
+    await adding;
+    expect(useApp.getState().visits.Q1).toBeUndefined();
+    expect(db.putVisit).not.toHaveBeenCalled();
+    const photoId = vi.mocked(db.putPhoto).mock.calls[0][0].id;
+    expect(db.deletePhoto).toHaveBeenCalledWith(photoId);
+  });
+
+  it('keeps a note saved while the photo was being stored', async () => {
+    const stored = deferred();
+    vi.mocked(db.putPhoto).mockReturnValueOnce(stored.promise);
+    const adding = useApp.getState().addPhoto('Q1', new File(['x'], 'x.jpg'));
+    await useApp.getState().updateVisit('Q1', { note: 'kept' });
+    stored.resolve();
+    await adding;
+    expect(useApp.getState().visits.Q1).toMatchObject({ note: 'kept', photoIds: [expect.any(String)] });
+  });
+
+  it('re-checks the photo limit after storing (two quick picks)', async () => {
+    useApp.setState({ visits: { Q1: { ...visit, photoIds: ['a', 'b', 'c', 'd'] } } });
+    vi.mocked(db.putPhoto).mockResolvedValue();
+    const s = useApp.getState();
+    await Promise.all([s.addPhoto('Q1', new File(['x'], 'x.jpg')), s.addPhoto('Q1', new File(['y'], 'y.jpg'))]);
+    expect(useApp.getState().visits.Q1.photoIds).toHaveLength(5);
+    expect(db.deletePhoto).toHaveBeenCalledTimes(1);
+    expect(useApp.getState().toast).toEqual({ key: 'tooManyPhotos', kind: 'info' });
   });
 });
 

@@ -83,24 +83,74 @@ export const useApp = create<AppState>((set, get) => {
     return startIsStop ? [startPlaceId!, ...ordered] : ordered;
   };
 
-  /** Applies `next` in memory, saves it, and rolls back to the previous visit on failure. */
-  const saveVisit = async (id: string, next: Visit): Promise<boolean> => {
-    const prev = get().visits[id];
-    set((s) => ({ visits: { ...s.visits, [id]: next } }));
-    if (!get().storageOk) return true;
-    try {
-      await putVisit(next);
-      return true;
-    } catch {
-      set((s) => {
-        const visits = { ...s.visits };
-        if (prev) visits[id] = prev; else delete visits[id];
-        return { visits };
-      });
-      get().showToast('storageError', 'error');
-      return false;
-    }
+  // Visit writes are queued per place so they reach storage in order. While a place has
+  // writes in flight, `committed` holds the last value known to be stored; a failed write
+  // rolls back to it, but only if no later change has replaced the value it wrote.
+  const queues = new Map<string, Promise<boolean>>();
+  const committed = new Map<string, Visit | undefined>();
+
+  const putInMemory = (id: string, value: Visit | undefined) =>
+    set((s) => {
+      const visits = { ...s.visits };
+      if (value) visits[id] = value; else delete visits[id];
+      return { visits };
+    });
+
+  /** Applies `next` (undefined removes the visit) in memory and saves it; false if saving failed. */
+  const writeVisit = (id: string, next: Visit | undefined): Promise<boolean> => {
+    const before = get().visits[id];
+    putInMemory(id, next);
+    if (!get().storageOk) return Promise.resolve(true);
+    if (!queues.has(id)) committed.set(id, before);
+    const run: Promise<boolean> = (queues.get(id) ?? Promise.resolve(true)).then(async () => {
+      try {
+        if (next) await putVisit(next); else await deleteVisit(id);
+        committed.set(id, next);
+        return true;
+      } catch {
+        if (get().visits[id] === next) putInMemory(id, committed.get(id));
+        get().showToast('storageError', 'error');
+        return false;
+      } finally {
+        if (queues.get(id) === run) {
+          queues.delete(id);
+          committed.delete(id);
+        }
+      }
+    });
+    queues.set(id, run);
+    return run;
   };
+
+  async function load() {
+    set({ status: 'loading' });
+    try {
+      const [places, areas, kosovo] = await Promise.all([loadPlaces(), loadAreas(), loadKosovoOutline()]);
+      set({ places, placesById: new Map(places.map((p) => [p.id, p])), areas, kosovo });
+    } catch (e) {
+      console.error(e);
+      set({ status: 'error' });
+      return;
+    }
+    try {
+      const [visits, trip, settings] = await Promise.all([
+        getAllVisits(),
+        getMeta<TripState>('trip'),
+        getMeta<Settings>('settings'),
+      ]);
+      set({
+        visits: Object.fromEntries(visits.map((v) => [v.placeId, v])),
+        trip: trip ?? { stopIds: [], startPlaceId: null },
+        settings: { ...defaultSettings(), ...settings },
+        storageOk: true,
+      });
+    } catch (e) {
+      if (!(e instanceof StorageUnavailableError)) console.error(e);
+      set({ storageOk: false });
+    }
+    set({ status: 'ready' });
+  }
+  let loading: Promise<void> | null = null;
 
   return {
     status: 'loading',
@@ -111,33 +161,10 @@ export const useApp = create<AppState>((set, get) => {
     toast: null,
     storageOk: true,
 
-    async init() {
-      set({ status: 'loading' });
-      try {
-        const [places, areas, kosovo] = await Promise.all([loadPlaces(), loadAreas(), loadKosovoOutline()]);
-        set({ places, placesById: new Map(places.map((p) => [p.id, p])), areas, kosovo });
-      } catch (e) {
-        console.error(e);
-        set({ status: 'error' });
-        return;
-      }
-      try {
-        const [visits, trip, settings] = await Promise.all([
-          getAllVisits(),
-          getMeta<TripState>('trip'),
-          getMeta<Settings>('settings'),
-        ]);
-        set({
-          visits: Object.fromEntries(visits.map((v) => [v.placeId, v])),
-          trip: trip ?? { stopIds: [], startPlaceId: null },
-          settings: { ...defaultSettings(), ...settings },
-          storageOk: true,
-        });
-      } catch (e) {
-        if (!(e instanceof StorageUnavailableError)) console.error(e);
-        set({ storageOk: false });
-      }
-      set({ status: 'ready' });
+    init() {
+      // StrictMode runs effects twice: share the running load instead of starting a second one.
+      loading ??= load().finally(() => { loading = null; });
+      return loading;
     },
 
     select: (id) => set({ selectedId: id }),
@@ -164,36 +191,24 @@ export const useApp = create<AppState>((set, get) => {
         persistenceRequested = true;
         void requestPersistence();
       }
-      await saveVisit(id, { placeId: id, date: todayLocal(), note: '', photoIds: [] });
+      await writeVisit(id, { placeId: id, date: todayLocal(), note: '', photoIds: [] });
     },
 
     async unmarkVisited(id) {
-      const prev = get().visits[id];
-      if (!prev) return;
-      set((s) => {
-        const visits = { ...s.visits };
-        delete visits[id];
-        return { visits };
-      });
-      if (!get().storageOk) return;
-      try {
-        await deleteVisit(id);
-      } catch {
-        set((s) => ({ visits: { ...s.visits, [id]: prev } }));
-        get().showToast('storageError', 'error');
-      }
+      if (!get().visits[id]) return;
+      await writeVisit(id, undefined);
     },
 
     async updateVisit(id, patch) {
       const prev = get().visits[id];
       if (!prev) return;
-      await saveVisit(id, { ...prev, ...patch });
+      await writeVisit(id, { ...prev, ...patch });
     },
 
     async addPhoto(id, file) {
-      const prev = get().visits[id];
-      if (!prev) return;
-      if (prev.photoIds.length >= MAX_PHOTOS_PER_VISIT) {
+      const full = (v: Visit | undefined) => !!v && v.photoIds.length >= MAX_PHOTOS_PER_VISIT;
+      if (!get().visits[id]) return;
+      if (full(get().visits[id])) {
         get().showToast('tooManyPhotos', 'info');
         return;
       }
@@ -205,14 +220,26 @@ export const useApp = create<AppState>((set, get) => {
         get().showToast('storageError', 'error');
         return;
       }
-      const ok = await saveVisit(id, { ...(get().visits[id] ?? prev), photoIds: [...(get().visits[id] ?? prev).photoIds, photoId] });
-      if (!ok) await deletePhoto(photoId).catch(() => undefined);
+      // The visit may have changed while the photo was being stored: build on the current one.
+      const cur = get().visits[id];
+      const dropPhoto = () => deletePhoto(photoId).catch(() => undefined);
+      if (!cur) {
+        await dropPhoto(); // unmarked meanwhile: do not bring the visit back
+        return;
+      }
+      if (full(cur)) {
+        await dropPhoto(); // another pick filled the visit meanwhile
+        get().showToast('tooManyPhotos', 'info');
+        return;
+      }
+      const ok = await writeVisit(id, { ...cur, photoIds: [...cur.photoIds, photoId] });
+      if (!ok) await dropPhoto();
     },
 
     async removePhoto(id, photoId) {
       const prev = get().visits[id];
       if (!prev) return;
-      const ok = await saveVisit(id, { ...prev, photoIds: prev.photoIds.filter((p) => p !== photoId) });
+      const ok = await writeVisit(id, { ...prev, photoIds: prev.photoIds.filter((p) => p !== photoId) });
       if (ok) await deletePhoto(photoId).catch(() => undefined);
     },
 
