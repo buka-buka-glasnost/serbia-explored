@@ -39,6 +39,15 @@ describe('splitByArea', () => {
     expect(r.inside.map((p) => p.id)).toEqual(['in']);
     expect(r.nearby.map((p) => p.id)).toEqual(['near']);
   });
+  it('the bbox pre-filter keeps places just within the distance on every side', () => {
+    const dLat = 9.5 / 110.574;
+    const ps = [
+      mk('n', { lat: 45 + dLat, lon: 20.5 }), mk('s', { lat: 44 - dLat, lon: 20.5 }),
+      mk('e', { lat: 44.5, lon: eastOf(9.5) }), mk('w', { lat: 44.5, lon: 20 - (eastOf(9.5) - 21) }),
+      mk('far-n', { lat: 45 + 2 * dLat, lon: 20.5 }),
+    ];
+    expect(splitByArea(ps, area).nearby.map((p) => p.id)).toEqual(['n', 's', 'e', 'w']);
+  });
   it('honours a custom nearby distance', () => {
     const near = mk('near', { lat: 44.5, lon: eastOf(5) });
     expect(splitByArea([near], area, 2).nearby).toEqual([]);

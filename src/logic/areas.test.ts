@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AreaFC, AreaProps } from '../shared/types';
 import { makePlace } from '../ui/testPlaces';
 import { areaOpacity, areaAt } from './areas';
+import { splitByArea } from './filters';
 
 const box = (x0: number, y0: number, x1: number, y1: number) => ({
   type: 'Polygon' as const,
@@ -41,10 +42,10 @@ describe('areaOpacity', () => {
   const near = makePlace('near', { lat: 43.5, lon: 21.05 });
   const far = makePlace('far', { lat: 43.5, lon: 23 });
   it('is null without an area', () => {
-    expect(areaOpacity([inside], undefined)).toBeNull();
+    expect(areaOpacity([inside], null)).toBeNull();
   });
   it('is 1 inside, 0.55 nearby and 0.2 elsewhere', () => {
-    const m = areaOpacity([inside, near, far], muni)!;
+    const m = areaOpacity([inside, near, far], splitByArea([inside, near, far], muni))!;
     expect([m.get('in'), m.get('near'), m.get('far')]).toEqual([1, 0.55, 0.2]);
   });
 });

@@ -1,14 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
-import { filterPlaces } from '../logic/filters';
+import { useVisiblePlaces } from '../state/visiblePlaces';
 import { areaOpacity } from '../logic/areas';
-import { placeName } from '../i18n/i18n';
-import { markerStyle } from './markerStyle';
-import type { AreaProps } from '../shared/types';
+import { MarkerSync, type MarkerState } from './markerSync';
 
 export { markerStyle } from './markerStyle';
 
@@ -21,15 +19,12 @@ function clusterIcon(cluster: L.MarkerCluster): L.DivIcon {
 
 export function PlaceMarkers() {
   const map = useMap();
-  const places = useApp((s) => s.places);
   const visits = useApp((s) => s.visits);
   const trip = useApp((s) => s.trip);
-  const settings = useApp((s) => s.settings);
-  const query = useApp((s) => s.query);
-  const select = useApp((s) => s.select);
-  const areas = useApp((s) => s.areas);
-  const areaId = useApp((s) => s.areaId);
-  const groupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const selectedId = useApp((s) => s.selectedId);
+  const lang = useApp((s) => s.settings.lang);
+  const { filtered, split } = useVisiblePlaces();
+  const syncRef = useRef<MarkerSync | null>(null);
 
   useEffect(() => {
     const group = L.markerClusterGroup({
@@ -37,37 +32,43 @@ export function PlaceMarkers() {
       showCoverageOnHover: false,
       iconCreateFunction: clusterIcon,
     });
-    groupRef.current = group;
     map.addLayer(group);
+    syncRef.current = new MarkerSync(group, useApp.getState().settings.lang, (p) => {
+      const s = useApp.getState();
+      // while picking an area, a marker click picks the area under it instead of the place
+      if (s.picking) s.pickAreaAt(p.lat, p.lon, map.getZoom());
+      else s.select(p.id);
+    });
     return () => {
       map.removeLayer(group);
-      groupRef.current = null;
+      syncRef.current = null;
     };
   }, [map]);
 
+  const opacities = useMemo(() => areaOpacity(filtered, split), [filtered, split]);
+  const state = useMemo((): MarkerState => {
+    const tripIds = new Set(trip.stopIds);
+    return {
+      visited: (id) => !!visits[id],
+      inTrip: (id) => tripIds.has(id),
+      selectedId,
+      opacity: (id) => opacities?.get(id) ?? 1,
+    };
+  }, [visits, trip, selectedId, opacities]);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // Rebuild the visible set only when it changes...
   useEffect(() => {
-    const group = groupRef.current;
-    if (!group) return;
-    group.clearLayers();
-    const filtered = filterPlaces(places, settings, query);
-    const area = areaId ? areas?.features.find((f) => f.properties.id === areaId) : undefined;
-    const opacities = areaOpacity(
-      filtered,
-      area as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps> | undefined,
-    );
-    const markers = filtered.map((p) => {
-      const opacity = opacities?.get(p.id) ?? 1;
-      const m = L.circleMarker([p.lat, p.lon], {
-        ...markerStyle(p, !!visits[p.id], trip.stopIds.includes(p.id)),
-        fillOpacity: 0.9 * opacity,
-        opacity,
-      });
-      m.bindTooltip(placeName(p, settings.lang));
-      m.on('click', () => select(p.id));
-      return m;
-    });
-    group.addLayers(markers);
-  }, [places, visits, trip, settings, query, select, map, areas, areaId]);
+    syncRef.current?.setVisible(filtered, stateRef.current);
+  }, [filtered, opacities]);
+  // ...and otherwise only restyle or relabel.
+  useEffect(() => {
+    syncRef.current?.restyle(state);
+  }, [state]);
+  useEffect(() => {
+    syncRef.current?.setLang(lang);
+  }, [lang]);
 
   return null;
 }

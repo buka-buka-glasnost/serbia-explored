@@ -82,7 +82,7 @@ function FlyToSelected() {
 
 export function MapView() {
   return (
-    <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6}>
+    <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6} preferCanvas>
       <FitToPlaces />
       <FlyToSelected />
       <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={TILES.maxZoom} />

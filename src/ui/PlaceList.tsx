@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/store';
+import { useVisiblePlaces } from '../state/visiblePlaces';
 import { areaName, placeName, placeType, t } from '../i18n/i18n';
-import { filterPlaces, sortForDisplay, splitByArea } from '../logic/filters';
-import type { AreaProps, Place } from '../shared/types';
+import { sortForDisplay } from '../logic/filters';
+import type { Place } from '../shared/types';
 
 const ROW_HEIGHT = 52;
 const VIRTUALISE_ABOVE = 500;
@@ -11,42 +12,26 @@ const OVERSCAN = 8;
 type Row = { kind: 'place'; place: Place; dim: boolean } | { kind: 'heading'; label: string };
 
 export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
-  const places = useApp((s) => s.places);
-  const settings = useApp((s) => s.settings);
-  const query = useApp((s) => s.query);
-  const areas = useApp((s) => s.areas);
-  const areaId = useApp((s) => s.areaId);
+  const lang = useApp((s) => s.settings.lang);
+  const areasById = useApp((s) => s.areasById);
   const visits = useApp((s) => s.visits);
   const selectedId = useApp((s) => s.selectedId);
   const select = useApp((s) => s.select);
-  const { lang } = settings;
-
-  const filtered = useMemo(() => sortForDisplay(filterPlaces(places, settings, query), lang),
-    [places, settings, query, lang],);
-  const area = useMemo(
-    () => (areaId ? areas?.features.find((f) => f.properties.id === areaId) ?? null : null),
-    [areas, areaId],
-  );
-  const split = useMemo(
-    () => (area ? splitByArea(filtered, area as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps>) : null),
-    [filtered, area],
-  );
+  const { filtered, split } = useVisiblePlaces();
 
   const rows: Row[] = useMemo(() => {
-    if (!split) return filtered.map((place) => ({ kind: 'place', place, dim: false }));
+    const placeRows = (ps: Place[], dim: boolean) =>
+      sortForDisplay(ps, lang).map((place): Row => ({ kind: 'place', place, dim }));
+    if (!split) return placeRows(filtered, false);
     return [
-      ...split.inside.map((place): Row => ({ kind: 'place', place, dim: false })),
+      ...placeRows(split.inside, false),
       ...(split.nearby.length > 0 ? [{ kind: 'heading', label: t('nearby', lang) } as Row] : []),
-      ...split.nearby.map((place): Row => ({ kind: 'place', place, dim: true })),
+      ...placeRows(split.nearby, true),
     ];
   }, [filtered, split, lang]);
 
-  const municipalities = useMemo(
-    () => new Map((areas?.features ?? []).map((f) => [f.properties.id, f.properties])),
-    [areas],
-  );
   const metaLine = (p: Place) => {
-    const m = p.municipalityId ? municipalities.get(p.municipalityId) : undefined;
+    const m = p.municipalityId ? areasById.get(p.municipalityId)?.properties : undefined;
     return [placeType(p, lang), m && areaName(m, lang)].filter(Boolean).join(' · ');
   };
 
@@ -66,6 +51,22 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
     return () => ro.disconnect();
   }, [virtual]);
 
+  // Keep the selected row in view (it may have been chosen on the map). Rows are all
+  // ROW_HEIGHT tall, so this works the same with and without virtualisation.
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !selectedId) return;
+    const i = rowsRef.current.findIndex((r) => r.kind === 'place' && r.place.id === selectedId);
+    if (i < 0) return;
+    const top = i * ROW_HEIGHT;
+    const height = el.clientHeight;
+    if (top >= el.scrollTop && top + ROW_HEIGHT <= el.scrollTop + height) return;
+    el.scrollTop = Math.max(0, top - (height - ROW_HEIGHT) / 2);
+    setScrollTop(el.scrollTop);
+  }, [selectedId]);
+
   const renderRow = (row: Row, style?: React.CSSProperties) => {
     if (row.kind === 'heading') {
       return <h3 key="nearby-heading" className="list-heading" style={style}>{row.label}</h3>;
@@ -75,6 +76,7 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
       <button
         key={row.place.id}
         type="button"
+        data-place-id={row.place.id}
         className={`place-row${row.dim ? ' dim' : ''}${row.place.id === selectedId ? ' selected' : ''}`}
         style={style}
         aria-current={row.place.id === selectedId ? 'true' : undefined}
@@ -99,7 +101,7 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
 
   if (!virtual) {
     return (
-      <div className="place-list" aria-label={t('placeList', lang)}>
+      <div className="place-list" aria-label={t('placeList', lang)} ref={scrollRef}>
         {rows.map((r) => renderRow(r))}
       </div>
     );
