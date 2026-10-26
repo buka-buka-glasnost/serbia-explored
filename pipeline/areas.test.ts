@@ -71,6 +71,28 @@ describe('buildKosovoSerbianScheme', () => {
   });
 });
 
+describe('buildKosovoSerbianScheme consistency checks', () => {
+  const one: KosovoScheme = {
+    districts: [{ id: 'd-k', nameSr: 'К', nameSq: 'K' }],
+    municipalities: [
+      { id: 'm-a', nameSr: 'А', nameSq: 'A', districtId: 'd-k', osmNames: ['Alfa'] },
+    ],
+  };
+  it('throws naming an OSM municipality no scheme entry uses', () => {
+    expect(() => buildKosovoSerbianScheme(osmKosovo, one)).toThrow(/not in any scheme entry: Beta/);
+  });
+  it('throws when two OSM features share a match key', () => {
+    const dup: AreaFC = {
+      type: 'FeatureCollection',
+      features: [
+        osmKosovo.features[0],
+        { ...osmKosovo.features[1], properties: { ...osmKosovo.features[1].properties, nameSr: 'ALFA' } },
+      ],
+    };
+    expect(() => buildKosovoSerbianScheme(dup, one)).toThrow(/Duplicate.*Alfa.*ALFA/);
+  });
+});
+
 describe('isInKosovo', () => {
   it('tests containment in the outline', () => {
     const outline = osmKosovo.features[0];

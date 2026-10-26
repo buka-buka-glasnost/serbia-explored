@@ -233,12 +233,23 @@ function unionAll(features: AreaFeature[]): Poly {
 
 export function buildKosovoSerbianScheme(kosovoMunicipalities: AreaFC, scheme: KosovoScheme): AreaFC {
   const byKey = new Map<string, AreaFeature>();
-  for (const f of kosovoMunicipalities.features) byKey.set(matchKey(f.properties.nameSr), f);
+  for (const f of kosovoMunicipalities.features) {
+    const key = matchKey(f.properties.nameSr);
+    const prev = byKey.get(key);
+    if (prev) {
+      throw new Error(
+        `Duplicate OSM municipality key "${key}": "${prev.properties.nameSr}" and "${f.properties.nameSr}"`,
+      );
+    }
+    byKey.set(key, f);
+  }
+  const used = new Set<string>();
 
   const munFeatures: AreaFeature[] = scheme.municipalities.map((m) => {
     const parts = m.osmNames.map((name) => {
       const hit = byKey.get(matchKey(name));
       if (!hit) throw new Error(`No OSM municipality matches osmName "${name}" (${m.id})`);
+      used.add(matchKey(name));
       return hit;
     });
     return {
@@ -250,6 +261,11 @@ export function buildKosovoSerbianScheme(kosovoMunicipalities: AreaFC, scheme: K
       geometry: unionAll(parts),
     };
   });
+
+  const unmapped = [...byKey.entries()].filter(([k]) => !used.has(k)).map(([, f]) => f.properties.nameSr);
+  if (unmapped.length > 0) {
+    throw new Error(`OSM Kosovo municipalities not in any scheme entry: ${unmapped.join(', ')}`);
+  }
 
   const distFeatures: AreaFeature[] = scheme.districts.map((d) => {
     const members = munFeatures.filter((m) => m.properties.districtId === d.id);
