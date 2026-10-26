@@ -19,6 +19,12 @@
     "Q3583367": { "nameSr": "Црква Светог Николе у Средској (Драјчићи)", "nameEn": "St. Nicholas Church, Sredska (Drajčići)" },
     "Q20435253": { "nameSr": "Рудник угља у Врднику", "nameEn": "Vrdnik coal mine" },
     "Q118214704": { "nameEn": "Osredak Special Nature Reserve" },
+    "Q16087985": {
+      "nameSr": "Парк природе Голија (резерват биосфере Голија–Студеница)",
+      "nameEn": "Golija Nature Park (Golija–Studenica Biosphere Reserve)",
+      "designations": ["unesco_biosphere", "nature_other"],
+      "tier": 1
+    },
     "Q2940431": { "designations": ["ramsar", "special_nature_reserve"] },
     "Q16088014": { "designations": ["ramsar", "special_nature_reserve"] }
   },
@@ -27,7 +33,8 @@
     "Q391195",
     "Q31183217", "Q108211447", "Q12631168", "Q30974556", "Q120034181", "Q120034182", "Q118170717",
     "Q98078408", "Q118170788", "Q108211929", "Q28039966", "Q108212127",
-    "Q122069185", "Q122069947", "Q118214291", "Q16081218", "Q118218426", "Q118214705"
+    "Q122069185", "Q122069947", "Q118214291", "Q16081218", "Q118218426", "Q118214705",
+    "Q22771836"
   ],
   "_removedNotes": {
     "Q31183217": "same site as Q64495118 (Mramorje, Rastište)",
@@ -47,7 +54,8 @@
     "Q118214291": "same as Q130609850 (Zemun loess profile)",
     "Q16081218": "same as Q137478329 (Obrenovac Zabran)",
     "Q118218426": "same as Q2940431 (Carska bara)",
-    "Q118214705": "same as Q16088014 (Peštersko polje)"
+    "Q118214705": "same as Q16088014 (Peštersko polje)",
+    "Q22771836": "Golija–Studenica biosphere reserve merged into Q16087985 (Golija Nature Park), which it is part of"
   },
   "partOfNames": {
     "Q10913999": { "nameSr": "Стари Рас и Сопоћани", "nameEn": "Stari Ras and Sopoćani" },
