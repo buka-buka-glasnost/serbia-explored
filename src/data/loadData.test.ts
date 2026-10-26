@@ -10,10 +10,16 @@ describe('loadData', () => {
     expect(await loadPlaces()).toEqual([{ id: 'Q1' }]);
     expect(f).toHaveBeenCalledWith(`${import.meta.env.BASE_URL}data/places.json`);
   });
-  it('fetches areas and kosovo outline', async () => {
+  it('fetches areas', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ type: 'FeatureCollection', features: [] }))));
     expect((await loadAreas()).type).toBe('FeatureCollection');
-    expect((await loadKosovoOutline()).type).toBe('FeatureCollection');
+  });
+  it('fetches the Kosovo outline as a single Feature', async () => {
+    const feature = { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [] } };
+    const f = vi.fn(async () => new Response(JSON.stringify(feature)));
+    vi.stubGlobal('fetch', f);
+    expect(await loadKosovoOutline()).toEqual(feature);
+    expect(f).toHaveBeenCalledWith(`${import.meta.env.BASE_URL}data/kosovo.geojson`);
   });
   it('throws a clear error on non-ok responses', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('no', { status: 404, statusText: 'Not Found' })));

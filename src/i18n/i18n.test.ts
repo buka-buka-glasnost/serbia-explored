@@ -52,6 +52,12 @@ describe('i18n', () => {
       expect(STRINGS[k].en.trim(), k).not.toBe('');
     }
   });
+  it('pins the English access labels', () => {
+    expect(STRINGS.accessDoor.en).toBe('Drive to the door');
+    expect(STRINGS.accessRough.en).toBe('Rough road');
+    expect(STRINGS.accessHikeBoat.en).toBe('Hike / boat only');
+    expect(STRINGS.accessUnknown.en).toBe('Information not available yet');
+  });
   it('includes the keys other tasks rely on', () => {
     const keys = ['tripFull', 'alreadyInTrip', 'storageError', 'storageUnavailableBanner', 'tooManyPhotos',
       'importDone', 'importInvalid', 'kosovoNote', 'notTranslated', 'accessUnknown', 'accessDoor',
