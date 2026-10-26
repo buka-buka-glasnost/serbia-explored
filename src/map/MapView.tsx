@@ -6,6 +6,7 @@ import { useApp } from '../state/store';
 import { TILES } from './tiles';
 import { PlaceMarkers } from './PlaceMarkers';
 import { KosovoLayer } from './KosovoLayer';
+import { AreaLayer } from './AreaLayer';
 import { KosovoToggle } from './KosovoToggle';
 
 // Serbia bbox (including Kosovo): lat 41.8-46.2, lon 18.8-23.0, padded by 1 degree.
@@ -41,6 +42,7 @@ export function MapView() {
       <FlyToSelected />
       <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={TILES.maxZoom} />
       <KosovoLayer />
+      <AreaLayer />
       <PlaceMarkers />
       <KosovoToggle />
     </MapContainer>

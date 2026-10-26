@@ -55,3 +55,14 @@ body { font-family: system-ui, sans-serif; }
 .kosovo-note.open, .kosovo-toggle:hover .kosovo-note, .kosovo-toggle:focus-within .kosovo-note { display: block; }
 .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: 6px; background: #333; color: #fff; z-index: 2000; }
 .toast-error { background: #a93226; }
+
+.area-picker { padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+.area-row { display: flex; gap: 4px; }
+.area-row input { flex: 1; padding: 6px 8px; font: inherit; }
+.area-clear, .area-pick { padding: 4px 10px; border: 1px solid #999; background: #fff; cursor: pointer; font: inherit; }
+.area-pick.active { background: #eaf2fb; border-color: #2e86c1; }
+.area-suggestions { list-style: none; margin: 0; padding: 0; border: 1px solid #ddd; max-height: 220px; overflow-y: auto; }
+.area-suggestions li { padding: 6px 8px; cursor: pointer; }
+.area-suggestions li:hover { background: #eaf2fb; }
+.area-parent { color: #777; }
+.area-hint { margin: 0; color: #2e86c1; }

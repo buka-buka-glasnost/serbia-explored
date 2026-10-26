@@ -2,6 +2,7 @@ import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { LanguageSwitch } from './LanguageSwitch';
 import { ProgressSummary } from './ProgressSummary';
+import { AreaPicker } from './AreaPicker';
 import { Filters } from './Filters';
 import { PlaceList } from './PlaceList';
 import { BackupControls } from './BackupControls';
@@ -15,6 +16,7 @@ export function SidePanel() {
         <LanguageSwitch />
       </header>
       <ProgressSummary />
+      <AreaPicker />
       <Filters />
       <PlaceList />
       <BackupControls />
