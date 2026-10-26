@@ -88,6 +88,32 @@ describe('fetchPhotoInfo edge cases', () => {
   });
 });
 
+describe('fetchPhotoInfo output hygiene', () => {
+  it('drops display:none duplicates from the author and the utm query from the thumbnail URL', async () => {
+    const body = {
+      query: {
+        pages: {
+          '1': {
+            title: 'File:Dup.jpg',
+            imageinfo: [{
+              thumburl: 'https://upload.wikimedia.org/t/Dup.jpg/640px-Dup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo',
+              descriptionurl: 'https://commons.wikimedia.org/wiki/File:Dup.jpg',
+              extmetadata: {
+                Artist: { value: 'Unknown author<span style="display: none;">Unknown author</span>' },
+                LicenseShortName: { value: 'CC BY 4.0' },
+              },
+            }],
+          },
+        },
+      },
+    };
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify(body), { status: 200 })));
+    const photo = (await fetchPhotoInfo(['Dup.jpg'])).get('Dup.jpg');
+    expect(photo?.author).toBe('Unknown author');
+    expect(photo?.url).toBe('https://upload.wikimedia.org/t/Dup.jpg/640px-Dup.jpg');
+  });
+});
+
 describe('MediaWiki errors returned with HTTP 200', () => {
   it('throws a non-transient API error and does not cache it', async () => {
     const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ error: { code: 'badvalue', info: 'x' } }), { status: 200 }));

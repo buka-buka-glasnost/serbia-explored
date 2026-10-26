@@ -84,6 +84,7 @@ interface ImagePage {
 
 const stripHtml = (s: string) =>
   s
+    .replace(/<span[^>]*display:\s*none[^>]*>.*?<\/span>/gis, '')
     .replace(/<[^>]*>/g, '')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -125,7 +126,7 @@ export async function fetchPhotoInfo(files: string[]): Promise<Map<string, Photo
       const author = stripHtml(meta?.Artist?.value ?? '') || stripHtml(meta?.Credit?.value ?? '');
       if (!author) continue;
       result.set(file, {
-        url: info.thumburl,
+        url: info.thumburl.replace(/\?utm_.*$/, ''),
         file,
         author,
         license: stripHtml(license),
