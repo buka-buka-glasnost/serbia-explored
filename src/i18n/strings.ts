@@ -36,6 +36,10 @@ export const STRINGS = {
   accessDoor: { sr: 'Колима до самог места', en: 'Drive to the door' },
   accessRough: { sr: 'Лош пут', en: 'Rough road' },
   accessHikeBoat: { sr: 'Само пешке или чамцем', en: 'Hike / boat only' },
+  accessEstimated: {
+    sr: 'Процена на основу података о путевима (OpenStreetMap)',
+    en: 'Estimated from road data (OpenStreetMap)',
+  },
   notTranslated: { sr: 'Још није преведено.', en: 'Not translated yet — shown in Serbian.' },
   tier1: { sr: 'Ниво 1 — Светска баштина', en: 'Tier 1 — World Heritage' },
   tier2: { sr: 'Ниво 2 — Изузетан значај', en: 'Tier 2 — Exceptional importance' },

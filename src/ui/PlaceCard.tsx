@@ -85,7 +85,11 @@ export function PlaceCard({ place }: { place: Place }) {
           {desc.untranslated && <p className="note">{t('notTranslated', lang)}</p>}
         </div>
       )}
-      <p className="card-access">{place.access ? t(ACCESS_KEY[place.access], lang) : t('accessUnknown', lang)}</p>
+      <p className="card-access">
+        {place.access ? t(ACCESS_KEY[place.access], lang) : t('accessUnknown', lang)}
+        {place.access && place.accessEstimated && <span aria-hidden="true">*</span>}
+      </p>
+      {place.access && place.accessEstimated && <p className="note">* {t('accessEstimated', lang)}</p>}
       {wiki && (
         <p>
           <a href={wiki.href} target="_blank" rel="noopener noreferrer">{t('wikipedia', lang)}</a>

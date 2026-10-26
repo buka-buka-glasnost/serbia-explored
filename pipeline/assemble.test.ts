@@ -51,6 +51,19 @@ describe('assemblePlaces', () => {
     expect(dropped).toEqual([{ id: 'Q10', name: 'Композит', reason: 'whs_composite' }]);
   });
 
+  it('uses road-based access estimates and marks them as estimated', () => {
+    const { places } = assemblePlaces({
+      raw: [raw('Q1'), raw('Q2')], areas, kosovo,
+      extractsSr: new Map(), extractsEn: new Map(), photos: new Map(),
+      kosovoNatureAllowlist: [], overrides: noOverrides,
+      accessEstimates: new Map([['Q1', 'rough' as const]]),
+    });
+    const byId = Object.fromEntries(places.map((p) => [p.id, p]));
+    expect(byId.Q1).toMatchObject({ access: 'rough', accessEstimated: true });
+    expect(byId.Q2.access).toBeNull();
+    expect(byId.Q2.accessEstimated).toBeUndefined();
+  });
+
   it('keeps a stand-alone WHS', () => {
     const { places } = run([raw('Q20', { designations: ['unesco_whs'] })]);
     expect(places).toHaveLength(1);

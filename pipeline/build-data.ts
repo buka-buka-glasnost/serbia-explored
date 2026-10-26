@@ -1,6 +1,7 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Photo, PlacesFile } from '../src/shared/types';
+import { estimateAccess, shouldEstimate } from './access';
 import { fetchAreas } from './areas';
 import { assemblePlaces, displayName, type DroppedPlace } from './assemble';
 import { checkPlaces } from './checks';
@@ -73,8 +74,12 @@ async function main() {
   console.log('Fetching photo info');
   const files = [...new Set(survivors.map((r) => r.imageFile).filter((f): f is string => !!f))];
   const photos: Map<string, Photo> = await fetchPhotoInfo(files);
+  console.log('Estimating access from road data');
+  const accessEstimates = await estimateAccess(
+    first.places.filter((p) => shouldEstimate(p.designations)).map((p) => ({ id: p.id, lat: p.lat, lon: p.lon })),
+  );
 
-  const { places, dropped } = assemblePlaces({ ...base, extractsSr, extractsEn, photos });
+  const { places, dropped } = assemblePlaces({ ...base, extractsSr, extractsEn, photos, accessEstimates });
 
   await mkdir(OUT_DIR, { recursive: true });
   await mkdir(path.dirname(REPORT), { recursive: true });

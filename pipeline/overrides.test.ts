@@ -17,6 +17,16 @@ describe('applyOverrides', () => {
     expect(out[0].access).toBe('hike_boat');
   });
 
+  it('a hand-set access replaces an estimate and clears the estimated flag', () => {
+    const out = applyOverrides(
+      [place('Q1', { access: 'door', accessEstimated: true }), place('Q2', { access: 'rough', accessEstimated: true })],
+      { places: { Q1: { access: 'hike_boat' }, Q2: { tier: 3 } }, added: [], removed: [] },
+    );
+    expect(out[0]).toMatchObject({ access: 'hike_boat' });
+    expect(out[0].accessEstimated).toBeUndefined();
+    expect(out[1]).toMatchObject({ access: 'rough', accessEstimated: true });
+  });
+
   it('throws naming an unknown patched id', () => {
     expect(() => applyOverrides([place('Q1')], { places: { Q999: {} }, added: [], removed: [] }))
       .toThrow(/Q999/);

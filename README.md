@@ -63,6 +63,10 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 - `added`: full place objects for manual places. Their ids should look like `x-<slug>` (a convention, not enforced) and must not collide with an existing id. The example point lies inside the municipality given; use `"municipalityId": null` if you do not want to look one up.
 - `removed`: ids to drop.
 
+### Access estimates
+
+`npm run data` estimates `access` for each place from OpenStreetMap roads within 300 m: a paved road within 150 m means "drive to the door", a closer gravel/dirt road or track means "rough road", nothing drivable means "hike / boat only". Large areas (national parks, biosphere reserves, the geopark, Ramsar sites) get no estimate. Estimates are marked `"accessEstimated": true` and the app shows them with an asterisk. Setting `access` in `places` replaces the estimate and removes the asterisk.
+
 Overriding `lat`/`lon` does not recompute the district, municipality or `inKosovo`; patch those fields too. Likewise change `tier` together with `designations`, since tiers are normally derived from designations.
 
 Unknown ids in `places` or `removed`, or an `added` id that already exists, make the build throw. This is deliberate typo protection. See `pipeline/overrides.ts` and `src/shared/types.ts` for the exact shape.

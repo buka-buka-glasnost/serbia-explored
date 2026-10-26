@@ -23,6 +23,18 @@ describe('PlaceCard', () => {
     expect(screen.getByText('Hike / boat only')).toBeInTheDocument();
   });
 
+  it('marks an estimated access label with an asterisk and a note', () => {
+    render(<PlaceCard place={makePlace('Q1', { access: 'door', accessEstimated: true })} />);
+    expect(screen.getByText('Drive to the door').textContent).toBe('Drive to the door*');
+    expect(screen.getByText('* Estimated from road data (OpenStreetMap)')).toBeInTheDocument();
+  });
+
+  it('shows no asterisk for a hand-set access label', () => {
+    render(<PlaceCard place={makePlace('Q1', { access: 'door' })} />);
+    expect(screen.getByText('Drive to the door').textContent).toBe('Drive to the door');
+    expect(screen.queryByText(/Estimated from road data/)).not.toBeInTheDocument();
+  });
+
   it('shows the not-translated note in en with only a Serbian description', () => {
     render(<PlaceCard place={makePlace('Q1', { descSr: 'Опис.' })} />);
     expect(screen.getByText('Not translated yet — shown in Serbian.')).toBeInTheDocument();

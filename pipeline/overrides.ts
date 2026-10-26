@@ -23,6 +23,13 @@ export function applyOverrides(places: Place[], o: Overrides): Place[] {
   const removed = new Set(o.removed);
   const patched = places
     .filter((p) => !removed.has(p.id))
-    .map((p) => (o.places[p.id] ? ({ ...p, ...o.places[p.id], id: p.id } as Place) : p));
+    .map((p) => {
+      const patch = o.places[p.id];
+      if (!patch) return p;
+      const next = { ...p, ...patch, id: p.id } as Place;
+      // a hand-set access value is a fact, not an estimate
+      if ('access' in patch && !('accessEstimated' in patch)) delete next.accessEstimated;
+      return next;
+    });
   return [...patched, ...o.added];
 }

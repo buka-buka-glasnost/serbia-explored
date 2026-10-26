@@ -30,9 +30,9 @@ function cacheDir(): string {
   return process.env.OSM_CACHE_DIR ?? path.join('data', 'cache', 'osm');
 }
 
-interface OverpassJson { elements: unknown[] }
+export interface OverpassJson { elements: unknown[] }
 
-async function overpass(query: string, cacheKey: string): Promise<OverpassJson> {
+export async function overpass(query: string, cacheKey: string): Promise<OverpassJson> {
   const file = path.join(cacheDir(), `${cacheKey}.json`);
   if (process.env.REFRESH !== '1') {
     try {

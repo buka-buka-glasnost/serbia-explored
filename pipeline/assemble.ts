@@ -1,4 +1,4 @@
-import type { AreaFC, Designation, Photo, Place } from '../src/shared/types';
+import type { Access, AreaFC, Designation, Photo, Place } from '../src/shared/types';
 import { hasCyrillic } from '../src/shared/translit';
 import { assignArea, isInKosovo } from './areas';
 import { NATURE_DESIGNATIONS, tierFor } from './designations';
@@ -26,6 +26,8 @@ export interface AssembleInput {
   photos: Map<string, Photo>;
   kosovoNatureAllowlist: string[];
   overrides: Overrides;
+  /** Road-based guesses by place id; overrides that set `access` replace them. */
+  accessEstimates?: Map<string, Access>;
 }
 
 /** Serbian display name: Cyrillic label, else the sr-el label, else the plain sr label, else English, else the QID. */
@@ -85,6 +87,7 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
     const photo = r.imageFile ? input.photos.get(r.imageFile) : undefined;
     const sr = r.wikipediaSr ? input.extractsSr.get(r.wikipediaSr) : undefined;
     const en = r.wikipediaEn ? input.extractsEn.get(r.wikipediaEn) : undefined;
+    const estimate = input.accessEstimates?.get(r.id);
     const place: Place = {
       id: r.id,
       nameSr: displayName(r),
@@ -104,7 +107,8 @@ export function assemblePlaces(input: AssembleInput): { places: Place[]; dropped
       photo,
       descSr: sr ? trimExtract(sr) : undefined,
       descEn: en ? trimExtract(en) : undefined,
-      access: null,
+      access: estimate ?? null,
+      accessEstimated: estimate ? true : undefined,
       wikipediaSr: r.wikipediaSr,
       wikipediaEn: r.wikipediaEn,
     };

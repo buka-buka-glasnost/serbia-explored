@@ -20,6 +20,7 @@ export interface Place {
   districtId: string | null; municipalityId: string | null; inKosovo: boolean;
   photo?: Photo; descSr?: string; descEn?: string;
   access: Access | null;
+  accessEstimated?: boolean;  // true when access was guessed from road data, not set by hand
   wikipediaSr?: string; wikipediaEn?: string;
 }
 export interface AreaProps {
