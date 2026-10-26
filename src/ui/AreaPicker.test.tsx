@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useApp } from '../state/store';
+import { areaState, useApp } from '../state/store';
 import type { AreaFC, AreaProps } from '../shared/types';
 import { AreaPicker } from './AreaPicker';
 
@@ -19,7 +19,7 @@ const areas: AreaFC = {
 
 beforeEach(() => {
   useApp.setState(initial, true);
-  useApp.setState({ areas, settings: { ...initial.settings, lang: 'en', kosovoShown: true } });
+  useApp.setState({ ...areaState(areas), settings: { ...initial.settings, lang: 'en', kosovoShown: true } });
 });
 
 describe('AreaPicker', () => {

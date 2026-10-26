@@ -17,7 +17,7 @@ export function ProgressSummary({ compact = false }: { compact?: boolean }) {
     [places, visits, kosovoShown],
   );
   return (
-    <section className={compact ? 'progress compact' : 'progress'} aria-label={t('visitedCounter', lang)}>
+    <section className={compact ? 'progress compact' : 'progress'} aria-label={t('visited', lang)}>
       <div className="progress-overall">
         <span className="progress-count">{overall.visited}</span>
         <span className="progress-total">/ {overall.total} {t('visitedOf', lang)}</span>

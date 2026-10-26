@@ -4,7 +4,8 @@ import type { StringKey } from '../i18n/strings';
 import { detectLang } from '../i18n/i18n';
 import { DEFAULT_SETTINGS, type Settings } from '../logic/filters';
 import { todayLocal } from '../logic/date';
-import { loadAreas, loadKosovoOutline, loadPlaces } from '../data/loadData';
+import { areaAt } from '../logic/areas';
+import { loadAreas, loadPlaces } from '../data/loadData';
 import {
   StorageUnavailableError,
   deletePhoto,
@@ -21,22 +22,30 @@ import {
 import { MAX_PHOTOS_PER_VISIT, resizeImage } from '../storage/photos';
 import { MAX_TRIP_STOPS, orderStops } from '../trip/order';
 
+export type AreaFeature = AreaFC['features'][number];
+
 export interface AppState {
   status: 'loading' | 'ready' | 'error';
   places: Place[]; placesById: Map<string, Place>;
-  areas: AreaFC | null; kosovo: GeoJSON.Feature | null;
+  areas: AreaFC | null; areasById: Map<string, AreaFeature>;
   visits: Record<string, Visit>; trip: TripState; settings: Settings;
+  /** Bumped when stored data is reloaded (backup import), so editors re-read it. */
+  dataVersion: number;
   selectedId: string | null; areaId: string | null; query: string;
   picking: boolean;
   welcomeOpen: boolean;
   toast: { key: StringKey; kind: 'info' | 'error' } | null;
   storageOk: boolean;
   init(): Promise<void>;
+  /** Re-reads visits, trip and settings from storage (after a backup import). */
+  reloadFromStorage(): Promise<void>;
   select(id: string | null): void;
   setQuery(q: string): void;
   setSettings(patch: Partial<Settings>): void;
   setArea(id: string | null): void;
   setPicking(on: boolean): void;
+  /** Picking mode: selects the area under the point (municipality or district by zoom). */
+  pickAreaAt(lat: number, lon: number, zoom: number): void;
   setWelcomeOpen(open: boolean): void;
   markVisited(id: string): Promise<void>;
   unmarkVisited(id: string): Promise<void>;
@@ -57,6 +66,25 @@ const defaultSettings = (): Settings => ({
 });
 
 let persistenceRequested = false;
+
+/** `areas` together with its id index; the only way areas should enter the store. */
+export const areaState = (areas: AreaFC | null) => ({
+  areas,
+  areasById: new Map((areas?.features ?? []).map((f) => [f.properties.id, f])),
+});
+
+/** The selected area's feature, or null. */
+export const selectArea = (s: AppState): AreaFeature | null =>
+  (s.areaId ? s.areasById.get(s.areaId) ?? null : null);
+
+const EMPTY_TRIP: TripState = { stopIds: [], startPlaceId: null };
+
+/** Drops trip ids of places that no longer exist in the data. */
+function pruneTrip(trip: TripState | undefined, placesById: Map<string, Place>): TripState {
+  if (!trip) return EMPTY_TRIP;
+  const startPlaceId = trip.startPlaceId && placesById.has(trip.startPlaceId) ? trip.startPlaceId : null;
+  return { stopIds: trip.stopIds.filter((id) => placesById.has(id)), startPlaceId };
+}
 
 export const useApp = create<AppState>((set, get) => {
   /** Saves settings/trip; failures surface as a toast but keep the in-memory value. */
@@ -125,8 +153,8 @@ export const useApp = create<AppState>((set, get) => {
   async function load() {
     set({ status: 'loading' });
     try {
-      const [places, areas, kosovo] = await Promise.all([loadPlaces(), loadAreas(), loadKosovoOutline()]);
-      set({ places, placesById: new Map(places.map((p) => [p.id, p])), areas, kosovo });
+      const [places, areas] = await Promise.all([loadPlaces(), loadAreas()]);
+      set({ places, placesById: new Map(places.map((p) => [p.id, p])), ...areaState(areas) });
     } catch (e) {
       console.error(e);
       set({ status: 'error' });
@@ -140,7 +168,7 @@ export const useApp = create<AppState>((set, get) => {
       ]);
       set({
         visits: Object.fromEntries(visits.map((v) => [v.placeId, v])),
-        trip: trip ?? { stopIds: [], startPlaceId: null },
+        trip: pruneTrip(trip, get().placesById),
         settings: { ...defaultSettings(), ...settings },
         storageOk: true,
       });
@@ -155,8 +183,8 @@ export const useApp = create<AppState>((set, get) => {
   return {
     status: 'loading',
     places: [], placesById: new Map(),
-    areas: null, kosovo: null,
-    visits: {}, trip: { stopIds: [], startPlaceId: null }, settings: defaultSettings(),
+    areas: null, areasById: new Map(),
+    visits: {}, trip: EMPTY_TRIP, settings: defaultSettings(), dataVersion: 0,
     selectedId: null, areaId: null, query: '', picking: false, welcomeOpen: false,
     toast: null,
     storageOk: true,
@@ -167,19 +195,35 @@ export const useApp = create<AppState>((set, get) => {
       return loading;
     },
 
+    async reloadFromStorage() {
+      const [visits, trip, settings] = await Promise.all([
+        getAllVisits(), getMeta<TripState>('trip'), getMeta<Settings>('settings'),
+      ]);
+      set((s) => ({
+        visits: Object.fromEntries(visits.map((v) => [v.placeId, v])),
+        trip: trip ? pruneTrip(trip, s.placesById) : s.trip,
+        dataVersion: s.dataVersion + 1,
+      }));
+      if (settings) get().setSettings(settings); // applies the Kosovo rules too
+    },
+
     select: (id) => set({ selectedId: id }),
     setQuery: (query) => set({ query }),
     setArea: (areaId) => set({ areaId, picking: false }),
     setPicking: (picking) => set({ picking }),
+    pickAreaAt(lat, lon, zoom) {
+      const { areas, settings, setArea } = get();
+      const hit = areas ? areaAt(areas, lat, lon, zoom, settings.kosovoShown) : null;
+      if (hit) setArea(hit.id);
+    },
     setWelcomeOpen: (welcomeOpen) => set({ welcomeOpen }),
     setSettings(patch) {
       const settings = { ...get().settings, ...patch };
       set({ settings });
       if (patch.kosovoShown === false) {
         // nothing Kosovo-related may stay selected while Kosovo is hidden
-        const { areas, areaId, selectedId, placesById } = get();
-        const area = areaId ? areas?.features.find((f) => f.properties.id === areaId) : undefined;
-        if (area?.properties.inKosovo) set({ areaId: null });
+        const { selectedId, placesById } = get();
+        if (selectArea(get())?.properties.inKosovo) set({ areaId: null });
         if (selectedId && placesById.get(selectedId)?.inKosovo) set({ selectedId: null });
       }
       persistMeta('settings', settings);
@@ -244,9 +288,9 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     addToTrip(id) {
-      const { trip } = get();
+      const { trip, placesById } = get();
       if (trip.stopIds.includes(id)) return;
-      if (trip.stopIds.length >= MAX_TRIP_STOPS) {
+      if (trip.stopIds.filter((s) => placesById.has(s)).length >= MAX_TRIP_STOPS) {
         get().showToast('tripFull', 'info');
         return;
       }

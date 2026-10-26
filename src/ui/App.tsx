@@ -44,7 +44,7 @@ export function App() {
     return (
       <div className="fullscreen-msg" role="alert">
         {t('loadError', lang)}
-        <button type="button" onClick={() => void useApp.getState().init()}>{t('retry', lang)}</button>
+        <button type="button" className="btn" onClick={() => void useApp.getState().init()}>{t('retry', lang)}</button>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export function App() {
         {narrow && (
           <div className="top-bar">
             <ProgressSummary compact />
-            <button type="button" className="list-button" onClick={() => setDrawerOpen(true)}>
+            <button type="button" className="btn btn-primary list-button" onClick={() => setDrawerOpen(true)}>
               {t('listButton', lang)}
             </button>
           </div>

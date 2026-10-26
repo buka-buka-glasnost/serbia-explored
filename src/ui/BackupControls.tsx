@@ -4,19 +4,6 @@ import { t } from '../i18n/i18n';
 import {
   BackupFormatError, backupFileName, exportBackup, importBackup, readBackupSummary,
 } from '../storage/backup';
-import { getAllVisits, getMeta, type TripState } from '../storage/db';
-import type { Settings } from '../logic/filters';
-
-async function reloadFromStorage() {
-  const [visits, trip, settings] = await Promise.all([
-    getAllVisits(), getMeta<TripState>('trip'), getMeta<Settings>('settings'),
-  ]);
-  useApp.setState((s) => ({
-    visits: Object.fromEntries(visits.map((v) => [v.placeId, v])),
-    trip: trip ?? s.trip,
-    settings: { ...s.settings, ...settings },
-  }));
-}
 
 export function BackupControls() {
   const lang = useApp((s) => s.settings.lang);
@@ -42,7 +29,7 @@ export function BackupControls() {
   const onImport = async (file: File | undefined, input: HTMLInputElement) => {
     input.value = '';
     if (!file) return;
-    const { showToast } = useApp.getState();
+    const { showToast, reloadFromStorage } = useApp.getState();
     try {
       const summary = await readBackupSummary(file);
       const message = t('importConfirm', lang)

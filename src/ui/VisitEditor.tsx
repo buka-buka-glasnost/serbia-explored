@@ -114,7 +114,7 @@ export function VisitEditor({ placeId }: { placeId: string }) {
           ))}
         </ul>
       )}
-      <label className="add-photo">
+      <label className="btn add-photo">
         {t('addPhoto', lang)}
         <input
           type="file"

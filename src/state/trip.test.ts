@@ -9,7 +9,7 @@ vi.mock('../storage/db', async () => {
   };
 });
 
-import { useApp } from './store';
+import { areaState, useApp } from './store';
 import type { Place } from '../shared/types';
 
 const initial = useApp.getState();
@@ -81,7 +81,7 @@ describe('hiding Kosovo clears Kosovo selections', () => {
 
   it('clears a Kosovo area and a Kosovo place', () => {
     load([mk('k', 42, 21, true)]);
-    useApp.setState({ areas: areaFc(true), areaId: 'a1', selectedId: 'k' });
+    useApp.setState({ ...areaState(areaFc(true)), areaId: 'a1', selectedId: 'k' });
     useApp.getState().setSettings({ kosovoShown: false });
     expect(useApp.getState().areaId).toBeNull();
     expect(useApp.getState().selectedId).toBeNull();
@@ -89,7 +89,7 @@ describe('hiding Kosovo clears Kosovo selections', () => {
 
   it('keeps a Serbian area and place', () => {
     load([mk('s', 44, 21)]);
-    useApp.setState({ areas: areaFc(false), areaId: 'a1', selectedId: 's' });
+    useApp.setState({ ...areaState(areaFc(false)), areaId: 'a1', selectedId: 's' });
     useApp.getState().setSettings({ kosovoShown: false });
     expect(useApp.getState().areaId).toBe('a1');
     expect(useApp.getState().selectedId).toBe('s');

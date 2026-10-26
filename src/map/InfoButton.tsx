@@ -1,7 +1,4 @@
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import L from 'leaflet';
-import { useMap } from 'react-leaflet';
+import { MapControl } from './MapControl';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 
@@ -23,21 +20,9 @@ export function InfoButtonView() {
 
 /** Always-visible "i" control (top left, under the zoom buttons) that reopens the welcome message. */
 export function InfoButton() {
-  const map = useMap();
-  const [container, setContainer] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    const control = new L.Control({ position: 'topleft' });
-    control.onAdd = () => {
-      const div = L.DomUtil.create('div', 'leaflet-bar info-control');
-      L.DomEvent.disableClickPropagation(div);
-      setContainer(div);
-      return div;
-    };
-    control.addTo(map);
-    return () => {
-      control.remove();
-      setContainer(null);
-    };
-  }, [map]);
-  return container ? createPortal(<InfoButtonView />, container) : null;
+  return (
+    <MapControl position="topleft" className="leaflet-bar info-control">
+      <InfoButtonView />
+    </MapControl>
+  );
 }

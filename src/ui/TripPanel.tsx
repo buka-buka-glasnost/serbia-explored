@@ -42,22 +42,23 @@ export function TripPanel() {
                 {placeName(p, lang)}
                 {p.inKosovo && !kosovoShown && <span className="stop-note"> ({t('hiddenOnMap', lang)})</span>}
               </span>
-              <button type="button" aria-label={t('moveUp', lang)} disabled={i === 0} onClick={() => moveTripStop(p.id, -1)}>↑</button>
-              <button type="button" aria-label={t('moveDown', lang)} disabled={i === stops.length - 1} onClick={() => moveTripStop(p.id, 1)}>↓</button>
+              <button type="button" className="btn" aria-label={t('moveUp', lang)} disabled={i === 0} onClick={() => moveTripStop(p.id, -1)}>↑</button>
+              <button type="button" className="btn" aria-label={t('moveDown', lang)} disabled={i === stops.length - 1} onClick={() => moveTripStop(p.id, 1)}>↓</button>
               <button
                 type="button"
+                className="btn"
                 aria-label={t('markVisited', lang)}
                 disabled={!!visits[p.id]}
                 onClick={() => void markVisited(p.id)}
               >✓</button>
-              <button type="button" aria-label={t('removeStop', lang)} onClick={() => removeFromTrip(p.id)}>✕</button>
+              <button type="button" className="btn" aria-label={t('removeStop', lang)} onClick={() => removeFromTrip(p.id)}>✕</button>
             </li>
           ))}
         </ol>
       )}
       <div className="trip-actions">
-        <button type="button" disabled={stops.length < 2} onClick={optimiseTrip}>{t('optimiseOrder', lang)}</button>
-        <button type="button" className="btn-primary" disabled={driveStops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
+        <button type="button" className="btn" disabled={stops.length < 2} onClick={optimiseTrip}>{t('optimiseOrder', lang)}</button>
+        <button type="button" className="btn btn-primary" disabled={driveStops.length === 0} onClick={open}>{t('openInGoogleMaps', lang)}</button>
       </div>
     </section>
   );

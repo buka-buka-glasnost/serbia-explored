@@ -15,7 +15,7 @@ describe('KosovoToggle', () => {
     render(<KosovoToggleView />);
     const tip = screen.getByRole('tooltip', { hidden: true });
     expect(tip).not.toHaveClass('open');
-    const btn = screen.getByRole('button', { name: /info/i });
+    const btn = screen.getByRole('button', { name: "About Kosovo's status" });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'true');
@@ -26,7 +26,7 @@ describe('KosovoToggle', () => {
 
   it('closes on a second click of the info button', async () => {
     render(<KosovoToggleView />);
-    const btn = screen.getByRole('button', { name: /info/i });
+    const btn = screen.getByRole('button', { name: "About Kosovo's status" });
     await userEvent.click(btn);
     await userEvent.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'false');
@@ -35,7 +35,7 @@ describe('KosovoToggle', () => {
 
   it('closes on Escape', async () => {
     render(<KosovoToggleView />);
-    const btn = screen.getByRole('button', { name: /info/i });
+    const btn = screen.getByRole('button', { name: "About Kosovo's status" });
     await userEvent.click(btn);
     await userEvent.keyboard('{Escape}');
     expect(btn).toHaveAttribute('aria-expanded', 'false');
@@ -43,7 +43,7 @@ describe('KosovoToggle', () => {
 
   it('closes on a pointer press outside the control', async () => {
     render(<div><span>outside</span><KosovoToggleView /></div>);
-    const btn = screen.getByRole('button', { name: /info/i });
+    const btn = screen.getByRole('button', { name: "About Kosovo's status" });
     await userEvent.click(btn);
     await userEvent.click(screen.getByText('outside'));
     expect(btn).toHaveAttribute('aria-expanded', 'false');

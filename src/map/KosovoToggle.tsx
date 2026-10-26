@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import L from 'leaflet';
-import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
+import { MapControl } from './MapControl';
 
 /** The control's contents; usable without a map. */
 export function KosovoToggleView() {
@@ -14,7 +12,11 @@ export function KosovoToggleView() {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault(); // handled: the app-wide Escape (close the card) skips it
+      setOpen(false);
+    };
     const onPointer = (e: PointerEvent) => {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     };
@@ -39,7 +41,7 @@ export function KosovoToggleView() {
       <button
         type="button"
         className="kosovo-info"
-        aria-label={t('info', lang)}
+        aria-label={t('kosovoInfo', lang)}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
@@ -52,26 +54,11 @@ export function KosovoToggleView() {
   );
 }
 
-/** Leaflet top-right control hosting the React toggle via a portal. */
+/** Leaflet top-right control hosting the toggle. */
 export function KosovoToggle() {
-  const map = useMap();
-  const [container, setContainer] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const control = new L.Control({ position: 'topright' });
-    control.onAdd = () => {
-      const div = L.DomUtil.create('div', 'leaflet-bar kosovo-control');
-      L.DomEvent.disableClickPropagation(div);
-      L.DomEvent.disableScrollPropagation(div);
-      setContainer(div);
-      return div;
-    };
-    control.addTo(map);
-    return () => {
-      control.remove();
-      setContainer(null);
-    };
-  }, [map]);
-
-  return container ? createPortal(<KosovoToggleView />, container) : null;
+  return (
+    <MapControl position="topright" className="leaflet-bar kosovo-control">
+      <KosovoToggleView />
+    </MapControl>
+  );
 }

@@ -67,7 +67,8 @@ function useSheetDrag(sheet: React.RefObject<HTMLElement | null>, onDismiss: () 
 
 export function PlaceCard({ place, closing = false }: { place: Place; closing?: boolean }) {
   const lang = useApp((s) => s.settings.lang);
-  const areas = useApp((s) => s.areas);
+  const municipality = useApp((s) =>
+    (place.municipalityId ? s.areasById.get(place.municipalityId)?.properties : undefined));
   const visited = useApp((s) => !!s.visits[place.id]);
   const inTrip = useApp((s) => s.trip.stopIds.includes(place.id));
   const markVisited = useApp((s) => s.markVisited);
@@ -76,13 +77,11 @@ export function PlaceCard({ place, closing = false }: { place: Place; closing?: 
   const isStart = useApp((s) => s.trip.startPlaceId === place.id);
   const setTripStart = useApp((s) => s.setTripStart);
   const select = useApp((s) => s.select);
+  const dataVersion = useApp((s) => s.dataVersion);
   const narrow = useIsNarrow();
   const ref = useRef<HTMLElement>(null);
   const dragHandlers = useSheetDrag(ref, () => select(null));
 
-  const municipality = place.municipalityId
-    ? areas?.features.find((f) => f.properties.id === place.municipalityId)?.properties
-    : undefined;
   const type = placeType(place, lang);
   const desc = placeDescription(place, lang);
   const wiki = wikipediaLink(place, lang);
@@ -154,7 +153,7 @@ export function PlaceCard({ place, closing = false }: { place: Place; closing?: 
             onClick={() => void markVisited(place.id)}
           >
             <span className="btn-content" key={visited ? 'done' : 'todo'}>
-              {visited ? `✓ ${t('visitedCounter', lang)}` : t('markVisited', lang)}
+              {visited ? `✓ ${t('visited', lang)}` : t('markVisited', lang)}
             </span>
           </button>
           <div className="row">
@@ -166,7 +165,8 @@ export function PlaceCard({ place, closing = false }: { place: Place; closing?: 
             {t('setTripStart', lang)}
           </button>
         </div>
-        {visited && <VisitEditor key={place.id} placeId={place.id} />}
+        {/* re-keyed after a backup import so the editor shows the imported note */}
+        {visited && <VisitEditor key={`${place.id}:${dataVersion}`} placeId={place.id} />}
       </div>
     </article>
   );

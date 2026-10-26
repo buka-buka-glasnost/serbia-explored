@@ -12,7 +12,8 @@ import { BackupControls } from './BackupControls';
 /** `onClose` is given in the phone layout, where the panel is a drawer. */
 export function SidePanel({ onClose, closing = false }: { onClose?: () => void; closing?: boolean }) {
   const lang = useApp((s) => s.settings.lang);
-  const tripCount = useApp((s) => s.trip.stopIds.length);
+  // stops of places no longer in the data do not count
+  const tripCount = useApp((s) => s.trip.stopIds.filter((id) => s.placesById.has(id)).length);
   const [tab, setTab] = useState<'places' | 'trip'>('places');
   return (
     <aside
@@ -40,11 +41,11 @@ export function SidePanel({ onClose, closing = false }: { onClose?: () => void; 
         )}
       </header>
       <ProgressSummary />
-      <div className="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={tab === 'places'} onClick={() => setTab('places')}>
+      <div className="tabs" role="group">
+        <button type="button" aria-pressed={tab === 'places'} onClick={() => setTab('places')}>
           {t('placesTab', lang)}
         </button>
-        <button type="button" role="tab" aria-selected={tab === 'trip'} onClick={() => setTab('trip')}>
+        <button type="button" aria-pressed={tab === 'trip'} onClick={() => setTab('trip')}>
           {t('tripTab', lang)}
           {tripCount > 0 && <span className="badge-count">{tripCount}</span>}
         </button>

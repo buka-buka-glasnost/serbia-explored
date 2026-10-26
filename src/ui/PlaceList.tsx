@@ -66,10 +66,12 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
     return () => ro.disconnect();
   }, [virtual]);
 
-  const renderRow = (row: Row, style?: React.CSSProperties) =>
-    row.kind === 'heading' ? (
-      <h3 key="nearby-heading" className="list-heading" style={style}>{row.label}</h3>
-    ) : (
+  const renderRow = (row: Row, style?: React.CSSProperties) => {
+    if (row.kind === 'heading') {
+      return <h3 key="nearby-heading" className="list-heading" style={style}>{row.label}</h3>;
+    }
+    const meta = metaLine(row.place);
+    return (
       <button
         key={row.place.id}
         type="button"
@@ -81,11 +83,17 @@ export function PlaceList({ onSelect }: { onSelect?: () => void } = {}) {
         <span className={`dot tier${row.place.tier}`} aria-hidden="true" />
         <span className="place-row-text">
           <span className="place-row-name">{placeName(row.place, lang)}</span>
-          {metaLine(row.place) && <span className="place-row-meta">{metaLine(row.place)}</span>}
+          {meta && <span className="place-row-meta">{meta}</span>}
         </span>
-        {visits[row.place.id] && <span className="place-row-check" aria-label={t('visitedCounter', lang)}>✓</span>}
+        {visits[row.place.id] && (
+          <span className="place-row-check">
+            <span aria-hidden="true">✓</span>
+            <span className="sr-only">{t('visited', lang)}</span>
+          </span>
+        )}
       </button>
     );
+  };
 
   if (rows.length === 0) return <div className="place-list empty">{t('noResults', lang)}</div>;
 

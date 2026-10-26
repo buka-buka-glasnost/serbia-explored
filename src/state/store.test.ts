@@ -27,7 +27,6 @@ vi.mock('../data/loadData', () => ({
     { id: 'Q2', nameSr: 'Б', kind: 'nature', tier: 2, designations: [], lat: 45, lon: 20, districtId: null, municipalityId: null, inKosovo: false, access: null },
   ]),
   loadAreas: vi.fn(async () => ({ type: 'FeatureCollection', features: [] })),
-  loadKosovoOutline: vi.fn(async () => ({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [] } })),
 }));
 
 import * as db from '../storage/db';
@@ -248,5 +247,40 @@ describe('settings', () => {
     useApp.getState().setSettings({ kosovoShown: false });
     expect(useApp.getState().settings.kosovoShown).toBe(false);
     expect(db.setMeta).toHaveBeenCalledWith('settings', expect.objectContaining({ kosovoShown: false }));
+  });
+});
+
+describe('trip stops of unknown places', () => {
+  it('are pruned on init (stops and start)', async () => {
+    vi.mocked(db.getMeta).mockImplementation((async (k: string) =>
+      k === 'trip' ? { stopIds: ['Q1', 'gone', 'Q2'], startPlaceId: 'gone' } : undefined) as never);
+    await useApp.getState().init();
+    expect(useApp.getState().trip).toEqual({ stopIds: ['Q1', 'Q2'], startPlaceId: null });
+  });
+
+  it('do not count toward the 9-stop limit', async () => {
+    await useApp.getState().init();
+    useApp.setState({ trip: { stopIds: Array.from({ length: 9 }, (_, i) => `gone${i}`), startPlaceId: null } });
+    useApp.getState().addToTrip('Q1');
+    expect(useApp.getState().trip.stopIds).toContain('Q1');
+  });
+});
+
+describe('reloadFromStorage (after a backup import)', () => {
+  it('loads visits, prunes the trip, applies settings through setSettings and bumps dataVersion', async () => {
+    await useApp.getState().init();
+    useApp.setState({ selectedId: 'Q1' });
+    useApp.setState({ placesById: new Map([...useApp.getState().placesById].map(([id, p]) => [id, { ...p, inKosovo: id === 'Q1' }])) });
+    vi.mocked(db.getAllVisits).mockResolvedValue([{ placeId: 'Q2', date: '2026-01-01', note: 'imported', photoIds: [] }]);
+    vi.mocked(db.getMeta).mockImplementation((async (k: string) =>
+      k === 'trip' ? { stopIds: ['Q2', 'gone'], startPlaceId: null } : { kosovoShown: false }) as never);
+    const version = useApp.getState().dataVersion;
+    await useApp.getState().reloadFromStorage();
+    const s = useApp.getState();
+    expect(s.visits.Q2.note).toBe('imported');
+    expect(s.trip.stopIds).toEqual(['Q2']);
+    expect(s.settings.kosovoShown).toBe(false);
+    expect(s.selectedId).toBeNull(); // the Kosovo rule applied
+    expect(s.dataVersion).toBe(version + 1);
   });
 });

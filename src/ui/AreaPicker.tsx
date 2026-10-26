@@ -21,8 +21,14 @@ export function suggestAreas(areas: AreaProps[], query: string, kosovoShown: boo
   ].slice(0, MAX_SUGGESTIONS);
 }
 
+function AreaParent({ districtId, lang }: { districtId?: string; lang: Lang }) {
+  const district = useApp((s) => (districtId ? s.areasById.get(districtId)?.properties : undefined));
+  return district ? <span className="area-parent">{' · '}{areaName(district, lang)}</span> : null;
+}
+
 export function AreaPicker() {
   const areas = useApp((s) => s.areas);
+  const areasById = useApp((s) => s.areasById);
   const areaId = useApp((s) => s.areaId);
   const setArea = useApp((s) => s.setArea);
   const picking = useApp((s) => s.picking);
@@ -34,7 +40,7 @@ export function AreaPicker() {
   const [active, setActive] = useState(-1);
 
   const props = useMemo(() => areas?.features.map((f) => f.properties) ?? [], [areas]);
-  const current = props.find((p) => p.id === areaId);
+  const current = areaId ? areasById.get(areaId)?.properties : undefined;
   const found = useMemo(() => suggestAreas(props, text, kosovoShown), [props, text, kosovoShown]);
   const suggestions = open ? found : [];
 
@@ -95,11 +101,11 @@ export function AreaPicker() {
           onKeyDown={onKeyDown}
         />
         {areaId && (
-          <button type="button" className="area-clear" aria-label={t('clearArea', lang)} onClick={clear}>×</button>
+          <button type="button" className="btn area-clear" aria-label={t('clearArea', lang)} onClick={clear}>×</button>
         )}
         <button
           type="button"
-          className={picking ? 'area-pick active' : 'area-pick'}
+          className={picking ? 'btn area-pick active' : 'btn area-pick'}
           aria-label={t('pickOnMap', lang)}
           title={t('pickOnMap', lang)}
           aria-pressed={picking}
@@ -120,12 +126,7 @@ export function AreaPicker() {
               onClick={() => choose(a.id)}
             >
               {areaName(a, lang)}
-              {a.level === 'municipality' && a.districtId && props.some((p) => p.id === a.districtId) && (
-                <span className="area-parent">
-                  {' · '}
-                  {areaName(props.find((p) => p.id === a.districtId)!, lang)}
-                </span>
-              )}
+              {a.level === 'municipality' && <AreaParent districtId={a.districtId} lang={lang} />}
             </li>
           ))}
         </ul>

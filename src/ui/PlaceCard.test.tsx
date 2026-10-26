@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useApp } from '../state/store';
 import { PlaceCard } from './PlaceCard';
@@ -73,5 +73,16 @@ describe('PlaceCard', () => {
     render(<PlaceCard place={makePlace('Q1')} />);
     await userEvent.click(screen.getByRole('button', { name: 'Add to trip' }));
     expect(addToTrip).toHaveBeenCalledWith('Q1');
+  });
+
+  it('shows the imported note after a backup import (data reload)', () => {
+    useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-10-26', note: 'old', photoIds: [] } } });
+    render(<PlaceCard place={makePlace('Q1')} />);
+    expect(screen.getByRole('textbox')).toHaveValue('old');
+    act(() => useApp.setState((s) => ({
+      visits: { Q1: { placeId: 'Q1', date: '2026-10-26', note: 'imported', photoIds: [] } },
+      dataVersion: s.dataVersion + 1,
+    })));
+    expect(screen.getByRole('textbox')).toHaveValue('imported');
   });
 });
