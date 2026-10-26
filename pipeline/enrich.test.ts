@@ -32,7 +32,7 @@ describe('fetchExtracts', () => {
     const url = new URL(fetchMock.mock.calls[0][0]);
     expect(url.origin).toBe('https://en.wikipedia.org');
     expect(url.searchParams.get('titles')).toBe('studenica_monastery|Nis Fortress|Missing page');
-    expect(url.searchParams.get('exsentences')).toBe('3');
+    expect(url.searchParams.get('exsentences')).toBe('10');
   });
 
   it('requests 20 titles per call', async () => {
@@ -142,7 +142,7 @@ describe('MediaWiki errors returned with HTTP 200', () => {
 
 describe('trimExtract', () => {
   it('cuts a long three-sentence text at a sentence end within 450 chars', () => {
-    const s = (c: string) => `${c.repeat(199)}.`;
+    const s = (c: string) => `${c.toUpperCase()}${c.repeat(198)}.`;
     const out = trimExtract(`${s('a')} ${s('b')} ${s('c')}`);
     expect(out.endsWith('.')).toBe(true);
     expect(out.length).toBeLessThanOrEqual(450);
@@ -154,6 +154,23 @@ describe('trimExtract', () => {
     expect(out.endsWith('…')).toBe(true);
     expect(out.length).toBeLessThanOrEqual(50);
     expect(out).not.toMatch(/wor…$/);
+  });
+
+  it('does not treat a date period before a lowercase word as a sentence end', () => {
+    const text = `Први пасус је овде. Уписан је од 29. јуна ${'реч '.repeat(200)}`;
+    expect(trimExtract(text)).toBe('Први пасус је овде.');
+    const full = `Први пасус је овде. Уписан је од 29. јуна 2007. године. Друга реченица${' и дужа'.repeat(60)}.`;
+    expect(trimExtract(full)).toBe('Први пасус је овде. Уписан је од 29. јуна 2007. године.');
+  });
+
+  it('does not cut after a short abbreviation', () => {
+    const text = `Први пасус је овде. Манастир св. Ђорђа је стар${' и леп'.repeat(90)}.`;
+    expect(trimExtract(text)).toBe('Први пасус је овде.');
+  });
+
+  it('falls back to the ellipsis when only false sentence ends exist', () => {
+    const out = trimExtract(`Уписан 29. јуна ${'реч '.repeat(200)}`, 100);
+    expect(out.endsWith('…')).toBe(true);
   });
 
   it('returns short text unchanged', () => {

@@ -50,7 +50,7 @@ export async function fetchExtracts(titles: string[], lang: 'sr' | 'en'): Promis
       prop: 'extracts',
       exintro: '1',
       explaintext: '1',
-      exsentences: '3',
+      exsentences: '10',
       redirects: '1',
       format: 'json',
       titles: batch.join('|'),
@@ -138,13 +138,30 @@ export async function fetchPhotoInfo(files: string[]): Promise<Map<string, Photo
   return result;
 }
 
+/**
+ * A terminator ends a sentence when the text ends or the next word starts with an upper-case letter,
+ * quote or opening bracket. A period after a short lowercase abbreviation ("св.", "год.") is not an end.
+ */
+function isSentenceEnd(t: string, index: number, match: string): boolean {
+  const after = t.slice(index + match.length);
+  const next = /^\s*(.?)/s.exec(after)?.[1] ?? '';
+  if (next !== '' && !/[\p{Lu}"„“”'«(\[]/u.test(next)) return false;
+  if (match[0] === '.' && next !== '') {
+    const word = /(\p{L}+)$/u.exec(t.slice(0, index))?.[1];
+    if (word && word.length <= 3 && word === word.toLowerCase()) return false;
+  }
+  return true;
+}
+
 /** Cut at the last sentence end within maxChars; otherwise at a word boundary with an ellipsis. */
 export function trimExtract(text: string, maxChars = 450): string {
   const t = text.trim();
   if (t.length <= maxChars) return t;
   const window = t.slice(0, maxChars);
   let end = -1;
-  for (const m of window.matchAll(/[.!?]["”»)]*(?=\s|$)/g)) end = m.index + m[0].length;
+  for (const m of window.matchAll(/[.!?]["”»)]*(?=\s|$)/g)) {
+    if (isSentenceEnd(t, m.index, m[0])) end = m.index + m[0].length;
+  }
   if (end > 0) return window.slice(0, end);
   const room = t.slice(0, maxChars - 1);
   const space = room.lastIndexOf(' ');
