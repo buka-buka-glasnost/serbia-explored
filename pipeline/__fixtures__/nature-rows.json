@@ -1,0 +1,60 @@
+[
+ {
+  "item": "Q1266612",
+  "enwiki": "https://en.wikipedia.org/wiki/Tara_National_Park",
+  "srwiki": "https://sr.wikipedia.org/wiki/%D0%9D%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D0%BD%D0%B8_%D0%BF%D0%B0%D1%80%D0%BA_%D0%A2%D0%B0%D1%80%D0%B0",
+  "typeEn": "national park",
+  "typeSr": "национални парк",
+  "labelSr": "Национални парк Тара",
+  "code": "Q46169",
+  "coord": "Point(19.305 43.9067)",
+  "image": "http://commons.wikimedia.org/wiki/Special:FilePath/Tarski%20pejza%C5%BE%2C%20jezero%20Spaji%C4%87i%2C%20Nacionalni%20park%20Tara.jpg",
+  "labelEn": "Tara National Park",
+  "labelSrEl": "Nacionalni park Tara"
+ },
+ {
+  "item": "Q31182351",
+  "srwiki": "https://sr.wikipedia.org/wiki/Danilova_kosa",
+  "typeEn": "nature reserve",
+  "typeSr": "резерват природе",
+  "labelSr": "Danilova kosa",
+  "code": "Q179049",
+  "coord": "Point(19.3163623 44.3982843)"
+ },
+ {
+  "item": "Q790075",
+  "enwiki": "https://en.wikipedia.org/wiki/Avala",
+  "srwiki": "https://sr.wikipedia.org/wiki/%D0%90%D0%B2%D0%B0%D0%BB%D0%B0",
+  "typeEn": "mountain",
+  "typeSr": "планина",
+  "labelSr": "Авала",
+  "code": "Q25457694",
+  "coord": "Point(20.514166666 44.690555555)",
+  "image": "http://commons.wikimedia.org/wiki/Special:FilePath/Planina%20Avala.JPG",
+  "labelEn": "Avala"
+ },
+ {
+  "item": "Q790075",
+  "enwiki": "https://en.wikipedia.org/wiki/Avala",
+  "srwiki": "https://sr.wikipedia.org/wiki/%D0%90%D0%B2%D0%B0%D0%BB%D0%B0",
+  "typeEn": "outstanding natural landscape",
+  "typeSr": "предео изузетних одлика",
+  "labelSr": "Авала",
+  "code": "Q25457694",
+  "coord": "Point(20.514166666 44.690555555)",
+  "image": "http://commons.wikimedia.org/wiki/Special:FilePath/Planina%20Avala.JPG",
+  "labelEn": "Avala"
+ },
+ {
+  "item": "Q790075",
+  "enwiki": "https://en.wikipedia.org/wiki/Avala",
+  "srwiki": "https://sr.wikipedia.org/wiki/%D0%90%D0%B2%D0%B0%D0%BB%D0%B0",
+  "typeEn": "mountain",
+  "typeSr": "планина",
+  "labelSr": "Авала",
+  "code": "Q25457694",
+  "coord": "Point(20.51765 44.689962)",
+  "image": "http://commons.wikimedia.org/wiki/Special:FilePath/Planina%20Avala.JPG",
+  "labelEn": "Avala"
+ }
+]

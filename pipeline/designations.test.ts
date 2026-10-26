@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   DESIGNATION_BY_QID,
+  NATURE_CLASS_BY_QID,
+  NATURE_DESIGNATIONS,
   TIER_BY_DESIGNATION,
   tierFor,
 } from './designations';
@@ -26,5 +28,13 @@ describe('designation tables', () => {
 
   it('does not map Q6906963', () => {
     expect(Object.keys(DESIGNATION_BY_QID)).not.toContain('Q6906963');
+    expect(Object.keys(NATURE_CLASS_BY_QID)).not.toContain('Q6906963');
+  });
+
+  it('maps every nature class to a nature designation', () => {
+    expect(Object.keys(NATURE_CLASS_BY_QID).length).toBeGreaterThan(0);
+    for (const designation of Object.values(NATURE_CLASS_BY_QID)) {
+      expect(NATURE_DESIGNATIONS.has(designation)).toBe(true);
+    }
   });
 });

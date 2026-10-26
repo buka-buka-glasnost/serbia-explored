@@ -20,8 +20,19 @@ export const DESIGNATION_BY_QID: Record<string, Designation> = {
   Q139257193: 'heritage_protected',
 };
 
-// Filled in Task 3.
-export const NATURE_CLASS_BY_QID: Record<string, Designation> = {};
+// P31 class of a protected nature area -> designation (discovered 2026-10-26 from
+// Serbian/Kosovo items under Q473972 "protected area"; see the Task 3 report).
+export const NATURE_CLASS_BY_QID: Record<string, Designation> = {
+  Q1324355: 'unesco_geopark', // geopark (Djerdap)
+  Q158454: 'unesco_biosphere', // biosphere reserve
+  Q46169: 'national_park',
+  Q179049: 'special_nature_reserve', // nature reserve (Serbian special nature reserve)
+  Q23790: 'nature_other', // natural monument
+  Q728904: 'nature_other', // nature park
+  Q25457694: 'nature_other', // outstanding natural landscape
+  Q25457693: 'nature_other', // protected habitat
+  Q544008: 'nature_other', // strict nature reserve
+};
 
 export const TIER_BY_DESIGNATION: Record<Designation, Tier> = {
   unesco_whs: 1,
