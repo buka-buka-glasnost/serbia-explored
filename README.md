@@ -37,7 +37,7 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 ```json
 {
   "places": {
-    "Q904128": { "access": "hike_boat", "tier": 2 }
+    "Q20435442": { "access": "rough" }
   },
   "added": [
     {
@@ -47,10 +47,10 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
       "kind": "nature",
       "tier": 3,
       "designations": [],
-      "lat": 43.9,
-      "lon": 20.35,
+      "lat": 43.855,
+      "lon": 19.85,
       "districtId": null,
-      "municipalityId": "m-kraljevo",
+      "municipalityId": "m-uzice",
       "inKosovo": false,
       "access": "rough"
     }
@@ -59,9 +59,11 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 }
 ```
 
-- `places`: patch an existing place by id (Wikidata QID). Any subset of its fields can be given, e.g. `access` (`"door"`, `"rough"`, `"hike_boat"` or `null`), `nameSr` (Cyrillic), `lat`/`lon`, `kind` (`"culture"` or `"nature"`), `tier` (1-4), `designations`, `districtId`/`municipalityId` (such as `"m-kraljevo"`), `inKosovo`.
-- `added`: full place objects for manual places. Their ids must be `x-<slug>` and must not collide with an existing id.
+- `places`: patch an existing place by id (Wikidata QID). Any subset of its fields can be given, e.g. `access` (`"door"`, `"rough"`, `"hike_boat"` or `null`), `nameSr` (Cyrillic), `lat`/`lon`, `kind` (`"culture"` or `"nature"`), `tier` (1-4), `designations`, `districtId`/`municipalityId` (such as `"m-uzice"`), `inKosovo`.
+- `added`: full place objects for manual places. Their ids should look like `x-<slug>` (a convention, not enforced) and must not collide with an existing id. The example point lies inside the municipality given; use `"municipalityId": null` if you do not want to look one up.
 - `removed`: ids to drop.
+
+Overriding `lat`/`lon` does not recompute the district, municipality or `inKosovo`; patch those fields too. Likewise change `tier` together with `designations`, since tiers are normally derived from designations.
 
 Unknown ids in `places` or `removed`, or an `added` id that already exists, make the build throw. This is deliberate typo protection. See `pipeline/overrides.ts` and `src/shared/types.ts` for the exact shape.
 
@@ -77,6 +79,6 @@ GitHub Pages (via the workflow in `.github/workflows/deploy.yml`):
 2. In the repo, go to Settings > Pages and set Source to "GitHub Actions".
 3. Every push to `main` runs `npm ci`, `npm test`, then builds with `BASE_PATH=/<repo-name>/` and deploys `dist/`. The site appears at `https://<user>.github.io/<repo-name>/`.
 
-The Vite `base` comes from the `BASE_PATH` environment variable (default `/`), and the app loads its data relative to it.
+The Vite `base` comes from the `BASE_PATH` environment variable (default `/`), and the app loads its data relative to it. For a local build with a base path in Git Bash on Windows, prefix the command with `MSYS_NO_PATHCONV=1` (for example `MSYS_NO_PATHCONV=1 BASE_PATH=/serbia-explored/ npm run build`), otherwise Git Bash rewrites the path.
 
-Alternative: Cloudflare Pages. Connect the repo, set the build command to `npm run build` and the output directory to `dist`. Leave `BASE_PATH` unset, since the site is served from the root.
+Alternative: Cloudflare Pages. Connect the repo, set the build command to `npm run build` and the output directory to `dist`. Leave `BASE_PATH` unset, since the site is served from the root. Set the environment variable `NODE_VERSION` to `20` or higher (Node >= 20 is required).
