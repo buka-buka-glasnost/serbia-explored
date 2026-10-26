@@ -1,1 +1,22 @@
-{ "places": {}, "added": [], "removed": [] }
+{
+  "places": {
+    "Q2944007": { "nameSr": "Рајачке пимнице", "nameEn": "Rajac wine cellars" },
+    "Q2944010": { "nameSr": "Рогљевачке пимнице", "nameEn": "Rogljevo wine cellars" },
+    "Q2944012": { "nameSr": "Штубичке пимнице", "nameEn": "Štubik wine cellars" },
+    "Q2400183": { "nameSr": "Седиште Главног народноослободилачког одбора за Србију", "nameEn": "Headquarters of the Main National Liberation Committee for Serbia" },
+    "Q3145318": { "nameSr": "Партизанска болница у Крчагову", "nameEn": "Partisan Hospital in Krčagovo" },
+    "Q48773087": { "nameSr": "Црква Рођења Пресвете Богородице у Новим Бановцима", "nameEn": "Church of the Nativity of the Mother of God, Novi Banovci" },
+    "Q118981693": { "nameSr": "Зграда у улици Павла Орловића 16, Ниш", "nameEn": "Building at 16 Pavla Orlovića Street, Niš" },
+    "Q26257875": { "nameSr": "Црква Преображења Господњег у Сокобањи", "nameEn": "Church of the Transfiguration, Sokobanja" },
+    "Q26257876": { "nameSr": "Црква Успења Пресвете Богородице у Јошаници", "nameEn": "Church of the Dormition of the Mother of God, Jošanica" },
+    "Q2860053": { "nameSr": "Архиепископски двор у Београду", "nameEn": "Archbishopric Palace, Belgrade" },
+    "Q56304919": { "nameSr": "Дрвена црква у Брестовцу", "nameEn": "Wooden church in Brestovac" },
+    "Q56304958": { "nameSr": "Дрвена црква у Поповици", "nameEn": "Wooden church in Popovica" },
+    "Q56304959": { "nameSr": "Дрвена црква у Трњанима", "nameEn": "Wooden church in Trnjane" }
+  },
+  "added": [],
+  "removed": ["Q391195"],
+  "partOfNames": {
+    "Q29000652": { "nameSr": "Стећци — средњовековни надгробни споменици", "nameEn": "Stećci medieval tombstone graveyards" }
+  }
+}
