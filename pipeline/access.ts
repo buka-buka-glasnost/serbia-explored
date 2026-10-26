@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import * as turf from '@turf/turf';
 import type { Access, Designation, LatLon } from '../src/shared/types';
 import { overpass } from './areas';
@@ -55,20 +57,40 @@ function roadsQuery(points: LatLon[]): string {
   return `[out:json][timeout:180];(${parts.join('')});out tags geom;`;
 }
 
-/** Access estimate per place id, fetched from OpenStreetMap in cached batches. */
+const pointKey = (p: LatLon) => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
+
+function accessCacheFile(): string {
+  return path.join(process.env.OSM_CACHE_DIR ?? path.join('data', 'cache', 'osm'), 'access-by-point.json');
+}
+
+/**
+ * Access estimate per place id. Results are cached per coordinate, so adding,
+ * removing or renaming places only queries OpenStreetMap for points not seen before.
+ */
 export async function estimateAccess(points: (LatLon & { id: string })[]): Promise<Map<string, Access>> {
-  const out = new Map<string, Access>();
-  for (let i = 0; i < points.length; i += BATCH) {
-    const batch = points.slice(i, i + BATCH);
+  const file = accessCacheFile();
+  let cache: Record<string, Access> = {};
+  if (process.env.REFRESH !== '1') {
+    try {
+      cache = JSON.parse(await readFile(file, 'utf8')) as Record<string, Access>;
+    } catch {
+      /* no cache yet */
+    }
+  }
+  const todo = points.filter((p) => !(pointKey(p) in cache));
+  for (let i = 0; i < todo.length; i += BATCH) {
+    const batch = todo.slice(i, i + BATCH);
     const query = roadsQuery(batch);
     const key = 'roads-' + createHash('sha1').update(query).digest('hex').slice(0, 10);
-    console.log(`  roads ${i + 1}-${i + batch.length} of ${points.length}`);
+    console.log(`  roads ${i + 1}-${i + batch.length} of ${todo.length} new points`);
     const json = await overpass(query, key);
     const roads: Road[] = (json.elements as OsmWay[])
       .filter((e) => e.type === 'way' && e.geometry)
       .map((e) => ({ paved: isPaved(e.tags ?? {}), coords: e.geometry!.map((g) => [g.lon, g.lat] as [number, number]) }));
-    for (const p of batch) out.set(p.id, classifyAccess(p, roads));
+    for (const p of batch) cache[pointKey(p)] = classifyAccess(p, roads);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, JSON.stringify(cache));
     await new Promise((r) => setTimeout(r, 2000)); // be gentle with the public Overpass server
   }
-  return out;
+  return new Map(points.map((p) => [p.id, cache[pointKey(p)]]));
 }
