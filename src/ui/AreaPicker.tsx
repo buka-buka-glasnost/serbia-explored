@@ -30,10 +30,13 @@ export function AreaPicker() {
   const kosovoShown = useApp((s) => s.settings.kosovoShown);
   const lang: Lang = useApp((s) => s.settings.lang);
   const [text, setText] = useState('');
+  const [open, setOpen] = useState(true);
+  const [active, setActive] = useState(-1);
 
   const props = useMemo(() => areas?.features.map((f) => f.properties) ?? [], [areas]);
   const current = props.find((p) => p.id === areaId);
-  const suggestions = useMemo(() => suggestAreas(props, text, kosovoShown), [props, text, kosovoShown]);
+  const found = useMemo(() => suggestAreas(props, text, kosovoShown), [props, text, kosovoShown]);
+  const suggestions = open ? found : [];
 
   useEffect(() => {
     if (!picking) return;
@@ -47,10 +50,29 @@ export function AreaPicker() {
   const choose = (id: string) => {
     setArea(id);
     setText('');
+    setActive(-1);
   };
   const clear = () => {
     setArea(null);
     setText('');
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (found.length === 0) return;
+      e.preventDefault();
+      setOpen(true);
+      const n = found.length;
+      setActive((i) => (e.key === 'ArrowDown' ? (i + 1) % n : (i - 1 + n) % n));
+    } else if (e.key === 'Enter') {
+      const pick = suggestions[active >= 0 ? active : 0];
+      if (pick) {
+        e.preventDefault();
+        choose(pick.id);
+      }
+    } else if (e.key === 'Escape' && suggestions.length > 0) {
+      setOpen(false);
+    }
   };
 
   return (
@@ -61,10 +83,16 @@ export function AreaPicker() {
           role="combobox"
           aria-expanded={suggestions.length > 0}
           aria-controls="area-suggestions"
+          aria-activedescendant={active >= 0 && suggestions[active] ? `area-opt-${suggestions[active].id}` : undefined}
           aria-label={t('areaSearch', lang)}
           placeholder={current ? areaName(current, lang) : t('areaSearch', lang)}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            setOpen(true);
+            setActive(-1);
+          }}
+          onKeyDown={onKeyDown}
         />
         {areaId && (
           <button type="button" className="area-clear" aria-label={t('clearArea', lang)} onClick={clear}>×</button>
@@ -72,8 +100,15 @@ export function AreaPicker() {
       </div>
       {suggestions.length > 0 && (
         <ul id="area-suggestions" role="listbox" className="area-suggestions">
-          {suggestions.map((a) => (
-            <li key={a.id} role="option" aria-selected={a.id === areaId} onClick={() => choose(a.id)}>
+          {suggestions.map((a, i) => (
+            <li
+              key={a.id}
+              id={`area-opt-${a.id}`}
+              role="option"
+              className={i === active ? 'active' : undefined}
+              aria-selected={i === active}
+              onClick={() => choose(a.id)}
+            >
               {areaName(a, lang)}
               {a.level === 'municipality' && a.districtId && props.some((p) => p.id === a.districtId) && (
                 <span className="area-parent">

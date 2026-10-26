@@ -5,7 +5,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
-import { filterPlaces, splitByArea } from '../logic/filters';
+import { filterPlaces } from '../logic/filters';
+import { activeIds } from '../logic/areas';
 import { placeName } from '../i18n/i18n';
 import { markerStyle } from './markerStyle';
 import type { AreaProps } from '../shared/types';
@@ -40,14 +41,10 @@ export function PlaceMarkers() {
     group.clearLayers();
     const filtered = filterPlaces(places, settings, query);
     const area = areaId ? areas?.features.find((f) => f.properties.id === areaId) : undefined;
-    let active: Set<string> | null = null;
-    if (area) {
-      const { inside, nearby } = splitByArea(
-        filtered,
-        area as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps>,
-      );
-      active = new Set([...inside, ...nearby].map((p) => p.id));
-    }
+    const active = activeIds(
+      filtered,
+      area as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, AreaProps> | undefined,
+    );
     const markers = filtered.map((p) => {
       const dim = active !== null && !active.has(p.id);
       const m = L.circleMarker([p.lat, p.lon], {

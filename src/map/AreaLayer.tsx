@@ -1,10 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { GeoJSON, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { booleanPointInPolygon, point } from '@turf/turf';
+import { areaAt } from '../logic/areas';
 import { useApp } from '../state/store';
-
-const MUNICIPALITY_ZOOM = 9;
 
 export function AreaLayer() {
   const map = useMap();
@@ -20,10 +18,8 @@ export function AreaLayer() {
   useMapEvents({
     click(e) {
       if (!picking || !areas) return;
-      const level = map.getZoom() >= MUNICIPALITY_ZOOM ? 'municipality' : 'district';
-      const pt = point([e.latlng.lng, e.latlng.lat]);
-      const hit = areas.features.find((f) => f.properties.level === level && booleanPointInPolygon(pt, f));
-      if (hit) setArea(hit.properties.id);
+      const hit = areaAt(areas, e.latlng.lat, e.latlng.lng, map.getZoom());
+      if (hit) setArea(hit.id);
     },
   });
 

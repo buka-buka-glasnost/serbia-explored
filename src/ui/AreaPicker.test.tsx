@@ -57,4 +57,22 @@ describe('AreaPicker', () => {
     expect(useApp.getState().picking).toBe(true);
     expect(screen.getByText(/Esc to cancel/)).toBeInTheDocument();
   });
+  it('ArrowDown + Enter picks the active suggestion', async () => {
+    render(<AreaPicker />);
+    await userEvent.type(screen.getByRole('combobox'), 'kraljevo');
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('option', { name: /Kraljevo/ })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.keyboard('{Enter}');
+    expect(useApp.getState().areaId).toBe('m-kraljevo');
+  });
+  it('Enter without arrows picks the first suggestion', async () => {
+    render(<AreaPicker />);
+    await userEvent.type(screen.getByRole('combobox'), 'kraljevo{Enter}');
+    expect(useApp.getState().areaId).toBe('m-kraljevo');
+  });
+  it('Escape closes the suggestion list', async () => {
+    render(<AreaPicker />);
+    await userEvent.type(screen.getByRole('combobox'), 'kraljevo{Escape}');
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+  });
 });
