@@ -60,7 +60,7 @@ describe('PlaceList', () => {
     ];
     useApp.setState({ places: ps, placesById: new Map(ps.map((p) => [p.id, p])), ...areaState(areas), areaId: 'm1' });
     render(<PlaceList />);
-    const list = screen.getByLabelText('Places');
+    const list = screen.getByLabelText('List of places');
     const items = Array.from(list.children).map((el) => el.textContent);
     expect(items).toEqual(['Zzz inside', 'Nearby', 'Aaa near']);
     expect(screen.getByRole('heading', { name: 'Nearby' })).toBeInTheDocument();
