@@ -28,10 +28,10 @@ export const STRINGS = {
   removeStop: { sr: 'Уклони', en: 'Remove' },
   alreadyInTrip: { sr: 'Ово место је већ у излету.', en: 'This place is already in the trip.' },
   showKosovo: { sr: 'Прикажи Косово', en: 'Show Kosovo' },
-  kosovoInfo: { sr: 'О статусу Косова', en: "About Kosovo's status" },
+  kosovoInfo: { sr: 'О статусу Косова', en: 'About Kosovo’s status' },
   kosovoNote: {
     sr: 'Статус Косова је спорен. Србија га сматра делом своје територије у складу са Резолуцијом 1244 Савета безбедности УН. Косово је 2008. прогласило независност коју признају многе, али не све државе. Неколико српских споменика културе на Косову налази се на Листи светске баштине УНЕСКО-а.',
-    en: "Kosovo's status is disputed. Serbia considers it part of its territory under UN Security Council Resolution 1244. Kosovo declared independence in 2008 and is recognised by many, but not all, countries. Several Serbian heritage sites there are on UNESCO's World Heritage list.",
+    en: 'Kosovo’s status is disputed. Serbia considers it part of its territory under UN Security Council Resolution 1244. Kosovo declared independence in 2008 and is recognised by many, but not all, countries. Several Serbian heritage sites there are on UNESCO’s World Heritage list.',
   },
   accessUnknown: { sr: 'Подаци још нису доступни', en: 'Information not available yet' },
   accessDoor: { sr: 'Колима до самог места', en: 'Drive to the door' },
@@ -69,7 +69,7 @@ export const STRINGS = {
   },
   storageUnavailableBanner: {
     sr: 'Напредак не може да се сачува у овом прегледачу (приватни режим?).',
-    en: "Your progress can't be saved in this browser (private mode?).",
+    en: 'Your progress cannot be saved in this browser (private mode?).',
   },
   tooManyPhotos: {
     sr: 'Можете додати највише 5 фотографија по месту.',
@@ -139,7 +139,7 @@ export const STRINGS = {
   designation_unesco_biosphere: { sr: 'Резерват биосфере УНЕСКО-а', en: 'UNESCO Biosphere Reserve' },
   designation_heritage_exceptional: { sr: 'Културно добро од изузетног значаја', en: 'Cultural property of exceptional importance' },
   designation_national_park: { sr: 'Национални парк', en: 'National park' },
-  designation_unesco_tentative: { sr: 'На привременој листи УНЕСКО-а', en: "On UNESCO's Tentative List" },
+  designation_unesco_tentative: { sr: 'На привременој листи УНЕСКО-а', en: 'On UNESCO’s Tentative List' },
   designation_heritage_great: { sr: 'Културно добро од великог значаја', en: 'Cultural property of great importance' },
   designation_special_nature_reserve: { sr: 'Специјални резерват природе', en: 'Special nature reserve' },
   designation_ramsar: { sr: 'Рамсарско подручје', en: 'Ramsar site' },

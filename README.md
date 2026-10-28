@@ -87,12 +87,12 @@ The Vite `base` comes from the `BASE_PATH` environment variable (default `/`), a
 
 Alternative: Cloudflare Pages. Connect the repo, set the build command to `npm run build` and the output directory to `dist`. Leave `BASE_PATH` unset, since the site is served from the root. Set the environment variable `NODE_VERSION` to `20` or higher (Node >= 20 is required).
 
-## License and data sources
+## Licence and data sources
 
-The code is released under the MIT License (see `LICENSE`). The generated data in `public/data/` and `data/reports/` is not covered by it; it keeps the licenses of its sources:
+The code is released under the MIT License (see `LICENSE`). The generated data in `public/data/` and `data/reports/` is not covered by it; it keeps the licences of its sources:
 
 - **Wikidata** (places, designations, coordinates): CC0.
 - **Wikipedia** (place descriptions): CC BY-SA 4.0. Text is excerpted from the Serbian and English Wikipedia articles linked on each place card.
-- **Wikimedia Commons** (photos): each photo's own license. The app shows the author and license on every photo and links to its Commons page.
+- **Wikimedia Commons** (photos): each photo's own licence. The app shows the author and licence on every photo and links to its Commons page.
 - **OpenStreetMap** (district and municipality boundaries, the Kosovo outline, map tiles): © OpenStreetMap contributors, ODbL.
 - **Republički zavod za zaštitu spomenika kulture** (official heritage register lists, used only to build `data/reports/missing-from-map.csv`).

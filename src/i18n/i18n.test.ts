@@ -3,6 +3,23 @@ import type { AreaProps, Place } from '../shared/types';
 import { STRINGS, type StringKey } from './strings';
 import { areaName, countOf, detectLang, placeDescription, placeName, t } from './i18n';
 
+describe('English house style', () => {
+  const english = Object.entries(STRINGS).map(([key, v]) => [key, v.en] as const);
+
+  it('uses British spelling', () => {
+    const american = /\b(colors?|grays?|center|centers|license|favorite|traveled|\w+iz(e|es|ed|ing|ation))\b/i;
+    expect(english.filter(([, s]) => american.test(s))).toEqual([]);
+  });
+
+  it('uses typographic apostrophes and quotation marks', () => {
+    expect(english.filter(([, s]) => /['"]/.test(s))).toEqual([]);
+  });
+
+  it('avoids contractions', () => {
+    expect(english.filter(([, s]) => /n[’']t\b|[’'](re|ve|ll|d)\b/.test(s))).toEqual([]);
+  });
+});
+
 describe('countOf', () => {
   it('uses the right English singular and plural', () => {
     expect(countOf('visits', 1, 'en')).toBe('1 visit');
