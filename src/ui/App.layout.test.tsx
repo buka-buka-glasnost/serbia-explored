@@ -44,7 +44,7 @@ describe('App phone layout', () => {
     render(<App />);
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     expect(screen.getByRole('complementary')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
@@ -55,7 +55,7 @@ describe('App phone layout', () => {
   it('closes the drawer with its close button', async () => {
     mockMatchMedia(true);
     render(<App />);
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
@@ -64,7 +64,7 @@ describe('App phone layout', () => {
     mockMatchMedia(true);
     useApp.setState({ selectedId: 'Q1' });
     render(<App />);
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
@@ -73,7 +73,7 @@ describe('App phone layout', () => {
     mockMatchMedia(false);
     render(<App />);
     expect(screen.getByRole('complementary')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'List' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Find places' })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Alpha/ }));
     expect(screen.getByRole('article', { name: 'Alpha' })).not.toHaveClass('bottom-sheet');
   });
@@ -83,7 +83,7 @@ describe('App picking on a phone', () => {
   it('closes the drawer when picking starts and shows the hint with Cancel in the top bar', async () => {
     mockMatchMedia(true);
     render(<App />);
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     await userEvent.click(screen.getByRole('button', { name: 'Pick on map' }));
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Tap the map to choose an area.');
@@ -91,7 +91,7 @@ describe('App picking on a phone', () => {
     expect(cancel).toHaveFocus();
     await userEvent.click(cancel);
     expect(useApp.getState().picking).toBe(false);
-    expect(screen.getByRole('button', { name: 'List' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Find places' })).toBeInTheDocument();
   });
 
   it('Escape cancels picking', async () => {
@@ -115,13 +115,13 @@ describe('App keyboard and focus', () => {
   it('drawer: focuses its close button, makes the map inert, Escape closes it and focus returns to List', async () => {
     mockMatchMedia(true);
     render(<App />);
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
     expect(screen.getByRole('main', { hidden: true })).toHaveAttribute('inert');
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
     expect(screen.getByRole('main')).not.toHaveAttribute('inert');
-    expect(screen.getByRole('button', { name: 'List' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Find places' })).toHaveFocus();
   });
 
   it('card from the list: heading takes focus; Escape closes it and focus returns to the row', async () => {
@@ -157,15 +157,15 @@ describe('App drawer focus bookkeeping', () => {
   it('a close request while already closing does not later pull focus to List', async () => {
     mockMatchMedia(true);
     render(<App />);
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     const backdrop = document.querySelector('.drawer-backdrop') as HTMLElement;
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     act(() => backdrop.click()); // still on screen while the drawer slides out
     (document.activeElement as HTMLElement | null)?.blur();
-    await userEvent.click(screen.getByRole('button', { name: 'List' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find places' }));
     (document.activeElement as HTMLElement | null)?.blur();
     act(() => useApp.getState().select('Q2')); // chosen on the map: closes the drawer
-    expect(screen.getByRole('button', { name: 'List' })).not.toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Find places' })).not.toHaveFocus();
   });
 });
 

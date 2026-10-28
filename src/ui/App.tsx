@@ -155,23 +155,33 @@ export function App() {
         {narrow && (
           <div className="top-bar">
             {picking ? (
-              <>
+              <div className="top-bar-pill picking">
                 <p className="top-bar-hint" role="status">{t('pickOnMapHintTouch', lang)}</p>
                 <button ref={cancelPick} type="button" className="btn" onClick={() => setPicking(false)}>
                   {t('cancel', lang)}
                 </button>
-              </>
+              </div>
             ) : (
               <>
-                <ProgressSummary compact />
+                {/* Search-style launcher (as in map apps): the way into the list, areas and trip. */}
                 <button
                   ref={listButton}
                   type="button"
-                  className="btn btn-primary list-button"
+                  className="top-bar-pill list-launcher"
+                  aria-label={t('listButton', lang)}
                   onClick={() => setDrawerOpen(true)}
                 >
-                  {t('listButton', lang)}
+                  <svg className="launcher-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
+                    <path d="M15.5 15.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+                  </svg>
+                  <span className="launcher-text" aria-hidden="true">
+                    <span className="launcher-title">{t('listButton', lang)}</span>
+                    <span className="launcher-sub">{t('listButtonHint', lang)}</span>
+                  </span>
+                  <span className="launcher-chevron" aria-hidden="true">☰</span>
                 </button>
+                <ProgressSummary compact />
               </>
             )}
           </div>

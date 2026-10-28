@@ -18,11 +18,20 @@ export function ProgressSummary({ compact = false }: { compact?: boolean }) {
   );
   return (
     <section className={compact ? 'progress compact' : 'progress'} aria-label={t('visited', lang)}>
-      <div className="progress-overall">
-        <span className="progress-count">{overall.visited}</span>
-        <span className="progress-total">/ {overall.total} {t('visitedOf', lang)}</span>
-        {!compact && <span className="progress-pct">{pct(overall.visited, overall.total)}%</span>}
-      </div>
+      {compact ? (
+        // phone top bar: a small "✓ 3 / 930" chip
+        <div className="progress-overall">
+          <span className="progress-check" aria-hidden="true">✓</span>
+          <span className="progress-count">{overall.visited}</span>
+          <span className="progress-total">/ {overall.total}<span className="sr-only"> {t('visitedOf', lang)}</span></span>
+        </div>
+      ) : (
+        <div className="progress-overall">
+          <span className="progress-count">{overall.visited}</span>
+          <span className="progress-total">/ {overall.total} {t('visitedOf', lang)}</span>
+          <span className="progress-pct">{pct(overall.visited, overall.total)}%</span>
+        </div>
+      )}
       {!compact && (
         <ul>
           {TIERS.map((n) => (
