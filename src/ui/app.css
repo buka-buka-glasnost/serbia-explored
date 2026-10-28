@@ -146,7 +146,14 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .card-body { padding: 14px 16px 0; }
 .place-card h2:focus { outline: none; }
 .place-card h2 { margin: 0 0 6px; font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.25; padding-right: 28px; }
-.card-close { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(255,255,255,.9); box-shadow: 0 1px 3px rgba(0,0,0,.2); font-size: 18px; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out); }
+/* Dark disc with a white × and a light ring: readable on photos and on the white card alike. */
+.card-close {
+  position: absolute; top: 8px; right: 8px; z-index: 3; display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
+  background: rgba(31, 27, 22, .72); color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 2px 6px rgba(0, 0, 0, .3);
+  font-size: 20px; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) { .card-close:hover { background: rgba(31, 27, 22, .88); } }
 .card-close:active { transform: scale(0.94); }
 .card-photo { position: relative; margin: 0; aspect-ratio: 16 / 9; background: #eef0f2; border-radius: 12px 12px 0 0; overflow: hidden; }
 .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -317,6 +324,8 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
   .place-card.bottom-sheet .card-photo { border-radius: 0; }
   .sheet-handle { display: flex; justify-content: center; position: sticky; top: 0; z-index: 2; height: 22px; margin: 0; touch-action: none; cursor: grab; background: var(--surface); }
   .sheet-handle::before { content: ''; width: 40px; height: 4px; margin-top: 8px; border-radius: 2px; background: #c9cdd2; }
+  /* Bigger touch target that stays in view (just under the handle) while the sheet scrolls. */
+  .place-card.bottom-sheet .card-close { position: sticky; top: 6px; margin: -18px 10px -22px auto; width: 40px; height: 40px; font-size: 24px; }
   .kosovo-note { width: min(270px, calc(100vw - 32px)); }
 }
 
