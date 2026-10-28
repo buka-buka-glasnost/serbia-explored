@@ -7,6 +7,7 @@ import { isWelcomeDismissed, setWelcomeDismissed } from './welcomePrefs';
 
 const SECTIONS: { icon: string; title: StringKey; body: StringKey }[] = [
   { icon: '🗺️', title: 'welcomeMapTitle', body: 'welcomeMap' },
+  { icon: '🔍', title: 'welcomeListTitle', body: 'welcomeList' },
   { icon: '✓', title: 'welcomeVisitTitle', body: 'welcomeVisit' },
   { icon: '🧭', title: 'welcomeTripTitle', body: 'welcomeTrip' },
   { icon: '💾', title: 'welcomeDataTitle', body: 'welcomeData' },
@@ -95,6 +96,7 @@ export function WelcomeDialog() {
             </li>
           ))}
         </ul>
+        <p className="welcome-reopen">{t('welcomeReopen', lang)}</p>
         <footer className="welcome-foot">
           <label className="welcome-dontshow">
             <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />

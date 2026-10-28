@@ -251,6 +251,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .welcome-icon { flex: none; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: var(--surface-2); font-size: 16px; color: var(--visited); font-weight: 700; }
 .welcome-sections h3 { margin: 0 0 2px; font-size: 14px; font-weight: 650; }
 .welcome-sections p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.welcome-reopen { margin: -6px 0 14px 44px; color: var(--muted); font-size: 12px; font-style: italic; }
 /* The footer (checkbox + button) stays visible while the text scrolls on small screens. */
 .welcome-foot {
   position: sticky; bottom: -18px; margin: 0 -24px -18px; padding: 14px 24px 18px;

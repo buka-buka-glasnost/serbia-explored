@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('../map/MapView', async () => {
@@ -25,6 +25,16 @@ describe('Welcome message', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Welcome!' });
     expect(dialog).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Get started' })).toHaveFocus();
+  });
+
+  it('explains every part of the app, including the list of places, and how to reopen it', async () => {
+    render(<App />);
+    const dialog = await screen.findByRole('dialog', { name: 'Welcome!' });
+    for (const heading of ['The map', 'The list of places', 'Visits', 'Planning a trip', 'Your data']) {
+      expect(within(dialog).getByRole('heading', { name: heading })).toBeInTheDocument();
+    }
+    expect(within(dialog).getByText(/“Find places” button/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/reopen this message any time/)).toBeInTheDocument();
   });
 
   it('does not open when "do not show again" was ticked before', () => {

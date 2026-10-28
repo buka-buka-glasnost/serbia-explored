@@ -109,6 +109,15 @@ export const STRINGS = {
     sr: 'Напредак се чува само у овом прегледачу. Повремено кликните „Извези податке“ да сачувате резервну копију.',
     en: 'Your progress is saved only in this browser. Use “Export data” now and then to keep a backup.',
   },
+  welcomeListTitle: { sr: 'Листа места', en: 'The list of places' },
+  welcomeList: {
+    sr: 'Сва места су и у листи — на рачунару са леве стране, а на телефону иза дугмета „Пронађи места“ на врху екрана. Претражујте по имену, филтрирајте по значају или по томе да ли је култура или природа, и кликните на место да отворите његову картицу.',
+    en: 'Every place is also in the list — on the left on a computer, and behind the “Find places” button at the top of a phone screen. Search by name, filter by importance or by culture and nature, and click a place to open its card.',
+  },
+  welcomeReopen: {
+    sr: 'Ову поруку увек можете поново отворити дугметом i на мапи.',
+    en: 'You can reopen this message any time with the i button on the map.',
+  },
   welcomeDontShow: { sr: 'Не приказуј ову поруку поново', en: 'Do not show this message again' },
   welcomeStart: { sr: 'Почни', en: 'Get started' },
   legendTrip: { sr: 'На излету', en: 'On trip' },
