@@ -1,7 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import type { AreaProps, Place } from '../shared/types';
 import { STRINGS, type StringKey } from './strings';
-import { areaName, detectLang, placeDescription, placeName, t } from './i18n';
+import { areaName, countOf, detectLang, placeDescription, placeName, t } from './i18n';
+
+describe('countOf', () => {
+  it('uses the right English singular and plural', () => {
+    expect(countOf('visits', 1, 'en')).toBe('1 visit');
+    expect(countOf('visits', 0, 'en')).toBe('0 visits');
+    expect(countOf('photos', 2, 'en')).toBe('2 photos');
+  });
+  it('uses the three Serbian forms (1, 2–4, 5+, and 21 like 1)', () => {
+    expect(countOf('visits', 1, 'sr-Cyrl')).toBe('1 посета');
+    expect(countOf('visits', 3, 'sr-Cyrl')).toBe('3 посете');
+    expect(countOf('visits', 5, 'sr-Cyrl')).toBe('5 посета');
+    expect(countOf('photos', 1, 'sr-Cyrl')).toBe('1 фотографија');
+    expect(countOf('photos', 2, 'sr-Cyrl')).toBe('2 фотографије');
+    expect(countOf('photos', 11, 'sr-Cyrl')).toBe('11 фотографија');
+    expect(countOf('photos', 22, 'sr-Cyrl')).toBe('22 фотографије');
+    expect(countOf('visits', 21, 'sr-Latn')).toBe('21 poseta');
+  });
+});
 
 const base: Place = {
   id: 'Q1', nameSr: 'Пећка патријаршија', kind: 'culture', tier: 1, designations: [],

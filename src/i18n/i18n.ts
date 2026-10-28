@@ -8,6 +8,23 @@ export function t(key: StringKey, lang: Lang): string {
   return lang === 'sr-Latn' ? toLatin(entry.sr) : entry.sr;
 }
 
+// Word forms by plural category (Serbian: 1 / 2–4 / 5+; English: 1 / other).
+const COUNT_WORDS = {
+  visits: { sr: { one: 'посета', few: 'посете', other: 'посета' }, en: { one: 'visit', other: 'visits' } },
+  photos: { sr: { one: 'фотографија', few: 'фотографије', other: 'фотографија' }, en: { one: 'photo', other: 'photos' } },
+} as const;
+
+/** "1 visit", "3 посете", "5 фотографија": a number with the right word form. */
+export function countOf(kind: keyof typeof COUNT_WORDS, n: number, lang: Lang): string {
+  if (lang === 'en') {
+    const forms = COUNT_WORDS[kind].en;
+    return `${n} ${new Intl.PluralRules('en').select(n) === 'one' ? forms.one : forms.other}`;
+  }
+  const forms: Record<string, string> = COUNT_WORDS[kind].sr;
+  const word = forms[new Intl.PluralRules('sr').select(n)] ?? forms.other;
+  return `${n} ${lang === 'sr-Latn' ? toLatin(word) : word}`;
+}
+
 interface Named { nameSr: string; nameEn?: string; nameSq?: string; inKosovo: boolean }
 
 function localName(n: Named, lang: Lang): string {

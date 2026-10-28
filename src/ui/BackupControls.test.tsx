@@ -42,7 +42,7 @@ describe('BackupControls', () => {
     fireEvent.change(input, { target: { files: [file] } });
     await waitFor(() => expect(confirm).toHaveBeenCalled());
     expect(confirm.mock.calls[0][0]).toBe(
-      'Importing will add the visits from this file (1 visits, 0 photos), replacing any you already have for the same places. Continue?',
+      'Importing will add the visits from this file (1 visit, 0 photos), replacing any you already have for the same places. Continue?',
     );
     confirm.mockRestore();
   });

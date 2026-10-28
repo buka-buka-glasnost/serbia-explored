@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useApp } from '../state/store';
-import { t } from '../i18n/i18n';
+import { countOf, t } from '../i18n/i18n';
 import {
   BackupFormatError, backupFileName, exportBackup, importBackup, readBackupSummary,
 } from '../storage/backup';
@@ -33,8 +33,8 @@ export function BackupControls() {
     try {
       const summary = await readBackupSummary(file);
       const message = t('importConfirm', lang)
-        .replace('{visits}', String(summary.visits))
-        .replace('{photos}', String(summary.photos));
+        .replace('{visits}', countOf('visits', summary.visits, lang))
+        .replace('{photos}', countOf('photos', summary.photos, lang));
       if (!window.confirm(message)) return;
       await importBackup(file);
       await reloadFromStorage();

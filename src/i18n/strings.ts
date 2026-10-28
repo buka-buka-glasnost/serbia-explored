@@ -60,8 +60,8 @@ export const STRINGS = {
   export: { sr: 'Извези податке', en: 'Export data' },
   import: { sr: 'Увези податке', en: 'Import data' },
   importConfirm: {
-    sr: 'Увоз ће додати посете из ове датотеке ({visits} посета, {photos} фотографија) и заменити постојеће за иста места. Наставити?',
-    en: 'Importing will add the visits from this file ({visits} visits, {photos} photos), replacing any you already have for the same places. Continue?',
+    sr: 'Увоз ће додати посете из ове датотеке ({visits}, {photos}) и заменити постојеће за иста места. Наставити?',
+    en: 'Importing will add the visits from this file ({visits}, {photos}), replacing any you already have for the same places. Continue?',
   },
   importDone: { sr: 'Подаци су увезени.', en: 'Data imported.' },
   importInvalid: { sr: 'Датотека није исправна.', en: 'That file is not valid.' },
