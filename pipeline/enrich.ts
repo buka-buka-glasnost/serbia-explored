@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import type { Photo } from '../src/shared/types';
 import { ApiError, fetchJson } from './http';
+import { cleanText } from './text';
 
 const EXTRACT_BATCH = 20; // exlimit maximum for prop=extracts
 const PHOTO_BATCH = 50; // titles maximum per query
@@ -95,7 +96,7 @@ export async function fetchExtracts(titles: string[], lang: 'sr' | 'en'): Promis
     const byTitle = new Map(Object.values(q.pages).map((p) => [p.title, p.extract]));
     for (const requested of batch) {
       const extract = byTitle.get(resolveTitle(requested, q))?.trim();
-      if (extract) result.set(requested, extract);
+      if (extract) result.set(requested, cleanText(extract));
     }
     if (i < batches.length - 1) await sleep(PAUSE_MS);
   }

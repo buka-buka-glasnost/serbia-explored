@@ -1,6 +1,7 @@
 import type { Designation, LatLon } from '../src/shared/types';
 import { TIER_BY_DESIGNATION } from './designations';
 import type { SparqlRow } from './sparql';
+import { cleanText } from './text';
 
 export interface RawPlace {
   id: string;
@@ -149,11 +150,11 @@ export function groupRows(
     const p = c.place;
     for (const [col, key] of LABEL_FIELDS) {
       const v = smallest(c.labels.get(col) ?? []);
-      if (v !== undefined) p[key] = v;
+      if (v !== undefined) p[key] = cleanText(v);
     }
     const type = pickType(c.types);
-    if (type.sr !== undefined) p.typeSr = type.sr;
-    if (type.en !== undefined) p.typeEn = type.en;
+    if (type.sr !== undefined) p.typeSr = cleanText(type.sr);
+    if (type.en !== undefined) p.typeEn = cleanText(type.en);
     const coord = smallest(c.coords);
     if (coord) {
       const [lat, lon] = coord.split(',').map(Number);

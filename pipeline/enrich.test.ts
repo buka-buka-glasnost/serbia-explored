@@ -36,6 +36,13 @@ describe('fetchExtracts', () => {
     expect(requested).toEqual(['Missing page', 'Nis Fortress', 'studenica_monastery']);
   });
 
+  it('cleans extracts: no space before punctuation, no look-alike letters', async () => {
+    const body = { query: { pages: { 1: { title: 'A', extract: 'Налази се на листи Светске баштине . Стара планинa.' } } } };
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify(body), { status: 200 })));
+    const map = await fetchExtracts(['A'], 'sr');
+    expect(map.get('A')).toBe('Налази се на листи Светске баштине. Стара планина.');
+  });
+
   it('requests at most 20 titles per call, each title once', async () => {
     const fetchMock = respond('extracts.json');
     vi.stubGlobal('fetch', fetchMock);

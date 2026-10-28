@@ -132,6 +132,15 @@ describe('groupRows', () => {
     expect(p.designations).toEqual(['special_nature_reserve']);
   });
 
+  it('cleans look-alike letters out of labels and types', () => {
+    const rows: SparqlRow[] = [{
+      item: 'Q1', code: 'Q3323436', labelSr: 'Kућа у Београду', labelEn: 'Оld house',
+      type: 'Q5', typeSr: 'кућa', typeEn: 'hоuse',
+    }];
+    const [p] = groupRows(rows, (r) => DESIGNATION_BY_QID[r.code] ?? null);
+    expect(p).toMatchObject({ nameSr: 'Кућа у Београду', nameEn: 'Old house', typeSr: 'кућа', typeEn: 'house' });
+  });
+
   it('classifies Tara National Park', () => {
     const p = byId(nature, 'Q1266612');
     expect(p.designations).toEqual(['national_park']);
