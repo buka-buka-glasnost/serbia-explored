@@ -126,6 +126,17 @@
     "Q12757663": {
       "lat": 43.795277777,
       "lon": 19.933888888
+    },
+    "Q25460627": {
+      "lat": 44.014284,
+      "lon": 20.91564
+    },
+    "Q16086292": {
+      "designations": [
+        "heritage_exceptional"
+      ],
+      "nameEn": "Ljubić memorial complex",
+      "descEn": "The memorial complex on Ljubić hill near Čačak commemorates the Battle of Ljubić in 1815, the largest engagement of the Second Serbian Uprising. The monument was put up in 1938 and is dedicated to the fighters and events of Serbia’s wars of liberation in the 19th and 20th centuries."
     }
   },
   "added": [],
@@ -150,7 +161,8 @@
     "Q118218426",
     "Q118214705",
     "Q22771836",
-    "Q1118811"
+    "Q1118811",
+    "Q12747919"
   ],
   "_removedNotes": {
     "Q391195": "duplicate Šar planina mountain range; the national park Q1412844 is kept",
@@ -173,7 +185,8 @@
     "Q118218426": "same as Q2940431 (Carska bara)",
     "Q118214705": "same as Q16088014 (Peštersko polje)",
     "Q22771836": "Golija–Studenica biosphere reserve merged into Q16087985 (Golija Nature Park), which it is part of",
-    "Q1118811": "Kopački rit is in Croatia"
+    "Q1118811": "Kopački rit is in Croatia",
+    "Q12747919": "An event (the Battle of Ljubić), not a place; its heritage status moves to the memorial on the site, Q16086292"
   },
   "_overrideNotes": {
     "Q12754271": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 110.1 km",
@@ -183,7 +196,9 @@
     "Q3583428": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 4.4 km",
     "Q85998366": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 2.2 km",
     "Q3485398": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 2.2 km",
-    "Q12757663": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 1.3 km"
+    "Q12757663": "Wikidata has several coordinates; pinned to the one used before, the smallest-value pick would move it 1.3 km",
+    "Q25460627": "Wikidata coordinates are rounded to 0.01° and put it in a lake; pinned to the museum (Svetozara Markovića 21) as mapped in OpenStreetMap",
+    "Q16086292": "The battle site is protected as of exceptional importance, but Wikidata puts that on the battle item (Q12747919, removed); this memorial on the site carries it instead"
   },
   "partOfNames": {
     "Q10913999": {
