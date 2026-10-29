@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import type { PlaceKind, Tier } from '../shared/types';
@@ -9,21 +10,34 @@ function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
-export function Filters() {
-  const settings = useApp((s) => s.settings);
+/** The place search box. `onType` runs on every change (the phone sheet uses it to show the list). */
+export function SearchField({ inputRef, onType }: { inputRef?: Ref<HTMLInputElement>; onType?: () => void }) {
   const query = useApp((s) => s.query);
   const setQuery = useApp((s) => s.setQuery);
+  const lang = useApp((s) => s.settings.lang);
+  return (
+    <input
+      ref={inputRef}
+      type="search"
+      value={query}
+      placeholder={t('searchPlaceholder', lang)}
+      aria-label={t('searchPlaceholder', lang)}
+      onChange={(e) => {
+        setQuery(e.target.value);
+        onType?.();
+      }}
+    />
+  );
+}
+
+/** Search box and tier/kind chips. On phones the search box lives in the sheet's top row instead (`search={false}`). */
+export function Filters({ search = true }: { search?: boolean }) {
+  const settings = useApp((s) => s.settings);
   const setSettings = useApp((s) => s.setSettings);
   const { lang } = settings;
   return (
     <section className="filters">
-      <input
-        type="search"
-        value={query}
-        placeholder={t('searchPlaceholder', lang)}
-        aria-label={t('searchPlaceholder', lang)}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+      {search && <SearchField />}
       <div className="chips" role="group">
         {TIERS.map((n) => (
           <button

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { MapView } from '../map/MapView';
-import { SidePanel } from './SidePanel';
+import { SidePanel, type PanelTab, type SheetOptions } from './SidePanel';
 import { PlaceCard } from './PlaceCard';
 import { ProgressSummary } from './ProgressSummary';
 import { Toast } from './Toast';
@@ -24,14 +24,23 @@ export function App() {
   const selected = useApp((s) => (s.selectedId ? s.placesById.get(s.selectedId) : undefined));
   const picking = useApp((s) => s.picking);
   const setPicking = useApp((s) => s.setPicking);
+  const query = useApp((s) => s.query);
+  // stops of places no longer in the data do not count
+  const tripCount = useApp((s) => s.trip.stopIds.filter((id) => s.placesById.has(id)).length);
   const narrow = useIsNarrow();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  /** The phone sheet (list, areas and trip), null while closed. */
+  const [sheet, setSheet] = useState<SheetOptions | null>(null);
+  const drawerOpen = sheet !== null;
   const drawerShown = narrow && drawerOpen;
-  const drawer = usePresence(drawerShown ? true : null, 200);
+  const drawer = usePresence(drawerShown ? sheet : null, 200);
   const card = usePresence(selected, 200);
 
   const mapArea = useRef<HTMLElement>(null);
-  const listButton = useRef<HTMLButtonElement>(null);
+  const topBar = useRef<HTMLDivElement>(null);
+  const searchLauncher = useRef<HTMLButtonElement>(null);
+  const tripLauncher = useRef<HTMLButtonElement>(null);
+  /** The top-bar button the sheet was opened from: focus goes back to it on close. */
+  const sheetOpener = useRef<HTMLButtonElement | null>(null);
   const cancelPick = useRef<HTMLButtonElement>(null);
   const cardHeading = useRef<HTMLHeadingElement>(null);
   /** The list row the card was opened from (null: opened from the map). */
@@ -40,7 +49,7 @@ export function App() {
   const listChoice = useRef(false);
   /** Bumped on a list choice: focus the card heading once it is rendered and reachable. */
   const [headingFocus, setHeadingFocus] = useState(0);
-  /** Set when the drawer is closed by the user, so focus goes back to the List button. */
+  /** Set when the sheet is closed by the user, so focus goes back to the button that opened it. */
   const focusListOnClose = useRef(false);
 
   useEffect(() => {
@@ -56,30 +65,43 @@ export function App() {
   }, [status]);
   // Selecting a place (from the list or a marker) or starting to pick an area closes the drawer.
   useEffect(() => {
-    if (selectedId) setDrawerOpen(false);
+    if (selectedId) setSheet(null);
   }, [selectedId]);
   useEffect(() => {
-    if (picking) setDrawerOpen(false);
+    if (picking) setSheet(null);
   }, [picking]);
   // Once the drawer is gone (the top bar is no longer inert), Cancel takes focus.
   useEffect(() => {
     if (picking && !drawerShown) focusQuietly(cancelPick.current);
   }, [picking, drawerShown]);
   useEffect(() => {
-    if (!narrow) setDrawerOpen(false);
+    if (!narrow) setSheet(null);
   }, [narrow]);
 
   const closeDrawer = () => {
     if (!drawerOpen) return; // already closed (e.g. a second Escape): nothing to return focus from
     focusListOnClose.current = true;
-    setDrawerOpen(false);
+    setSheet(null);
   };
   useEffect(() => {
     if (drawerOpen) focusListOnClose.current = false; // a fresh open starts clean
     if (drawerOpen || !focusListOnClose.current) return;
     focusListOnClose.current = false;
-    focusQuietly(listButton.current);
+    focusQuietly(sheetOpener.current);
   }, [drawerOpen]);
+
+  /** Opens the phone sheet; its search field grows out of the top bar's, so measure where that one ends. */
+  const openSheet = (tab: PanelTab, focus: SheetOptions['focus'], from: HTMLButtonElement | null) => {
+    sheetOpener.current = from;
+    const bar = topBar.current;
+    const field = searchLauncher.current;
+    let fromRight = 0;
+    if (bar && field) {
+      const inner = bar.getBoundingClientRect().right - parseFloat(getComputedStyle(bar).paddingRight || '0');
+      fromRight = Math.max(0, inner - field.getBoundingClientRect().right);
+    }
+    setSheet({ tab, focus, fromRight });
+  };
 
   // Card focus: opened from the list, focus its heading; closed, return focus to the
   // row it came from (or the map) unless the user has already moved focus elsewhere.
@@ -124,7 +146,7 @@ export function App() {
     opener.current = row;
     listChoice.current = true;
     setHeadingFocus((n) => n + 1);
-    setDrawerOpen(false);
+    setSheet(null);
   };
 
   if (status === 'loading') return <div className="fullscreen-msg">…</div>;
@@ -140,20 +162,12 @@ export function App() {
     <div className="app">
       {!narrow && <SidePanel onPlaceChosen={onPlaceChosen} />}
       {narrow && drawer.shown && (
-        <>
-          <div
-            className="drawer-backdrop"
-            aria-hidden="true"
-            data-state={drawer.closing ? 'closing' : 'open'}
-            onClick={closeDrawer}
-          />
-          <SidePanel onClose={closeDrawer} onPlaceChosen={onPlaceChosen} closing={drawer.closing} />
-        </>
+        <SidePanel sheet={drawer.shown} onClose={closeDrawer} onPlaceChosen={onPlaceChosen} closing={drawer.closing} />
       )}
-      {/* behind the open drawer, the map and top bar are out of reach */}
+      {/* behind the open sheet, the map and top bar are out of reach */}
       <main className="map-area" ref={mapArea} inert={drawerShown || undefined}>
         {narrow && (
-          <div className="top-bar">
+          <div className="top-bar" ref={topBar}>
             {picking ? (
               <div className="top-bar-pill picking">
                 <p className="top-bar-hint" role="status">{t('pickOnMapHintTouch', lang)}</p>
@@ -163,23 +177,37 @@ export function App() {
               </div>
             ) : (
               <>
-                {/* Search-style launcher (as in map apps): the way into the list, areas and trip. */}
+                {/* Looks like the search field it turns into: tapping it grows it into the full list. */}
                 <button
-                  ref={listButton}
+                  ref={searchLauncher}
                   type="button"
-                  className="top-bar-pill list-launcher"
-                  aria-label={t('listButton', lang)}
-                  onClick={() => setDrawerOpen(true)}
+                  className="top-bar-pill search-launcher"
+                  aria-label={t('searchPlaceholder', lang)}
+                  onClick={() => openSheet('places', 'search', searchLauncher.current)}
                 >
                   <svg className="launcher-icon" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
                     <path d="M15.5 15.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
                   </svg>
-                  <span className="launcher-text" aria-hidden="true">
-                    <span className="launcher-title">{t('listButton', lang)}</span>
-                    <span className="launcher-sub">{t('listButtonHint', lang)}</span>
+                  <span className={query ? 'launcher-query' : 'launcher-placeholder'} aria-hidden="true">
+                    {query || t('searchPlaceholder', lang)}
                   </span>
-                  <span className="launcher-chevron" aria-hidden="true">☰</span>
+                </button>
+                <button
+                  ref={tripLauncher}
+                  type="button"
+                  className="top-bar-chip trip-launcher"
+                  aria-label={tripCount > 0 ? `${t('tripTab', lang)}: ${tripCount}` : t('tripTab', lang)}
+                  onClick={() => openSheet('trip', 'back', tripLauncher.current)}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 19.5c0-5 12-3 12-9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 3" />
+                    <circle cx="6" cy="19.5" r="2.4" fill="currentColor" />
+                    <path d="M18 2.5a3.6 3.6 0 0 0-3.6 3.6c0 2.6 3.6 6 3.6 6s3.6-3.4 3.6-6A3.6 3.6 0 0 0 18 2.5z" fill="currentColor" />
+                    <circle cx="18" cy="6.1" r="1.3" fill="var(--surface)" />
+                  </svg>
+                  <span aria-hidden="true">{t('tripTab', lang)}</span>
+                  {tripCount > 0 && <span className="badge-count" aria-hidden="true">{tripCount}</span>}
                 </button>
                 <ProgressSummary compact />
               </>

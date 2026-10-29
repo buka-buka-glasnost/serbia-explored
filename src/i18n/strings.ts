@@ -13,8 +13,7 @@ export const STRINGS = {
   removeFromTrip: { sr: 'Уклони из излета', en: 'Remove from trip' },
   openInGoogleMaps: { sr: 'Отвори у Гугл мапама', en: 'Open in Google Maps' },
   tripFull: { sr: 'Излет може имати највише 9 места.', en: 'A trip can have at most 9 places.' },
-  listButton: { sr: 'Пронађи места', en: 'Find places' },
-  listButtonHint: { sr: 'листа · области · излет', en: 'list · areas · trip' },
+  backToMap: { sr: 'Назад на мапу', en: 'Back to map' },
   placesTab: { sr: 'Места', en: 'Places' },
   tripTab: { sr: 'Излет', en: 'Trip' },
   startFrom: { sr: 'Крени из', en: 'Start from' },
@@ -109,8 +108,8 @@ export const STRINGS = {
   },
   welcomeListTitle: { sr: 'Листа места', en: 'The list of places' },
   welcomeList: {
-    sr: 'Сва места су и у листи — на рачунару са леве стране, а на телефону иза дугмета „Пронађи места“ на врху екрана. Претражујте по имену, филтрирајте по значају или по врсти (култура или природа) и кликните на место да отворите његову картицу.',
-    en: 'Every place is also in the list — on the left on a computer, and behind the “Find places” button at the top of a phone screen. Search by name, filter by importance or by type (culture or nature), and click a place to open its card.',
+    sr: 'Сва места су и у листи — на рачунару са леве стране, а на телефону додирните поље за претрагу на врху екрана. Претражујте по имену, филтрирајте по значају или по врсти (култура или природа) и кликните на место да отворите његову картицу.',
+    en: 'Every place is also in the list — on the left on a computer; on a phone, tap the search field at the top of the screen. Search by name, filter by importance or by type (culture or nature), and click a place to open its card.',
   },
   welcomeReopen: {
     sr: 'Ову поруку увек можете поново отворити дугметом i на мапи.',

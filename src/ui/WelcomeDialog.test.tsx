@@ -33,7 +33,7 @@ describe('Welcome message', () => {
     for (const heading of ['The map', 'The list of places', 'Visits', 'Planning a trip', 'Your data']) {
       expect(within(dialog).getByRole('heading', { name: heading })).toBeInTheDocument();
     }
-    expect(within(dialog).getByText(/“Find places” button/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/tap the search field at the top/)).toBeInTheDocument();
     expect(within(dialog).getByText(/reopen this message any time/)).toBeInTheDocument();
   });
 

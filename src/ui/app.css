@@ -108,7 +108,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 150ms ease, color 150ms ease; }
 .chip[aria-pressed='true'] { background: var(--accent-soft); border-color: #bcd2ef; color: var(--text); }
 
-.side-panel > .place-list { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
+.side-panel > .place-list, .sheet-body > .place-list { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
 .place-list.empty { padding: 12px 14px; color: var(--muted); }
 .place-row { display: flex; align-items: center; gap: 10px; width: 100%; height: 52px; box-sizing: border-box; padding: 0 14px; border: 0; border-bottom: 1px solid var(--surface-2); background: var(--surface); color: inherit; text-align: left; font: inherit; cursor: pointer; }
 .place-row.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
@@ -279,7 +279,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .toast {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: var(--radius);
-  background: #2b2f33; color: #fff; z-index: 3500; /* above the phone drawer (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
+  background: #2b2f33; color: #fff; z-index: 3500; /* above the phone list sheet (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
   transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
 }
 @starting-style { .toast { opacity: 0; transform: translate(-50%, 16px); } }
@@ -287,7 +287,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .toast-error { background: var(--danger); }
 
 /* ---------- Phone layout (below 768 px) ---------- */
-.top-bar, .drawer-close, .drawer-backdrop, .sheet-handle { display: none; }
+.top-bar, .sheet-handle { display: none; }
 @media (max-width: 767px) {
   html, body, #root { height: 100vh; height: 100dvh; }
   body { overflow-x: hidden; }
@@ -305,16 +305,20 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
     padding: 6px 8px 6px 16px; border: 1px solid var(--border); border-radius: 26px; background: var(--surface);
     box-shadow: 0 4px 16px rgba(16, 24, 40, .22), 0 1px 3px rgba(16, 24, 40, .12); color: var(--text);
   }
-  .list-launcher { font: inherit; text-align: left; cursor: pointer; transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
-  .list-launcher:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(16, 24, 40, .2); }
-  .launcher-icon { flex: none; width: 22px; height: 22px; color: var(--accent); }
-  .launcher-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
-  .launcher-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .launcher-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .launcher-chevron {
-    flex: none; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;
-    background: var(--accent); color: #fff; font-size: 18px; line-height: 1;
+  .search-launcher { font: inherit; text-align: left; cursor: text; transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
+  .search-launcher:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(16, 24, 40, .2); }
+  .launcher-icon { flex: none; width: 22px; height: 22px; color: var(--muted); }
+  .launcher-placeholder, .launcher-query { flex: 1; min-width: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .launcher-placeholder { color: var(--muted); }
+  .top-bar-chip {
+    position: relative; flex: none; display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 14px 0 12px; box-sizing: border-box;
+    border: 1px solid var(--border); border-radius: 26px; background: var(--surface); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(16, 24, 40, .22), 0 1px 3px rgba(16, 24, 40, .12);
+    transition: transform 160ms var(--ease-out);
   }
+  .top-bar-chip:active { transform: scale(0.94); }
+  .top-bar-chip svg { width: 22px; height: 22px; color: var(--accent); }
+  .top-bar-chip .badge-count { position: absolute; top: -2px; right: -2px; margin: 0; }
   .top-bar .progress.compact {
     flex: none; padding: 0 12px; min-height: 52px; display: flex; align-items: center; box-sizing: border-box;
     border: 1px solid var(--border); border-radius: 26px; background: var(--surface); box-shadow: 0 4px 16px rgba(16, 24, 40, .22);
@@ -325,18 +329,42 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
   .progress.compact .progress-total { font-size: 12px; }
   .top-bar-pill.picking { padding-left: 16px; }
   .top-bar-hint { margin: 0; flex: 1; min-width: 0; color: var(--accent); font-size: 14px; font-weight: 600; line-height: 1.3; }
-  .side-panel.drawer {
-    position: fixed; top: 0; bottom: 0; left: 0; z-index: 3000; width: min(100vw, 360px); height: 100vh; height: 100dvh;
-    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box;
-    box-shadow: 4px 0 24px rgba(0,0,0,.25); border-right: 0;
-    transition: transform 280ms var(--ease-drawer);
+  /* The list sheet: the top bar's search field grows to full width and the list rises in under it. */
+  .side-panel.sheet {
+    position: fixed; inset: 0; z-index: 3000; width: auto; height: 100vh; height: 100dvh; overflow: hidden;
+    border: 0; background: none; isolation: isolate;
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-sizing: border-box;
   }
-  @starting-style { .side-panel.drawer { transform: translateX(-100%); } }
-  .side-panel.drawer[data-state='closing'] { transform: translateX(-100%); transition-duration: 200ms; }
-  .drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 2999; border: 0; padding: 0; background: rgba(0,0,0,.35); transition: opacity 200ms ease; }
-  @starting-style { .drawer-backdrop { opacity: 0; } }
-  .drawer-backdrop[data-state='closing'] { opacity: 0; }
-  .drawer-close { display: block; min-width: 36px; min-height: 36px; border: 0; background: none; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+  .sheet-bg { position: absolute; inset: 0; z-index: -1; background: var(--surface); transition: opacity 240ms ease; }
+  /* same box as the top bar, so the field starts exactly where the search pill was */
+  .sheet-search { padding: calc(8px + env(safe-area-inset-top)) 10px 8px; }
+  .sheet-field {
+    display: flex; align-items: center; gap: 6px; height: 52px; box-sizing: border-box; padding: 0 12px 0 4px; margin-right: 0;
+    border: 1px solid var(--border); border-radius: 26px; background: var(--surface);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .12);
+    transition: margin-right 300ms var(--ease-drawer), box-shadow 300ms ease;
+  }
+  .sheet-field input[type='search'] { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: none; outline: none; }
+  .sheet-back {
+    flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; border-radius: 50%;
+    background: none; color: var(--text); cursor: pointer;
+  }
+  .sheet-back svg { width: 22px; height: 22px; }
+  .sheet-back:active { background: var(--surface-2); }
+  .sheet-body {
+    flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto;
+    transition: opacity 240ms ease, transform 320ms var(--ease-drawer);
+  }
+  .sheet-body > * { flex-shrink: 0; }
+  .sheet-body .panel-header { padding-top: 4px; }
+  @starting-style {
+    .sheet-bg { opacity: 0; }
+    .sheet-field { margin-right: var(--from-right); box-shadow: 0 4px 16px rgba(16, 24, 40, .22), 0 1px 3px rgba(16, 24, 40, .12); }
+    .sheet-body { opacity: 0; transform: translateY(32px); }
+  }
+  .side-panel.sheet[data-state='closing'] .sheet-bg { opacity: 0; transition-duration: 200ms; }
+  .side-panel.sheet[data-state='closing'] .sheet-field { margin-right: var(--from-right); transition-duration: 200ms; }
+  .side-panel.sheet[data-state='closing'] .sheet-body { opacity: 0; transform: translateY(32px); transition-duration: 160ms, 200ms; }
   .legend { display: none; }
   /* Kosovo toggle stays top-right, below the top bar and the attribution */
   .leaflet-top.leaflet-right { top: calc(92px + env(safe-area-inset-top)); }
@@ -360,10 +388,13 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 /* Reduced motion: keep fades, drop movement */
 @media (prefers-reduced-motion: reduce) {
-  .place-card, .place-card.bottom-sheet, .side-panel.drawer, .toast, .kosovo-note, .visit-editor { transition-property: opacity !important; }
-  @starting-style { .place-card, .place-card.bottom-sheet, .side-panel.drawer { opacity: 0; transform: none !important; } }
+  .place-card, .place-card.bottom-sheet, .sheet-body, .sheet-field, .toast, .kosovo-note, .visit-editor { transition-property: opacity !important; }
+  @starting-style { .place-card, .place-card.bottom-sheet, .sheet-body { opacity: 0; transform: none !important; } }
   .place-card[data-state='closing']:not(.drag-dismissed), .place-card.bottom-sheet[data-state='closing']:not(.drag-dismissed),
-  .side-panel.drawer[data-state='closing'] { opacity: 0; transform: none !important; }
+  .side-panel.sheet[data-state='closing'] .sheet-body { opacity: 0; transform: none !important; }
+  /* the field does not grow: it fades in and out with the sheet */
+  @starting-style { .sheet-field { opacity: 0; } }
+  .side-panel.sheet[data-state='closing'] .sheet-field { opacity: 0; }
   /* a drag-dismissed sheet keeps its inline offset (where the finger left it) and fades */
   .place-card.bottom-sheet.drag-dismissed[data-state='closing'] { opacity: 0; }
   .btn:active, .chip:active { transform: none; }
