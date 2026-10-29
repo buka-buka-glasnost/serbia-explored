@@ -3,13 +3,16 @@ import { act, render } from '@testing-library/react';
 import L from 'leaflet';
 
 // The cluster group is only added to this fake map, so no marker is ever drawn (jsdom has no canvas).
-const fakeMap = { addLayer: vi.fn(), removeLayer: vi.fn(), getZoom: () => 8 };
+const fakeMap = vi.hoisted(() => ({ addLayer: () => {}, removeLayer: () => {}, getZoom: () => 8 }));
 vi.mock('react-leaflet', () => ({ useMap: () => fakeMap }));
 
 import { PlaceMarkers } from './PlaceMarkers';
 import { useApp } from '../state/store';
 import { makePlace } from '../ui/testPlaces';
-import { MarkerSync, type MarkerState } from './markerSync';
+import { MarkerSync, PLACE_ARRIVE, type MarkerState } from './markerSync';
+
+// the fake map also needs Leaflet's event methods (on / off / fire)
+Object.setPrototypeOf(fakeMap, L.Evented.prototype);
 
 const initial = useApp.getState();
 const places = [makePlace('Q1', { nameEn: 'Alpha' }), makePlace('Q2', { nameEn: 'Beta', tier: 2 })];
@@ -39,15 +42,20 @@ describe('PlaceMarkers', () => {
     expect(q1.options.color).toBe('#1e8449'); // visited ring
   });
 
-  it('highlights the selected marker with a larger radius and an accent ring', () => {
+  it('highlights the selected marker with a larger radius and an accent ring once the camera arrives', () => {
     const create = vi.spyOn(L, 'circleMarker');
     render(<PlaceMarkers />);
     const q2 = create.mock.results[1].value as L.CircleMarker;
     const radius = q2.getRadius();
     act(() => useApp.setState({ selectedId: 'Q2' }));
+    expect(q2.getRadius()).toBe(radius); // not while the map is still flying
+    act(() => void (fakeMap as unknown as L.Map).fire(PLACE_ARRIVE, { id: 'Q2' }));
     expect(q2.getRadius()).toBe(radius + 3);
     expect(q2.options.color).toBe('#24508a');
     act(() => useApp.setState({ selectedId: null }));
+    expect(q2.getRadius()).toBe(radius);
+    // selecting it again waits for the new flight
+    act(() => useApp.setState({ selectedId: 'Q2' }));
     expect(q2.getRadius()).toBe(radius);
   });
 

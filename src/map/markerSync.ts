@@ -19,6 +19,9 @@ export interface MarkerState {
 
 const SELECTED_RING = '#24508a'; // --accent
 
+/** Fired on the map with `{ id }` once the camera has arrived at the selected place. */
+export const PLACE_ARRIVE = 'placearrive';
+
 /** Full Leaflet style of one marker: tier fill, visit/trip ring, selection ring and area opacity. */
 export function fullMarkerStyle(p: Place, visited: boolean, inTrip: boolean, selected: boolean, opacity: number): L.CircleMarkerOptions {
   const base = markerStyle(p, visited, inTrip);

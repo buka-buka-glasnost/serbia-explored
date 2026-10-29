@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -6,7 +6,7 @@ import { useMap } from 'react-leaflet';
 import { useApp } from '../state/store';
 import { useVisiblePlaces } from '../state/visiblePlaces';
 import { areaOpacity } from '../logic/areas';
-import { MarkerSync, type MarkerState } from './markerSync';
+import { MarkerSync, PLACE_ARRIVE, type MarkerState } from './markerSync';
 
 export { markerStyle } from './markerStyle';
 
@@ -25,6 +25,21 @@ export function PlaceMarkers() {
   const lang = useApp((s) => s.settings.lang);
   const { filtered, split } = useVisiblePlaces();
   const syncRef = useRef<MarkerSync | null>(null);
+  // The selection ring appears when the camera arrives, not before the flight starts.
+  const [arrivedId, setArrivedId] = useState<string | null>(null);
+  const ringId = arrivedId === selectedId ? selectedId : null;
+  // forget the arrival on deselect, so selecting the same place again waits for its flight
+  useEffect(() => {
+    if (!selectedId) setArrivedId(null);
+  }, [selectedId]);
+
+  useEffect(() => {
+    const onArrive = (e: L.LeafletEvent) => setArrivedId((e as L.LeafletEvent & { id: string }).id);
+    map.on(PLACE_ARRIVE, onArrive);
+    return () => {
+      map.off(PLACE_ARRIVE, onArrive);
+    };
+  }, [map]);
 
   useEffect(() => {
     const group = L.markerClusterGroup({
@@ -51,10 +66,10 @@ export function PlaceMarkers() {
     return {
       visited: (id) => !!visits[id],
       inTrip: (id) => tripIds.has(id),
-      selectedId,
+      selectedId: ringId,
       opacity: (id) => opacities?.get(id) ?? 1,
     };
-  }, [visits, trip, selectedId, opacities]);
+  }, [visits, trip, ringId, opacities]);
   const stateRef = useRef(state);
   stateRef.current = state;
 
