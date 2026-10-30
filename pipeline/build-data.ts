@@ -9,7 +9,7 @@ import { DESIGNATION_BY_QID, NATURE_CLASS_BY_QID } from './designations';
 import { fetchExtracts, fetchPhotoInfo } from './enrich';
 import { groupRows, mergeRaw, type RawPlace } from './normalize';
 import { writeFileAtomic } from './http';
-import { parseOverrides } from './overrides';
+import { parseOverrides, withCoordinateFixes } from './overrides';
 import { designatedItemsQuery, natureClassQuery } from './queries';
 import { missingCsv, reconcile, type ReconcileResult } from './reconcile';
 import { runSparql } from './sparql';
@@ -95,7 +95,10 @@ async function main() {
   const allowlist = JSON.parse(
     await readFile(path.join('pipeline', 'data', 'kosovo-nature-allowlist.json'), 'utf8'),
   ) as string[];
-  const overrides = parseOverrides(JSON.parse(await readFile(path.join('data', 'overrides.json'), 'utf8')));
+  const overrides = withCoordinateFixes(
+    parseOverrides(JSON.parse(await readFile(path.join('data', 'overrides.json'), 'utf8'))),
+    JSON.parse(await readFile(path.join('data', 'coordinate-fixes.json'), 'utf8')) as Record<string, { lat: number; lon: number }>,
+  );
   const base = {
     raw, areas, kosovo, kosovoNatureAllowlist: allowlist, overrides,
   };

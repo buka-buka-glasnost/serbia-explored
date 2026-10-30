@@ -75,6 +75,19 @@ function checkFields(where: string, obj: Record<string, unknown>, allowed: Set<s
   }
 }
 
+/**
+ * Adds data/coordinate-fixes.json to the overrides as `lat`/`lon` patches: better positions
+ * for places whose Wikidata coordinates are only rounded. A hand-written patch wins.
+ */
+export function withCoordinateFixes(overrides: Overrides, fixes: Record<string, { lat: number; lon: number }>): Overrides {
+  const places = { ...overrides.places };
+  for (const [id, { lat, lon }] of Object.entries(fixes)) {
+    const patch = places[id];
+    if (!patch || !('lat' in patch || 'lon' in patch)) places[id] = { ...patch, lat, lon };
+  }
+  return { ...overrides, places };
+}
+
 /** Validate the shape of data/overrides.json and return it typed. Throws naming the first problem. */
 export function parseOverrides(json: unknown): Overrides {
   const where = 'data/overrides.json';

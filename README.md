@@ -30,6 +30,7 @@ This rebuilds `public/data/places.json` and the area files from the upstream sou
 - Reports are written to `data/reports/`:
   - `dropped.csv`: places discarded by the pipeline, with the reason.
   - `missing-from-map.csv`: places that could not be reconciled with the map.
+  - `imprecise-coordinates.csv`: cultural places still on a rounded Wikidata position, for which no better source was found. Written by hand once, not by the pipeline.
 
 Commit the regenerated data files afterwards.
 
@@ -66,6 +67,8 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 ### Access estimates
 
 `npm run data` estimates `access` for each place from OpenStreetMap roads within 300 m: a paved road within 150 m means "drive to the door", a closer gravel/dirt road or track means "rough road", nothing drivable means "hike / boat only". Large areas (national parks, biosphere reserves, the geopark, Ramsar sites) get no estimate. Estimates are marked `"accessEstimated": true` and the app shows them with an asterisk. Setting `access` in `places` replaces the estimate and removes the asterisk. Manual places in `added` are never estimated: they keep the `access` they set (`null` if none). If Overpass returns no roads at all for a whole batch of points, each point is queried alone before anything is cached, since an empty batch more likely means a server problem.
+
+`data/coordinate-fixes.json` holds better positions for places whose Wikidata coordinates are only rounded (to about 1 km). Each entry has `lat`, `lon` and a `source`: `osm-link` (the OpenStreetMap object linked to that Wikidata item), `address` (house-level geocoding), `osm-name` or `register` (an OpenStreetMap object matched by name or official register name), `photo` (the geotag of the place's Commons photo), `wikipedia` (the article's coordinates) or `town-centre` (no exact position known). They are applied as `lat`/`lon` patches; a patch in `overrides.json` wins.
 
 When a Wikidata item has several coordinates, the pipeline picks one deterministically (the smallest by value), and the build summary lists places whose coordinates are more than 1 km apart; pin the right one with a `lat`/`lon` patch. Patches re-derive what they invalidate: changing `designations` recomputes `tier` and `kind`, and changing `lat`/`lon` recomputes `districtId`, `municipalityId` and `inKosovo`, unless the same patch sets those fields itself. The build checks that every place's `tier` matches its designations, so set `designations` rather than `tier`.
 

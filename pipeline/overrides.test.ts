@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AreaFC, Place } from '../src/shared/types';
 import { makeAssigner } from './areas';
-import { applyOverrides, parseOverrides, type OverrideContext } from './overrides';
+import { applyOverrides, parseOverrides, withCoordinateFixes, type OverrideContext } from './overrides';
 
 const square = (w: number, s: number, e: number, n: number): GeoJSON.Polygon => ({
   type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
@@ -169,5 +169,17 @@ describe('parseOverrides', () => {
     const { readFileSync } = await import('node:fs');
     const json: unknown = JSON.parse(readFileSync(new URL('../data/overrides.json', import.meta.url), 'utf8'));
     expect(() => parseOverrides(json)).not.toThrow();
+  });
+});
+
+describe('withCoordinateFixes', () => {
+  const base = parseOverrides({ places: { Q1: { lat: 1, lon: 2 }, Q2: { access: 'rough' } }, added: [], removed: [] });
+  const fixes = { Q1: { lat: 9, lon: 9 }, Q2: { lat: 44, lon: 21 }, Q3: { lat: 45, lon: 22 } };
+
+  it('adds the positions as patches, and a hand-written position wins', () => {
+    const { places } = withCoordinateFixes(base, fixes);
+    expect(places.Q1).toEqual({ lat: 1, lon: 2 });
+    expect(places.Q2).toEqual({ access: 'rough', lat: 44, lon: 21 });
+    expect(places.Q3).toEqual({ lat: 45, lon: 22 });
   });
 });
