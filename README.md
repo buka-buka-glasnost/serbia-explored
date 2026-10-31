@@ -1,6 +1,6 @@
 # Serbia Explored
 
-A static map app (React + TypeScript + Vite + Leaflet) for tracking which important cultural and natural places in Serbia you have visited. Place data comes from Wikidata, Wikipedia, Wikimedia Commons, OpenStreetMap and heritage.gov.rs, built offline by a pipeline in `pipeline/` and committed to the repo. Your progress is stored in your browser, not on a server.
+A static map app (React + TypeScript + Vite + Leaflet) for tracking which important cultural and natural places in Serbia you have visited. In Serbian the app is called Istraži Srbiju (Истражи Србију). Place data comes from Wikidata, Wikipedia, Wikimedia Commons, OpenStreetMap and heritage.gov.rs, built offline by a pipeline in `pipeline/` and committed to the repo. Your progress is stored in your browser, not on a server.
 
 ## Develop
 

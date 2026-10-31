@@ -60,7 +60,7 @@ describe('App phone layout', () => {
     expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
 
-  it('closes the drawer when tapping the already-selected place', async () => {
+  it('closes the sheet when tapping the already-selected place', async () => {
     mockMatchMedia(true);
     useApp.setState({ selectedId: 'Q1' });
     render(<App />);
@@ -110,7 +110,7 @@ describe('App top bar on a phone', () => {
 });
 
 describe('App picking on a phone', () => {
-  it('closes the drawer when picking starts and shows the hint with Cancel in the top bar', async () => {
+  it('closes the sheet when picking starts and shows the hint with Cancel in the top bar', async () => {
     mockMatchMedia(true);
     render(<App />);
     await userEvent.click(screen.getByRole('button', { name: 'Search places…' }));
@@ -183,8 +183,8 @@ describe('App keyboard and focus', () => {
   });
 });
 
-describe('App drawer focus bookkeeping', () => {
-  it('a close request while already closing does not later pull focus to List', async () => {
+describe('App sheet focus bookkeeping', () => {
+  it('a close request while already closing does not later pull focus to the search field', async () => {
     mockMatchMedia(true);
     render(<App />);
     await userEvent.click(screen.getByRole('button', { name: 'Search places…' }));
@@ -194,7 +194,7 @@ describe('App drawer focus bookkeeping', () => {
     (document.activeElement as HTMLElement | null)?.blur();
     await userEvent.click(screen.getByRole('button', { name: 'Search places…' }));
     (document.activeElement as HTMLElement | null)?.blur();
-    act(() => useApp.getState().select('Q2')); // chosen on the map: closes the drawer
+    act(() => useApp.getState().select('Q2')); // chosen on the map: closes the sheet
     expect(screen.getByRole('button', { name: 'Search places…' })).not.toHaveFocus();
   });
 });

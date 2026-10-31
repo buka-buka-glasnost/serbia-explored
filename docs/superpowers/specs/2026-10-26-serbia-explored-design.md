@@ -120,6 +120,8 @@ Interface switch: **Ћирилица / Latinica / English**.
 
 Layout chosen: **list + map** on desktop (mockup "B v2"), collapsing to a map-first layout with a bottom card on phones.
 
+*Revised 2026-10-30 by the owner:* on phones the top bar is a search field, a Trip button and a progress chip. Tapping the field grows it into a full-screen list with areas, filters and the trip; the Trip button opens the same screen on the Trip tab.
+
 ### Desktop layout
 
 - **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of places in view, sorted by tier. Clicking a list item flies the map to it and opens its card.
@@ -129,7 +131,7 @@ Layout chosen: **list + map** on desktop (mockup "B v2"), collapsing to a map-fi
 
 ### Place card
 
-Photo, name, tier/designation badges, type and municipality, short description, access info ("information not available yet" by default), links, and actions: **Mark as visited**, **Add to trip**.
+Photo, name, tier/designation badges, type and municipality, short description, access info (estimated from OpenStreetMap roads and marked with an asterisk; "information not available yet" where there is no estimate), links, and actions: **Mark as visited**, **Add to trip**.
 
 ### Marking visited
 
@@ -183,6 +185,7 @@ Considered:
 - Must not rely on any external data API at runtime (map tiles and Google Maps links excepted).
 - Photo attribution for Wikimedia Commons images must be shown (licence requirement).
 - Map tile provider's usage terms must be respected.
+- *Added 2026-10-30:* the app is named "Serbia Explored" in English and "Istraži Srbiju" / "Истражи Србију" in Serbian. Map tiles are the standard OpenStreetMap tiles for now (see the README). Coordinates that Wikidata only gives rounded are replaced from `data/coordinate-fixes.json`.
 
 ## Left to the builder
 

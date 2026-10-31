@@ -30,9 +30,9 @@ export function App() {
   const narrow = useIsNarrow();
   /** The phone sheet (list, areas and trip), null while closed. */
   const [sheet, setSheet] = useState<SheetOptions | null>(null);
-  const drawerOpen = sheet !== null;
-  const drawerShown = narrow && drawerOpen;
-  const drawer = usePresence(drawerShown ? sheet : null, 200);
+  const sheetOpen = sheet !== null;
+  const sheetShown = narrow && sheetOpen;
+  const sheetPresence = usePresence(sheetShown ? sheet : null, 200);
   const card = usePresence(selected, 200);
 
   const mapArea = useRef<HTMLElement>(null);
@@ -50,7 +50,7 @@ export function App() {
   /** Bumped on a list choice: focus the card heading once it is rendered and reachable. */
   const [headingFocus, setHeadingFocus] = useState(0);
   /** Set when the sheet is closed by the user, so focus goes back to the button that opened it. */
-  const focusListOnClose = useRef(false);
+  const focusOpenerOnClose = useRef(false);
 
   useEffect(() => {
     document.title = t('appTitle', lang);
@@ -63,32 +63,32 @@ export function App() {
   useEffect(() => {
     if (status === 'ready' && !isWelcomeDismissed()) useApp.getState().setWelcomeOpen(true);
   }, [status]);
-  // Selecting a place (from the list or a marker) or starting to pick an area closes the drawer.
+  // Selecting a place (from the list or a marker) or starting to pick an area closes the sheet.
   useEffect(() => {
     if (selectedId) setSheet(null);
   }, [selectedId]);
   useEffect(() => {
     if (picking) setSheet(null);
   }, [picking]);
-  // Once the drawer is gone (the top bar is no longer inert), Cancel takes focus.
+  // Once the sheet is gone (the top bar is no longer inert), Cancel takes focus.
   useEffect(() => {
-    if (picking && !drawerShown) focusQuietly(cancelPick.current);
-  }, [picking, drawerShown]);
+    if (picking && !sheetShown) focusQuietly(cancelPick.current);
+  }, [picking, sheetShown]);
   useEffect(() => {
     if (!narrow) setSheet(null);
   }, [narrow]);
 
-  const closeDrawer = () => {
-    if (!drawerOpen) return; // already closed (e.g. a second Escape): nothing to return focus from
-    focusListOnClose.current = true;
+  const closeSheet = () => {
+    if (!sheetOpen) return; // already closed (e.g. a second Escape): nothing to return focus from
+    focusOpenerOnClose.current = true;
     setSheet(null);
   };
   useEffect(() => {
-    if (drawerOpen) focusListOnClose.current = false; // a fresh open starts clean
-    if (drawerOpen || !focusListOnClose.current) return;
-    focusListOnClose.current = false;
+    if (sheetOpen) focusOpenerOnClose.current = false; // a fresh open starts clean
+    if (sheetOpen || !focusOpenerOnClose.current) return;
+    focusOpenerOnClose.current = false;
     focusQuietly(sheetOpener.current);
-  }, [drawerOpen]);
+  }, [sheetOpen]);
 
   /** Opens the phone sheet; its search field grows out of the top bar's, so measure where that one ends. */
   const openSheet = (tab: PanelTab, focus: SheetOptions['focus'], from: HTMLButtonElement | null) => {
@@ -124,24 +124,24 @@ export function App() {
     focusQuietly(cardHeading.current);
   }, [headingFocus]);
 
-  // Escape: cancel picking, else close the drawer, else close the card. The welcome
+  // Escape: cancel picking, else close the sheet, else close the card. The welcome
   // dialog handles its own Escape; controls that use Escape themselves call preventDefault.
-  const escapeState = useRef({ drawerShown, closeDrawer });
-  escapeState.current = { drawerShown, closeDrawer };
+  const escapeState = useRef({ sheetShown, closeSheet });
+  escapeState.current = { sheetShown, closeSheet };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       const s = useApp.getState();
       if (s.welcomeOpen) return;
       if (s.picking) s.setPicking(false);
-      else if (escapeState.current.drawerShown) escapeState.current.closeDrawer();
+      else if (escapeState.current.sheetShown) escapeState.current.closeSheet();
       else if (s.selectedId) s.select(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  /** A list row was chosen: remember it for focus, and close the drawer on phones. */
+  /** A list row was chosen: remember it for focus, and close the sheet on phones. */
   const onPlaceChosen = (row: HTMLElement) => {
     opener.current = row;
     listChoice.current = true;
@@ -161,11 +161,11 @@ export function App() {
   return (
     <div className="app">
       {!narrow && <SidePanel onPlaceChosen={onPlaceChosen} />}
-      {narrow && drawer.shown && (
-        <SidePanel sheet={drawer.shown} onClose={closeDrawer} onPlaceChosen={onPlaceChosen} closing={drawer.closing} />
+      {narrow && sheetPresence.shown && (
+        <SidePanel sheet={sheetPresence.shown} onClose={closeSheet} onPlaceChosen={onPlaceChosen} closing={sheetPresence.closing} />
       )}
       {/* behind the open sheet, the map and top bar are out of reach */}
-      <main className="map-area" ref={mapArea} inert={drawerShown || undefined}>
+      <main className="map-area" ref={mapArea} inert={sheetShown || undefined}>
         {narrow && (
           <div className="top-bar" ref={topBar}>
             {picking ? (
