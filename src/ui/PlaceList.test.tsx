@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { areaState } from '../state/store';
 import type { AreaFC } from '../shared/types';
 import { useApp } from '../state/store';
@@ -80,5 +80,28 @@ describe('PlaceList', () => {
     expect(screen.queryByRole('button', { name: 'Place 400' })).not.toBeInTheDocument();
     act(() => useApp.setState({ selectedId: 'p400' }));
     expect(screen.getByRole('button', { name: 'Place 400' })).toHaveAttribute('aria-current', 'true');
+  });
+
+  const longList = (n: number) => {
+    const ps = Array.from({ length: n }, (_, i) => makePlace(`p${i}`, { nameEn: `Place ${String(i).padStart(3, '0')}` }));
+    useApp.setState({ places: ps, placesById: new Map(ps.map((p) => [p.id, p])) });
+  };
+
+  it('keeps a list of a few hundred places out of the page, drawing only the rows in view', () => {
+    longList(450);
+    const { container } = render(<PlaceList />);
+    expect(container.querySelectorAll('.place-row').length).toBeLessThan(50);
+  });
+
+  it('shows the top of the list again after a search with no results', () => {
+    longList(450);
+    const { container } = render(<PlaceList />);
+    const list = container.querySelector('.place-list') as HTMLElement;
+    fireEvent.scroll(list, { target: { scrollTop: 10_000 } });
+    act(() => useApp.setState({ query: 'nothing matches this' }));
+    expect(screen.getByText('No results.')).toBeInTheDocument();
+    list.scrollTop = 0; // a browser does this itself once the content is gone (jsdom has no layout)
+    act(() => useApp.setState({ query: '' }));
+    expect(screen.getByRole('button', { name: 'Place 000' })).toBeInTheDocument();
   });
 });

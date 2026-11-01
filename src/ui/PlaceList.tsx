@@ -6,7 +6,7 @@ import { sortForDisplay } from '../logic/filters';
 import type { Place } from '../shared/types';
 
 const ROW_HEIGHT = 52;
-const VIRTUALISE_ABOVE = 500;
+const VIRTUALISE_ABOVE = 60;
 const OVERSCAN = 8;
 
 type Row = { kind: 'place'; place: Place; dim: boolean } | { kind: 'heading'; label: string };
@@ -46,6 +46,7 @@ export function PlaceList({ onSelect }: { onSelect?: (row: HTMLElement) => void 
     if (!el || !virtual) return;
     const measure = () => setViewport(el.clientHeight || 600);
     measure();
+    setScrollTop(el.scrollTop); // a new scroller (the list came back after "no results") starts at its own top
     if (typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
