@@ -130,7 +130,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
       </button>
       {place.photo && (
         <figure className="card-photo" key={place.id}>
-          <img src={place.photo.url} alt={name} />
+          <img src={place.photo.url} alt={name} decoding="async" />
           <figcaption>
             <a href={place.photo.sourceUrl} target="_blank" rel="noopener noreferrer">
               {`© ${place.photo.author}, ${place.photo.license}`}

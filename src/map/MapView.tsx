@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -53,6 +53,11 @@ function FitToPlaces() {
   return null;
 }
 
+/** Markers are 4-9 px in radius: on touch screens a tap this many pixels off still hits them. */
+const TAP_TOLERANCE = 10;
+
+const coarsePointer = () => typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+
 const reducedMotion = () =>
   typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -105,8 +110,9 @@ function FlyToSelected() {
 }
 
 export function MapView() {
+  const renderer = useMemo(() => (coarsePointer() ? L.canvas({ tolerance: TAP_TOLERANCE }) : undefined), []);
   return (
-    <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6} preferCanvas>
+    <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6} preferCanvas renderer={renderer}>
       <FitToPlaces />
       <FlyToSelected />
       <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={TILES.maxZoom} />
