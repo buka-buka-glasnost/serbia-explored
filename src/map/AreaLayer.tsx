@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { GeoJSON, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { selectArea, useApp } from '../state/store';
+import { reducedMotion } from './motion';
 
 export function AreaLayer() {
   const map = useMap();
@@ -23,7 +24,10 @@ export function AreaLayer() {
   useEffect(() => {
     if (!area) return;
     const bounds = L.geoJSON(area).getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+    if (!bounds.isValid()) return;
+    // a flight, because fitBounds cuts to anything far away or many zoom levels off
+    if (reducedMotion()) map.fitBounds(bounds, { padding: [30, 30], animate: false });
+    else map.flyToBounds(bounds, { padding: [30, 30], duration: 0.7, easeLinearity: 0.2 });
   }, [map, area]);
 
   if (!area) return null;

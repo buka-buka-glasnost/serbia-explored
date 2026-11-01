@@ -12,6 +12,7 @@ import { KosovoToggle } from './KosovoToggle';
 import { Legend } from './Legend';
 import { InfoButton } from './InfoButton';
 import { canFit } from './canFit';
+import { reducedMotion } from './motion';
 import { useIsNarrow } from '../ui/useIsNarrow';
 
 // Serbia bbox (including Kosovo): lat 41.8-46.2, lon 18.8-23.0, padded by 1 degree.
@@ -58,18 +59,23 @@ const TAP_TOLERANCE = 10;
 
 const coarsePointer = () => typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
 
-const reducedMotion = () =>
-  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 /**
- * Re-projects and redraws every canvas. During a flight Leaflet only stretches the
- * canvases with the zoom (markers balloon up to 32 times their size and snap back
- * at the end); redrawing each frame keeps them at their real size.
+ * During a flight or a pinch Leaflet only stretches the canvases with the zoom (markers
+ * balloon up to 32 times their size and snap back at the end). Re-projecting and
+ * redrawing them on every zoom step keeps everything at its real size.
  */
-function redrawCanvases(map: L.Map) {
-  map.eachLayer((l) => {
-    if (l instanceof L.Canvas) (l as unknown as { _reset(): void })._reset();
-  });
+function CrispCanvases() {
+  const map = useMap();
+  useEffect(() => {
+    const redraw = () => map.eachLayer((l) => {
+      if (l instanceof L.Canvas) (l as unknown as { _reset(): void })._reset();
+    });
+    map.on('zoom', redraw);
+    return () => {
+      map.off('zoom', redraw);
+    };
+  }, [map]);
+  return null;
 }
 
 /**
@@ -83,12 +89,7 @@ function FlyToSelected() {
   const narrow = useIsNarrow();
   useEffect(() => {
     if (!selected) return;
-    const onZoom = () => redrawCanvases(map);
-    const arrive = () => {
-      map.off('zoom', onZoom);
-      map.fire(PLACE_ARRIVE, { id: selected.id });
-    };
-    map.on('zoom', onZoom);
+    const arrive = () => map.fire(PLACE_ARRIVE, { id: selected.id });
     map.once('moveend', arrive);
     const zoom = Math.max(map.getZoom(), 12);
     const place = L.latLng(selected.lat, selected.lon);
@@ -102,7 +103,6 @@ function FlyToSelected() {
     else if (zoom === map.getZoom() && map.getBounds().pad(-0.1).contains(place)) map.panTo(target, { duration: 0.35 });
     else map.flyTo(target, zoom, { duration: 0.6, easeLinearity: 0.2 });
     return () => {
-      map.off('zoom', onZoom);
       map.off('moveend', arrive);
     };
   }, [map, selected]); // `narrow` is read at selection time only
@@ -113,6 +113,7 @@ export function MapView() {
   const renderer = useMemo(() => (coarsePointer() ? L.canvas({ tolerance: TAP_TOLERANCE }) : undefined), []);
   return (
     <MapContainer className="map" center={[44.2, 20.9]} zoom={7} maxBounds={MAX_BOUNDS} minZoom={6} preferCanvas renderer={renderer}>
+      <CrispCanvases />
       <FitToPlaces />
       <FlyToSelected />
       <TileLayer url={TILES.url} attribution={TILES.attribution} maxZoom={TILES.maxZoom} />

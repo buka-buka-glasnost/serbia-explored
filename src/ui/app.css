@@ -196,7 +196,8 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 /* ---------- Map ---------- */
 /* Quieter base map so the tier colours carry the meaning; markers and overlays are unaffected. */
-.leaflet-container { background: #ece7de; font-family: inherit; }
+/* the shaded land colour: zooming out shows this at the edges until the new tiles arrive */
+.leaflet-container { background: #bab7b1; font-family: inherit; }
 .leaflet-tile-pane { filter: saturate(0.5) contrast(0.95) brightness(1.04) sepia(0.08); }
 
 /* ---------- Map controls ---------- */
