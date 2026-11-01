@@ -48,6 +48,13 @@ describe('splitByArea', () => {
     ];
     expect(splitByArea(ps, area).nearby.map((p) => p.id)).toEqual(['n', 's', 'e', 'w']);
   });
+  it('measures to a corner of the outline, not to its sides', () => {
+    const dLat = (km: number) => km / 110.574;
+    const dLon = (km: number) => eastOf(km) - 21;
+    const diagonal = (km: number) => mk(`d${km}`, { lat: 45 + dLat(km), lon: 21 + dLon(km) });
+    // 7 km north and east of the corner is 9.9 km away; 8 and 8 is 11.3 km
+    expect(splitByArea([diagonal(7), diagonal(8)], area).nearby.map((p) => p.id)).toEqual(['d7']);
+  });
   it('honours a custom nearby distance', () => {
     const near = mk('near', { lat: 44.5, lon: eastOf(5) });
     expect(splitByArea([near], area, 2).nearby).toEqual([]);
