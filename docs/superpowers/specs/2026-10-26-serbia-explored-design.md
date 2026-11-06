@@ -88,7 +88,7 @@ A build-time script (run by hand, not at app runtime) fetches from the sources a
 - Is in Kosovo (boolean)
 - Photo (Wikimedia Commons image, with attribution) — optional
 - Short description (sr; en where available) — optional
-- **Access info** — one of: "drive to the door", "rough road", "hike / boat only", or **"information not available yet"** (the default for most places). Set via the overrides file.
+- **Access info** — one of: "drive to the door", "rough road", "hike / boat only", or **"information not available yet"**. Estimated from OpenStreetMap roads for most places (shown with an asterisk); the overrides file can set it by hand. Large areas get no estimate.
 - Links: Wikipedia, Wikidata
 
 ## Language
@@ -124,7 +124,7 @@ Layout chosen: **list + map** on desktop (mockup "B v2"), collapsing to a map-fi
 
 ### Desktop layout
 
-- **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of places in view, sorted by tier. Clicking a list item flies the map to it and opens its card.
+- **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of all places that pass the search and filters, sorted by tier. Clicking a list item flies the map to it and opens its card; the marker gets its selection ring once the map arrives.
 - **Map:** OpenStreetMap-based, with roads visible. Markers coloured and sized by tier; visited places green; trip places a distinct trip colour. Clustering where markers get dense.
 - **Top-right of map:** Show Kosovo switch with hover note.
 - **Bottom-right of map:** place card for the selected place.
@@ -143,8 +143,8 @@ Photo, name, tier/designation badges, type and municipality, short description, 
 ### Browsing by area
 
 - Pick a district or municipality from a search box or by clicking it on the map.
-- Map zooms to it and draws its boundary; the list shows only places inside.
-- Places just outside the boundary are shown dimmed (nearby is still relevant for a trip).
+- Map flies to it and draws its boundary; the list shows the places inside first.
+- Places within 10 km of the boundary follow under a "Nearby" heading and are dimmed on the map (nearby is still relevant for a trip); all other markers fade further.
 
 ### Trip planning
 
