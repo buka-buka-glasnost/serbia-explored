@@ -105,3 +105,17 @@ describe('PlaceList', () => {
     expect(screen.getByRole('button', { name: 'Place 000' })).toBeInTheDocument();
   });
 });
+
+describe('PlaceList search order', () => {
+  it('puts names where a word starts with the search before names that only contain it', () => {
+    const ps = [
+      makePlace('Q1', { nameSr: 'Родна кућа Вука Караџића', nameEn: 'Birthplace of Vuk Karadžić', tier: 1 }),
+      makePlace('Q2', { nameSr: 'Манастир Жича', nameEn: 'Žiča', tier: 2 }),
+    ];
+    useApp.setState({ places: ps, placesById: new Map(ps.map((p) => [p.id, p])), query: 'žiča' });
+    render(<PlaceList />);
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual([
+      expect.stringContaining('Žiča'), expect.stringContaining('Vuk Karadžić'),
+    ]);
+  });
+});

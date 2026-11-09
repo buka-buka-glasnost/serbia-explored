@@ -3,6 +3,7 @@ import { useApp } from '../state/store';
 import { useVisiblePlaces } from '../state/visiblePlaces';
 import { areaName, placeName, placeType, t } from '../i18n/i18n';
 import { sortForDisplay } from '../logic/filters';
+import { matchRank } from '../logic/search';
 import type { Place } from '../shared/types';
 
 const ROW_HEIGHT = 52;
@@ -18,18 +19,22 @@ export function PlaceList({ onSelect }: { onSelect?: (row: HTMLElement) => void 
   const visits = useApp((s) => s.visits);
   const selectedId = useApp((s) => s.selectedId);
   const select = useApp((s) => s.select);
+  const query = useApp((s) => s.query);
   const { filtered, split } = useVisiblePlaces();
 
   const rows: Row[] = useMemo(() => {
+    // while searching, names that start a word with the search come first (a stable sort keeps tier order)
     const placeRows = (ps: Place[], dim: boolean) =>
-      sortForDisplay(ps, lang).map((place): Row => ({ kind: 'place', place, dim }));
+      sortForDisplay(ps, lang)
+        .sort((a, b) => matchRank(a, query) - matchRank(b, query))
+        .map((place): Row => ({ kind: 'place', place, dim }));
     if (!split) return placeRows(filtered, false);
     return [
       ...placeRows(split.inside, false),
       ...(split.nearby.length > 0 ? [{ kind: 'heading', label: t('nearby', lang) } as Row] : []),
       ...placeRows(split.nearby, true),
     ];
-  }, [filtered, split, lang]);
+  }, [filtered, split, lang, query]);
 
   const metaLine = (p: Place) => {
     const m = p.municipalityId ? areasById.get(p.municipalityId)?.properties : undefined;

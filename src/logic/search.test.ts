@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Place } from '../shared/types';
-import { matchesQuery } from './search';
+import { matchesQuery, matchRank } from './search';
 
 const p: Place = {
   id: 'Q2', nameSr: 'Ђавоља варош', typeSr: 'природни споменик', kind: 'nature', tier: 3, designations: [],
@@ -18,5 +18,15 @@ describe('matchesQuery', () => {
     const q = { ...p, nameEn: 'Devil Town', nameSq: 'Qyteti i Djallit' };
     expect(matchesQuery(q, 'devil')).toBe(true);
     expect(matchesQuery(q, 'djallit')).toBe(true);
+  });
+});
+
+describe('matchRank', () => {
+  it('ranks a word that starts with the search above one that only contains it', () => {
+    expect(matchRank({ ...p, nameSr: 'Манастир Студеница', nameEn: 'Studenica monastery' }, 'studenica')).toBe(0);
+    expect(matchRank({ ...p, nameSr: 'Манастир Жича' }, 'žiča')).toBe(1);
+    expect(matchRank({ ...p, nameSr: 'Парк природе Голија (Голија–Студеница)' }, 'studenica')).toBe(1);
+    expect(matchRank({ ...p, nameSr: 'Родна кућа Вука Караџића' }, 'žiča')).toBe(2);
+    expect(matchRank(p, '')).toBe(0);
   });
 });
