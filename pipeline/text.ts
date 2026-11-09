@@ -1,3 +1,5 @@
+import { toLatin } from '../src/shared/translit';
+
 /**
  * Clean-up for text that comes from Wikidata and Wikipedia.
  *
@@ -84,6 +86,29 @@ function repairTemplates(text: string): string {
   return text
     .replace(/\s*(?:Шаблон|Šablon|Template):Celsius/g, ' °C')
     .replace(/\s*(?:Шаблон|Šablon|Template):\S+/g, '');
+}
+
+const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+/**
+ * OpenStreetMap's English names often drop the diacritics ("Sid Municipality" for Шид).
+ * Each such word gets them back from the Latin form of the Serbian name, matching a whole
+ * word or a shared stem that leaves at most the last letter ("Sumadija" from "Шумадијски").
+ * Đ is left alone: it is spelt "Dj" in English, which is not a one-letter change.
+ */
+export function restoreDiacritics(nameEn: string | undefined, nameSr: string): string | undefined {
+  if (!nameEn) return nameEn;
+  const latin = toLatin(nameSr).split(/[^\p{L}]+/u).filter((w) => w !== plain(w) && !/đ/i.test(w));
+  return nameEn.replace(/\p{L}+/gu, (word) => {
+    if (word !== plain(word) || word.length < 3) return word;
+    for (const w of latin) {
+      const base = plain(w);
+      let shared = 0;
+      while (shared < word.length && shared < base.length && word[shared] === base[shared]) shared++;
+      if (shared === word.length || (shared === word.length - 1 && shared >= 4)) return w.slice(0, shared) + word.slice(shared);
+    }
+    return word;
+  });
 }
 
 export function cleanText(text: string): string {

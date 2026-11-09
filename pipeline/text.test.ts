@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanText, fixMixedScript, tidySpacing } from './text';
+import { cleanText, fixMixedScript, tidySpacing, restoreDiacritics } from './text';
 
 describe('fixMixedScript', () => {
   it('turns Latin look-alikes inside a Cyrillic word into Cyrillic', () => {
@@ -48,5 +48,22 @@ describe('cleanText', () => {
     expect(cleanText('Просечна температура у пећини је 8Шаблон:Celsius.')).toBe('Просечна температура у пећини је 8 °C.');
     expect(cleanText('About 12 Template:Celsius here.')).toBe('About 12 °C here.');
     expect(cleanText('Нешто Шаблон:Непознат овде.')).toBe('Нешто овде.');
+  });
+});
+
+describe('restoreDiacritics', () => {
+  it('puts back the letters an English name lost, taking them from the Serbian name', () => {
+    expect(restoreDiacritics('Sid Municipality', 'Шид')).toBe('Šid Municipality');
+    expect(restoreDiacritics('Backa Topola Municipality', 'Бачка Топола')).toBe('Bačka Topola Municipality');
+    // a shared stem is enough: "Sumadija" and "Šumadijski" differ only after the stem
+    expect(restoreDiacritics('Sumadija Administrative District', 'Шумадијски округ')).toBe('Šumadija Administrative District');
+    expect(restoreDiacritics('Raska Administrative District', 'Рашки округ')).toBe('Raška Administrative District');
+    expect(restoreDiacritics('City of Nis', 'Ниш')).toBe('City of Niš');
+  });
+  it('leaves names that already have them, or that differ, alone', () => {
+    expect(restoreDiacritics('City of Kragujevac', 'Крагујевац')).toBe('City of Kragujevac');
+    expect(restoreDiacritics('Šid Municipality', 'Шид')).toBe('Šid Municipality');
+    expect(restoreDiacritics(undefined, 'Шид')).toBeUndefined();
+    expect(restoreDiacritics('Danube', 'Дунав')).toBe('Danube');
   });
 });

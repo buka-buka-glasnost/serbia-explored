@@ -4,6 +4,7 @@ import type { AreaFC, AreaProps, LatLon } from '../src/shared/types';
 import { foldForSearch, hasCyrillic, toLatin } from '../src/shared/translit';
 import kosovoScheme from './data/kosovo-serbian-scheme.json';
 import { overpass, type OverpassJson } from './overpass';
+import { restoreDiacritics } from './text';
 
 type AreaFeature = AreaFC['features'][number];
 type Poly = GeoJSON.Polygon | GeoJSON.MultiPolygon;
@@ -130,7 +131,7 @@ export async function fetchAreas(): Promise<{
       level: 'district',
       nameSr,
       nameSq: f.properties['name:sq'],
-      nameEn: f.properties['name:en'],
+      nameEn: restoreDiacritics(f.properties['name:en'], nameSr),
       inKosovo: false,
     });
   });
@@ -156,7 +157,7 @@ export async function fetchAreas(): Promise<{
       level: 'municipality',
       nameSr,
       nameSq: f.properties['name:sq'],
-      nameEn: f.properties['name:en'],
+      nameEn: restoreDiacritics(f.properties['name:en'], nameSr),
       districtId: parent.properties.id,
       inKosovo: false,
     });
