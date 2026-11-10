@@ -98,6 +98,7 @@ Interface switch: **Ћирилица / Latinica / English**.
 - Store Serbian text in **Cyrillic** and generate Latin automatically (Cyrillic→Latin is a reliable letter-for-letter mapping; the reverse is ambiguous).
 - Interface strings are translated by hand once.
 - Place names in English mode: Wikidata English label if present, otherwise the Latin form (Kosovo: both names, see below).
+- District and municipality names in English mode come from OpenStreetMap; where they lost their diacritics ("Sid Municipality"), the pipeline restores them from the Serbian name ("Šid Municipality").
 - Descriptions in English mode: the English text if present, otherwise the **Serbian text (Latin) with a "not translated yet" note**. No machine translation.
 
 ## Kosovo
@@ -124,7 +125,7 @@ Layout chosen: **list + map** on desktop (mockup "B v2"), collapsing to a map-fi
 
 ### Desktop layout
 
-- **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of all places that pass the search and filters, sorted by tier. Clicking a list item flies the map to it and opens its card; the marker gets its selection ring once the map arrives.
+- **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of all places that pass the search and filters, sorted by tier. While searching, the best matches come first: names that start with the search, then names with a word that starts with it, then names that only contain it. Clicking a list item flies the map to it and opens its card; the marker gets its selection ring once the map arrives.
 - **Map:** OpenStreetMap-based, with roads visible. Markers coloured and sized by tier; visited places green; trip places a distinct trip colour. Clustering where markers get dense.
 - **Top-right of map:** Show Kosovo switch with hover note.
 - **Bottom-right of map:** place card for the selected place.
