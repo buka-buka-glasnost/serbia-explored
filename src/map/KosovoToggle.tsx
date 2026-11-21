@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { MapControl } from './MapControl';
+import { Icon } from '../ui/Icon';
 
 /** The control's contents; usable without a map. */
 export function KosovoToggleView() {
@@ -45,7 +46,7 @@ export function KosovoToggleView() {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        ⓘ
+        <Icon name="info" />
       </button>
       <div id="kosovo-note" role="tooltip" className={open ? 'kosovo-note open' : 'kosovo-note'}>
         {t('kosovoNote', lang)}

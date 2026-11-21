@@ -6,13 +6,14 @@ import type { Access, Designation, Lang, Place } from '../shared/types';
 import type { StringKey } from '../i18n/strings';
 import { VisitEditor } from './VisitEditor';
 import { useIsNarrow } from './useIsNarrow';
+import { Icon, type IconName } from './Icon';
 
 const ACCESS_KEY: Record<Access, StringKey> = {
   door: 'accessDoor',
   rough: 'accessRough',
   hike_boat: 'accessHikeBoat',
 };
-const ACCESS_ICON: Record<Access, string> = { door: '🚗', rough: '🛻', hike_boat: '🥾' };
+const ACCESS_ICON: Record<Access, IconName> = { door: 'car', rough: 'rough', hike_boat: 'hike' };
 const WORLD_CLASS: ReadonlySet<Designation> = new Set(['unesco_whs', 'unesco_whs_part', 'unesco_geopark', 'unesco_biosphere']);
 
 // Bottom-sheet drag: close past this distance, or on a quick downward flick.
@@ -126,7 +127,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
     >
       {narrow && <div className="sheet-handle" aria-hidden="true" {...dragHandlers} />}
       <button type="button" className="card-close" aria-label={t('close', lang)} onClick={() => select(null)}>
-        ×
+        <Icon name="close" />
       </button>
       {place.photo && (
         <figure className="card-photo" key={place.id}>
@@ -150,7 +151,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
         {place.partOf && <p className="card-partof">{t('partOf', lang)}{partOfName(place.partOf, lang)}</p>}
         {(type || municipality) && (
           <p className="card-meta">
-            <span aria-hidden="true">{place.kind === 'nature' ? '🌲 ' : '🏛 '}</span>
+            <Icon name={place.kind === 'nature' ? 'nature' : 'culture'} />
             {[type, municipality && areaName(municipality, lang)].filter(Boolean).join(' · ')}
           </p>
         )}
@@ -161,7 +162,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
           </div>
         )}
         <p className="card-access">
-          <span aria-hidden="true">{place.access ? ACCESS_ICON[place.access] : '❔'}</span>
+          <Icon name={place.access ? ACCESS_ICON[place.access] : 'unknown'} />
           <span>
             {place.access ? t(ACCESS_KEY[place.access], lang) : t('accessUnknown', lang)}
             {place.access && place.accessEstimated && <span aria-hidden="true">*</span>}
@@ -170,7 +171,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
         {place.access && place.accessEstimated && <p className="note">* {t('accessEstimated', lang)}</p>}
         {wiki && (
           <p className="card-links">
-            <a href={wiki.href} target="_blank" rel="noopener noreferrer">{t('wikipedia', lang)} ↗</a>
+            <a href={wiki.href} target="_blank" rel="noopener noreferrer">{t('wikipedia', lang)}<Icon name="external" /></a>
           </p>
         )}
         <div className="card-actions">
@@ -181,7 +182,8 @@ export function PlaceCard({ place, closing = false, headingRef }: {
             onClick={() => void markVisited(place.id)}
           >
             <span className="btn-content" key={visited ? 'done' : 'todo'}>
-              {visited ? `✓ ${t('visited', lang)}` : t('markVisited', lang)}
+              {visited && <Icon name="check" />}
+              {visited ? t('visited', lang) : t('markVisited', lang)}
             </span>
           </button>
           <div className="row">

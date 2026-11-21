@@ -23,10 +23,10 @@ describe('PlaceCard', () => {
     expect(screen.getByText('Hike / boat only')).toBeInTheDocument();
   });
 
-  it('turns the primary button into a disabled "✓ Visited" once visited', () => {
+  it('turns the primary button into a disabled "Visited" once visited', () => {
     useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-10-26', note: '', photoIds: [] } } });
     render(<PlaceCard place={makePlace('Q1')} />);
-    expect(screen.getByRole('button', { name: '✓ Visited' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Visited' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Mark as visited' })).not.toBeInTheDocument();
   });
 

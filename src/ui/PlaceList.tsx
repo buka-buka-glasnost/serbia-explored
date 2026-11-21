@@ -5,6 +5,7 @@ import { areaName, placeName, placeType, t } from '../i18n/i18n';
 import { sortForDisplay } from '../logic/filters';
 import { matchRank } from '../logic/search';
 import type { Place } from '../shared/types';
+import { Icon } from './Icon';
 
 const ROW_HEIGHT = 52;
 const VIRTUALISE_ABOVE = 60;
@@ -96,7 +97,7 @@ export function PlaceList({ onSelect }: { onSelect?: (row: HTMLElement) => void 
         </span>
         {visits[row.place.id] && (
           <span className="place-row-check">
-            <span aria-hidden="true">✓</span>
+            <Icon name="check" />
             <span className="sr-only">{t('visited', lang)}</span>
           </span>
         )}

@@ -11,6 +11,7 @@ import { usePresence } from './usePresence';
 import { WelcomeDialog } from './WelcomeDialog';
 import { isWelcomeDismissed } from './welcomePrefs';
 import './app.css';
+import { Icon } from './Icon';
 
 /** Focus without scrolling; ignores elements that are gone. */
 const focusQuietly = (el: HTMLElement | null | undefined) => {
@@ -185,10 +186,7 @@ export function App() {
                   aria-label={t('searchPlaceholder', lang)}
                   onClick={() => openSheet('places', 'search', searchLauncher.current)}
                 >
-                  <svg className="launcher-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
-                    <path d="M15.5 15.5 21 21" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-                  </svg>
+                  <Icon name="search" className="launcher-icon" />
                   <span className={query ? 'launcher-query' : 'launcher-placeholder'} aria-hidden="true">
                     {query || t('searchPlaceholder', lang)}
                   </span>
@@ -200,12 +198,7 @@ export function App() {
                   aria-label={tripCount > 0 ? `${t('tripTab', lang)}: ${tripCount}` : t('tripTab', lang)}
                   onClick={() => openSheet('trip', 'back', tripLauncher.current)}
                 >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6 19.5c0-5 12-3 12-9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 3" />
-                    <circle cx="6" cy="19.5" r="2.4" fill="currentColor" />
-                    <path d="M18 2.5a3.6 3.6 0 0 0-3.6 3.6c0 2.6 3.6 6 3.6 6s3.6-3.4 3.6-6A3.6 3.6 0 0 0 18 2.5z" fill="currentColor" />
-                    <circle cx="18" cy="6.1" r="1.3" fill="var(--surface)" />
-                  </svg>
+                  <Icon name="route" />
                   <span aria-hidden="true">{t('tripTab', lang)}</span>
                   {tripCount > 0 && <span className="badge-count" aria-hidden="true">{tripCount}</span>}
                 </button>

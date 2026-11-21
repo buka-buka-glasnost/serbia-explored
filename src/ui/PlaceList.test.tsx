@@ -36,7 +36,7 @@ describe('PlaceList', () => {
   it('marks visited places', () => {
     useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-01-01', note: '', photoIds: [] } } });
     render(<PlaceList />);
-    expect(screen.getAllByText('✓')).toHaveLength(1);
+    expect(document.querySelectorAll('.place-row-check')).toHaveLength(1);
   });
   it('orders by tier, then by the displayed name', () => {
     const ps = [

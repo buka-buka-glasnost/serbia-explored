@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { computeProgress } from '../logic/progress';
+import { Icon } from './Icon';
 
 const TIERS = [1, 2, 3] as const;
 
@@ -21,7 +22,7 @@ export function ProgressSummary({ compact = false }: { compact?: boolean }) {
       {compact ? (
         // phone top bar: a small "✓ 3 / 930" chip
         <div className="progress-overall">
-          <span className="progress-check" aria-hidden="true">✓</span>
+          <Icon name="check" className="progress-check" />
           <span className="progress-count">{overall.visited}</span>
           <span className="progress-total">/ {overall.total}<span className="sr-only"> {t('visitedOf', lang)}</span></span>
         </div>

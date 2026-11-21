@@ -3,6 +3,7 @@ import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import { getPhoto } from '../storage/db';
 import { MAX_PHOTOS_PER_VISIT } from '../storage/photos';
+import { Icon } from './Icon';
 
 const NOTE_DEBOUNCE_MS = 800;
 
@@ -26,7 +27,7 @@ function Thumb({ photoId, label, onRemove }: { photoId: string; label: string; o
   return (
     <li className="thumb">
       {src ? <img src={src} alt="" /> : <span className="thumb-placeholder" />}
-      <button type="button" aria-label={label} onClick={onRemove}>×</button>
+      <button type="button" aria-label={label} onClick={onRemove}><Icon name="close" /></button>
     </li>
   );
 }
@@ -115,6 +116,7 @@ export function VisitEditor({ placeId }: { placeId: string }) {
         </ul>
       )}
       <label className="btn add-photo">
+        <Icon name="camera" />
         {t('addPhoto', lang)}
         <input
           type="file"

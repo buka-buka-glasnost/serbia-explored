@@ -2,6 +2,7 @@ import { useApp } from '../state/store';
 import { placeName, t } from '../i18n/i18n';
 import { buildDirectionsUrl, routeStops } from '../trip/googleMaps';
 import type { Place } from '../shared/types';
+import { Icon } from './Icon';
 
 export function TripPanel() {
   const lang = useApp((s) => s.settings.lang);
@@ -42,16 +43,16 @@ export function TripPanel() {
                 {placeName(p, lang)}
                 {p.inKosovo && !kosovoShown && <span className="stop-note"> ({t('hiddenOnMap', lang)})</span>}
               </span>
-              <button type="button" className="btn" aria-label={t('moveUp', lang)} disabled={i === 0} onClick={() => moveTripStop(p.id, -1)}>↑</button>
-              <button type="button" className="btn" aria-label={t('moveDown', lang)} disabled={i === stops.length - 1} onClick={() => moveTripStop(p.id, 1)}>↓</button>
+              <button type="button" className="btn" aria-label={t('moveUp', lang)} disabled={i === 0} onClick={() => moveTripStop(p.id, -1)}><Icon name="up" /></button>
+              <button type="button" className="btn" aria-label={t('moveDown', lang)} disabled={i === stops.length - 1} onClick={() => moveTripStop(p.id, 1)}><Icon name="down" /></button>
               <button
                 type="button"
                 className="btn"
                 aria-label={t('markVisited', lang)}
                 disabled={!!visits[p.id]}
                 onClick={() => void markVisited(p.id)}
-              >✓</button>
-              <button type="button" className="btn" aria-label={t('removeStop', lang)} onClick={() => removeFromTrip(p.id)}>✕</button>
+              ><Icon name="check" /></button>
+              <button type="button" className="btn" aria-label={t('removeStop', lang)} onClick={() => removeFromTrip(p.id)}><Icon name="close" /></button>
             </li>
           ))}
         </ol>

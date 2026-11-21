@@ -2,6 +2,7 @@ import type { Ref } from 'react';
 import { useApp } from '../state/store';
 import { t } from '../i18n/i18n';
 import type { PlaceKind, Tier } from '../shared/types';
+import { Icon } from './Icon';
 
 const TIERS: Tier[] = [1, 2, 3, 4];
 const KINDS: PlaceKind[] = ['culture', 'nature'];
@@ -62,7 +63,7 @@ export function Filters({ search = true }: { search?: boolean }) {
             aria-pressed={settings.kinds.includes(k)}
             onClick={() => setSettings({ kinds: toggle(settings.kinds, k) })}
           >
-            <span aria-hidden="true">{k === 'culture' ? '🏛' : '🌲'}</span>
+            <Icon name={k} />
             {t(k, lang)}
           </button>
         ))}

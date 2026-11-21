@@ -3,6 +3,7 @@ import { useApp } from '../state/store';
 import { areaName, t } from '../i18n/i18n';
 import { loose } from '../logic/search';
 import type { AreaProps, Lang } from '../shared/types';
+import { Icon } from './Icon';
 
 const MAX_SUGGESTIONS = 10;
 
@@ -93,7 +94,7 @@ export function AreaPicker() {
           onKeyDown={onKeyDown}
         />
         {areaId && (
-          <button type="button" className="btn area-clear" aria-label={t('clearArea', lang)} onClick={clear}>×</button>
+          <button type="button" className="btn area-clear" aria-label={t('clearArea', lang)} onClick={clear}><Icon name="close" /></button>
         )}
         <button
           type="button"
@@ -103,7 +104,7 @@ export function AreaPicker() {
           aria-pressed={picking}
           onClick={() => setPicking(!picking)}
         >
-          ⌖
+          <Icon name="crosshair" />
         </button>
       </div>
       {suggestions.length > 0 && (

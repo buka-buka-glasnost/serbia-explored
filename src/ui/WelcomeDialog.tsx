@@ -4,13 +4,14 @@ import { t } from '../i18n/i18n';
 import type { StringKey } from '../i18n/strings';
 import { usePresence } from './usePresence';
 import { isWelcomeDismissed, setWelcomeDismissed } from './welcomePrefs';
+import { Icon, type IconName } from './Icon';
 
-const SECTIONS: { icon: string; title: StringKey; body: StringKey }[] = [
-  { icon: '🗺️', title: 'welcomeMapTitle', body: 'welcomeMap' },
-  { icon: '🔍', title: 'welcomeListTitle', body: 'welcomeList' },
-  { icon: '✓', title: 'welcomeVisitTitle', body: 'welcomeVisit' },
-  { icon: '🧭', title: 'welcomeTripTitle', body: 'welcomeTrip' },
-  { icon: '💾', title: 'welcomeDataTitle', body: 'welcomeData' },
+const SECTIONS: { icon: IconName; title: StringKey; body: StringKey }[] = [
+  { icon: 'map', title: 'welcomeMapTitle', body: 'welcomeMap' },
+  { icon: 'search', title: 'welcomeListTitle', body: 'welcomeList' },
+  { icon: 'check', title: 'welcomeVisitTitle', body: 'welcomeVisit' },
+  { icon: 'route', title: 'welcomeTripTitle', body: 'welcomeTrip' },
+  { icon: 'backup', title: 'welcomeDataTitle', body: 'welcomeData' },
 ];
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -73,7 +74,7 @@ export function WelcomeDialog() {
         aria-labelledby="welcome-title"
         onKeyDown={onKeyDown}
       >
-        <button type="button" className="welcome-close" aria-label={t('close', lang)} onClick={close}>×</button>
+        <button type="button" className="welcome-close" aria-label={t('close', lang)} onClick={close}><Icon name="close" /></button>
         <header className="welcome-head">
           <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 2.5c-4 0-7 3-7 6.9 0 5 7 12.1 7 12.1s7-7.1 7-12.1C19 5.5 16 2.5 12 2.5z" fill="currentColor" />
@@ -88,7 +89,8 @@ export function WelcomeDialog() {
         <ul className="welcome-sections">
           {SECTIONS.map((s) => (
             <li key={s.title}>
-              <span className="welcome-icon" aria-hidden="true">{s.icon}</span>
+              {/* a Pirot kilim rhomb holding the icon */}
+              <span className="welcome-icon" aria-hidden="true"><Icon name={s.icon} /></span>
               <div>
                 <h3>{t(s.title, lang)}</h3>
                 <p>{t(s.body, lang)}</p>
