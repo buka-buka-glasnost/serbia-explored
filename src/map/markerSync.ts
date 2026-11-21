@@ -17,7 +17,7 @@ export interface MarkerState {
   opacity: (id: string) => number;
 }
 
-const SELECTED_RING = '#24508a'; // --accent
+const SELECTED_RING = '#0c4076'; // --accent, flag blue
 
 /** Fired on the map with `{ id }` once the camera has arrived at the selected place. */
 export const PLACE_ARRIVE = 'placearrive';

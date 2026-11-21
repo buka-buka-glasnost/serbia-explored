@@ -1,9 +1,10 @@
 import type { Place } from '../shared/types';
 
 const RADIUS = { 1: 9, 2: 7, 3: 5, 4: 4 } as const;
-export const TIER_FILL = { 1: '#c0392b', 2: '#e67e22', 3: '#138d75', 4: '#7f8c8d' } as const;
-const VISITED_RING = '#1e8449';
-const TRIP_RING = '#1d2125';
+// flag red, coat-of-arms gold, a lighter flag blue, grey (the same as --tier1..4 in app.css)
+export const TIER_FILL = { 1: '#c6363c', 2: '#b07f1c', 3: '#3f78b5', 4: '#8a9099' } as const;
+const VISITED_RING = '#25744a';
+const TRIP_RING = '#18202e';
 
 export interface MarkerStyle { radius: number; fillColor: string; color: string; weight: number; dashArray?: string }
 

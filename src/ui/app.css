@@ -1,19 +1,30 @@
 /* ---------- Tokens ---------- */
+/* The Serbian tricolour: flag red and flag blue on white, with the coat of arms' gold. */
 :root {
-  --accent: #24508a;
-  --accent-soft: #e8eef6;
-  --text: #1f1b16;
-  --muted: #6f675d;
-  --border: #e7e0d5;
-  --surface: #fffdf9;
-  --surface-2: #f5f1ea;
+  --flag-red: #c6363c;
+  --flag-blue: #0c4076;
+  --flag-white: #ffffff;
+  --gold: #b07f1c;
+  --accent: var(--flag-blue);
+  --accent-hover: #0a3563;
+  --accent-soft: #e7eef7;
+  --accent-border: #b9cce4;
+  --red-soft: #fbebec;
+  --red-ink: #9e2328;
+  --text: #18202e;
+  --muted: #5e6878;
+  --border: #e3e7ee;
+  --surface: var(--flag-white);
+  --surface-2: #f4f6fa;
   --font-display: 'Literata', Georgia, 'Times New Roman', serif;
-  --danger: #a93226;
-  --visited: #1e8449;
-  --tier1: #c0392b;
-  --tier2: #e67e22;
-  --tier3: #138d75;
-  --tier4: #7f8c8d;
+  --danger: #b3262d;
+  --visited: #25744a;
+  --tier1: var(--flag-red);
+  --tier2: var(--gold);
+  --tier3: #3f78b5;
+  --tier4: #8a9099;
+  /* red over blue over white, as on the flag; the white band gets a hairline so it shows on white */
+  --tricolour: linear-gradient(to bottom, var(--flag-red) 0 33.34%, var(--flag-blue) 33.34% 66.67%, var(--flag-white) 66.67%);
   --radius: 8px;
   --shadow: 0 4px 20px rgba(16, 24, 40, .16), 0 1px 3px rgba(16, 24, 40, .08);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -49,7 +60,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 @media (hover: hover) and (pointer: fine) {
   .btn:hover { border-color: #c4c8cd; background: var(--surface-2); }
-  .btn-primary:not(.done):hover { background: #164f97; border-color: transparent; }
+  .btn-primary:not(.done):hover { background: var(--accent-hover); border-color: transparent; }
   .btn-link:hover { color: var(--text); }
   .place-row:hover { background: var(--surface-2); }
   .area-suggestions li:hover { background: var(--accent-soft); }
@@ -67,6 +78,9 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 /* ---------- Side panel ---------- */
 .side-panel { width: 300px; flex: none; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--border); min-height: 0; overflow-y: auto; }
 .side-panel > * { flex-shrink: 0; }
+.side-panel:not(.sheet)::before, .welcome::before, .sheet-body::before {
+  content: ''; display: block; flex: none; height: 12px; background: var(--tricolour); border-bottom: 1px solid var(--border);
+}
 .panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; }
 .panel-header h1 { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
 .brand-mark { flex: none; width: 22px; height: 22px; color: var(--tier1); }
@@ -108,7 +122,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .filters { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 150ms ease, color 150ms ease; }
-.chip[aria-pressed='true'] { background: var(--accent-soft); border-color: #bcd2ef; color: var(--text); }
+.chip[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent-border); color: var(--text); }
 
 .side-panel > .place-list, .sheet-body > .place-list { flex: 1 1 auto; min-height: 180px; overflow-y: auto; }
 .place-list.empty { padding: 12px 14px; color: var(--muted); }
@@ -126,7 +140,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .backup { border-top: 1px solid var(--border); padding: 8px 14px; }
 .backup-buttons { display: flex; gap: 14px; }
-.banner { background: #fdecea; color: #7a1c14; padding: 6px 8px; border-radius: 6px; font-size: 12px; margin-bottom: 6px; }
+.banner { background: var(--red-soft); color: var(--red-ink); padding: 6px 8px; border-radius: 6px; font-size: 12px; margin-bottom: 6px; }
 
 .trip-panel { padding: 10px 14px; overflow-y: auto; flex: 1; min-height: 0; }
 .trip-panel label { display: block; margin-bottom: 8px; }
@@ -153,10 +167,10 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .card-close {
   position: absolute; top: 8px; right: 8px; z-index: 3; display: flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
-  background: rgba(31, 27, 22, .72); color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 2px 6px rgba(0, 0, 0, .3);
+  background: rgba(24, 32, 46, .72); color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 2px 6px rgba(0, 0, 0, .3);
   font-size: 20px; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 150ms ease;
 }
-@media (hover: hover) and (pointer: fine) { .card-close:hover { background: rgba(31, 27, 22, .88); } }
+@media (hover: hover) and (pointer: fine) { .card-close:hover { background: rgba(24, 32, 46, .88); } }
 .card-close:active { transform: scale(0.94); }
 .card-photo { position: relative; margin: 0; aspect-ratio: 16 / 9; background: #eef0f2; border-radius: 12px 12px 0 0; overflow: hidden; }
 .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -164,7 +178,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .card-photo figcaption a { color: #fff; text-decoration: none; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
 .badges { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; padding: 0; }
 .badge { background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 500; }
-.badge.tier1 { background: #fbeae8; color: #8e2a1f; }
+.badge.tier1 { background: var(--red-soft); color: var(--red-ink); }
 .card-partof, .card-meta { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
 .card-desc p { white-space: pre-line; margin: 10px 0 6px; font-size: 13px; line-height: 1.5; }
 .note { font-style: italic; color: var(--muted); font-size: 11px; margin: 2px 0 0; }
@@ -197,8 +211,8 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 /* ---------- Map ---------- */
 /* Quieter base map so the tier colours carry the meaning; markers and overlays are unaffected. */
 /* the shaded land colour: zooming out shows this at the edges until the new tiles arrive */
-.leaflet-container { background: #bab7b1; font-family: inherit; }
-.leaflet-tile-pane { filter: saturate(0.5) contrast(0.95) brightness(1.04) sepia(0.08); }
+.leaflet-container { background: #b6b6b7; font-family: inherit; }
+.leaflet-tile-pane { filter: saturate(0.5) contrast(0.95) brightness(1.04); }
 
 /* ---------- Map controls ---------- */
 .leaflet-bar.kosovo-control, .leaflet-bar.legend { border: 0; border-radius: var(--radius); box-shadow: 0 1px 4px rgba(16, 24, 40, .2); }
@@ -234,17 +248,18 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .info-button:active { transform: scale(0.94); }
 
 .welcome-layer { position: fixed; inset: 0; z-index: 4000; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.welcome-backdrop { position: absolute; inset: 0; background: rgba(31, 27, 22, .45); transition: opacity 200ms ease; }
+.welcome-backdrop { position: absolute; inset: 0; background: rgba(24, 32, 46, .45); transition: opacity 200ms ease; }
 @starting-style { .welcome-backdrop { opacity: 0; } }
 .welcome-layer[data-state='closing'] .welcome-backdrop { opacity: 0; }
 .welcome {
   position: relative; width: min(520px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; box-sizing: border-box;
-  padding: 24px 24px 18px; border-radius: 16px; background: var(--surface); box-shadow: 0 24px 64px rgba(16, 24, 40, .3);
+  padding: 0 24px 18px; border-radius: 16px; background: var(--surface); box-shadow: 0 24px 64px rgba(16, 24, 40, .3);
   transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
 }
 @starting-style { .welcome { opacity: 0; transform: translateY(8px) scale(0.97); } }
 .welcome-layer[data-state='closing'] .welcome { opacity: 0; transform: scale(0.98); transition-duration: 150ms; }
-.welcome-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; }
+.welcome-close { position: absolute; top: 18px; right: 10px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; }
+.welcome::before { margin: 0 -24px 22px; }
 .welcome-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-right: 32px; }
 .welcome-head .brand-mark { width: 36px; height: 36px; }
 .welcome-head h2 { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
@@ -283,7 +298,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .toast {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: var(--radius);
-  background: #2b2f33; color: #fff; z-index: 3500; /* above the phone list sheet (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
+  background: var(--text); color: #fff; z-index: 3500; /* above the phone list sheet (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
   transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
 }
 @starting-style { .toast { opacity: 0; transform: translate(-50%, 16px); } }

@@ -43,7 +43,7 @@ export function KosovoLayer() {
             key={shown ? 'with' : 'without'}
             data={mask}
             interactive={false}
-            style={{ stroke: false, fillColor: '#2b2620', fillOpacity: 0.28, fillRule: 'evenodd' }}
+            style={{ stroke: false, fillColor: '#1b2433', fillOpacity: 0.28, fillRule: 'evenodd' }}
           />
         </Pane>
       )}

@@ -88,8 +88,8 @@ export const STRINGS = {
   },
   welcomeMapTitle: { sr: 'Мапа', en: 'The map' },
   welcomeMap: {
-    sr: 'Боја показује значај: црвено — светска баштина (УНЕСКО), наранџасто — изузетан значај, тиркизно — велики значај, сиво — остало (на почетку скривено). Зелени прстен значи да сте ту били. Прекидач „Прикажи Косово“ горе десно приказује или скрива места на Косову.',
-    en: 'Colour shows importance: red — World Heritage (UNESCO), orange — exceptional importance, teal — great importance, grey — other (hidden at first). A green ring means you have been there. The “Show Kosovo” switch at the top right shows or hides places in Kosovo.',
+    sr: 'Боја показује значај: црвено — светска баштина (УНЕСКО), златно — изузетан значај, плаво — велики значај, сиво — остало (на почетку скривено). Зелени прстен значи да сте ту били. Прекидач „Прикажи Косово“ горе десно приказује или скрива места на Косову.',
+    en: 'Colour shows importance: red — World Heritage (UNESCO), gold — exceptional importance, blue — great importance, grey — other (hidden at first). A green ring means you have been there. The “Show Kosovo” switch at the top right shows or hides places in Kosovo.',
   },
   welcomeVisitTitle: { sr: 'Посете', en: 'Visits' },
   welcomeVisit: {
