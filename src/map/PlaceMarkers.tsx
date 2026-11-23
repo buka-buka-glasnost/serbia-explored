@@ -10,11 +10,11 @@ import { MarkerSync, PLACE_ARRIVE, type MarkerState } from './markerSync';
 
 export { markerStyle } from './markerStyle';
 
-/** Neutral clusters: size shows the count, colour is left to tiers and visit state. */
+/** Neutral clusters drawn as kilim rhombs (in CSS): size shows the count, colour is left to tiers and visit state. */
 function clusterIcon(cluster: L.MarkerCluster): L.DivIcon {
   const n = cluster.getChildCount();
   const size = n < 10 ? 30 : n < 100 ? 36 : 44;
-  return L.divIcon({ html: String(n), className: 'cluster', iconSize: [size, size] });
+  return L.divIcon({ html: `<span>${n}</span>`, className: 'cluster', iconSize: [size, size] });
 }
 
 export function PlaceMarkers() {

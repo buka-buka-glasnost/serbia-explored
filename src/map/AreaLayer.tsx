@@ -36,7 +36,7 @@ export function AreaLayer() {
       key={area.properties.id}
       data={area}
       interactive={false}
-      style={{ color: '#222', weight: 2, fill: false }}
+      style={{ color: '#0c4076', weight: 2.5, fillColor: '#0c4076', fillOpacity: 0.05 }}
     />
   );
 }

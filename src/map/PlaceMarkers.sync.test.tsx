@@ -28,7 +28,7 @@ beforeEach(() => {
 
 describe('PlaceMarkers', () => {
   it('restyles only the changed marker on a visit, without rebuilding', () => {
-    const create = vi.spyOn(L, 'circleMarker');
+    const create = vi.spyOn(L, 'rhombMarker');
     const setStyle = vi.spyOn(L.CircleMarker.prototype, 'setStyle');
     render(<PlaceMarkers />);
     expect(create).toHaveBeenCalledTimes(2);
@@ -43,7 +43,7 @@ describe('PlaceMarkers', () => {
   });
 
   it('highlights the selected marker with a larger radius and an accent ring once the camera arrives', () => {
-    const create = vi.spyOn(L, 'circleMarker');
+    const create = vi.spyOn(L, 'rhombMarker');
     render(<PlaceMarkers />);
     const q2 = create.mock.results[1].value as L.CircleMarker;
     const radius = q2.getRadius();
@@ -60,7 +60,7 @@ describe('PlaceMarkers', () => {
   });
 
   it('relabels tooltips on a language change without rebuilding', () => {
-    const create = vi.spyOn(L, 'circleMarker');
+    const create = vi.spyOn(L, 'rhombMarker');
     render(<PlaceMarkers />);
     const q1 = create.mock.results[0].value as L.CircleMarker;
     act(() => useApp.getState().setSettings({ lang: 'sr-Cyrl' }));
@@ -69,7 +69,7 @@ describe('PlaceMarkers', () => {
   });
 
   it('a marker click selects the place, or picks the area under it while picking', () => {
-    const create = vi.spyOn(L, 'circleMarker');
+    const create = vi.spyOn(L, 'rhombMarker');
     const pickAreaAt = vi.fn();
     useApp.setState({ pickAreaAt });
     render(<PlaceMarkers />);

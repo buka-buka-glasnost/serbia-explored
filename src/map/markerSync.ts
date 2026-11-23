@@ -2,6 +2,7 @@ import L from 'leaflet';
 import type { Lang, Place } from '../shared/types';
 import { placeName } from '../i18n/i18n';
 import { markerStyle } from './markerStyle';
+import './rhombMarker';
 
 /** The part of a marker cluster group the sync uses. */
 export interface MarkerGroup {
@@ -59,7 +60,7 @@ export class MarkerSync {
     let m = this.markers.get(p.id);
     if (!m) {
       // no bubbling: in picking mode the click handler picks the area itself
-      m = L.circleMarker([p.lat, p.lon], { ...fullMarkerStyle(p, false, false, false, 1), bubblingMouseEvents: false });
+      m = L.rhombMarker([p.lat, p.lon], { ...fullMarkerStyle(p, false, false, false, 1), bubblingMouseEvents: false });
       m.bindTooltip(placeName(p, this.lang));
       m.on('click', () => this.onClick(p));
       this.markers.set(p.id, m);

@@ -29,11 +29,11 @@ export function KosovoLayer() {
     return () => { cancelled = true; };
   }, []);
 
-  const mask = useMemo(() => {
+  const border = useMemo(() => {
     const id = shown ? 'serbia-with-kosovo' : 'serbia';
-    const shape = decor.outlines?.features.find((f) => f.properties.id === id);
-    return shape ? worldMask(shape.geometry) : null;
+    return decor.outlines?.features.find((f) => f.properties.id === id) ?? null;
   }, [decor.outlines, shown]);
+  const mask = useMemo(() => (border ? worldMask(border.geometry) : null), [border]);
 
   return (
     <>
@@ -45,6 +45,9 @@ export function KosovoLayer() {
             interactive={false}
             style={{ stroke: false, fillColor: '#1b2433', fillOpacity: 0.28, fillRule: 'evenodd' }}
           />
+          {/* the border in the flag's colours: a red line with a blue core */}
+          <GeoJSON key={`red-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#c6363c', weight: 4.5, opacity: 0.85 }} />
+          <GeoJSON key={`blue-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#0c4076', weight: 1.6 }} />
         </Pane>
       )}
       {decor.kosovo && shown && (
