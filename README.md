@@ -14,6 +14,15 @@ npm run preview  # serve the built app locally
 
 Map tiles are the standard OpenStreetMap tiles, which is fine for personal or low traffic. If traffic grows, switch provider in `src/map/tiles.ts`.
 
+### Design
+
+The look is Serbian: the flag's red, blue and white, Pirot kilim ornaments, and fonts with Serbian letterforms (see *Visual design* in `docs/superpowers/specs/2026-10-26-serbia-explored-design.md`). Where things live:
+
+- Colours, fonts and the kilim motif: the tokens at the top of `src/ui/app.css`. Marker colours are repeated in `src/map/markerStyle.ts`, so change both together.
+- Icons: `src/ui/Icon.tsx`, line icons drawn in the current text colour.
+- Rhomb markers on the map: `src/map/rhombMarker.ts`, a circle marker drawn as a rhomb.
+- Fonts: Noto Sans and Source Serif 4, bundled from `@fontsource` in `src/main.tsx`.
+
 ## Refreshing the data
 
 ```
@@ -68,7 +77,7 @@ Manual corrections live in `data/overrides.json` and are applied on every `npm r
 
 `npm run data` estimates `access` for each place from OpenStreetMap roads within 300 m: a paved road within 150 m means "drive to the door", a closer gravel/dirt road or track means "rough road", nothing drivable means "hike / boat only". Large areas (national parks, biosphere reserves, the geopark, Ramsar sites) get no estimate. Estimates are marked `"accessEstimated": true` and the app shows them with an asterisk. Setting `access` in `places` replaces the estimate and removes the asterisk. Manual places in `added` are never estimated: they keep the `access` they set (`null` if none). If Overpass returns no roads at all for a whole batch of points, each point is queried alone before anything is cached, since an empty batch more likely means a server problem.
 
-`data/coordinate-fixes.json` holds better positions for places whose Wikidata coordinates are only rounded (to about 1 km). Each entry has `lat`, `lon` and a `source`: `osm-link` (the OpenStreetMap object linked to that Wikidata item), `address` (house-level geocoding), `register` (the OpenStreetMap object that carries the same heritage register number, such as "СК 156", Wikidata's P4245, or the same official register name), `osm-name` (an OpenStreetMap object matched by name), `photo` (the geotag of the place's Commons photo), `wikipedia` (the article's coordinates), `nearby` (a landmark the sources place it beside), `shift` (see below) or `town-centre` (no exact position known; the centre of its village or town).
+`data/coordinate-fixes.json` holds better positions for places whose Wikidata coordinates are rounded (to about 1 km) or wrong. Each entry has `lat`, `lon` and a `source`: `osm-link` (the OpenStreetMap object linked to that Wikidata item), `address` (house-level geocoding), `register` (the OpenStreetMap object that carries the same heritage register number, such as "СК 156", Wikidata's P4245, or the same official register name), `osm-name` (an OpenStreetMap object matched by name), `photo` (the geotag of the place's Commons photo), `wikipedia` (the article's coordinates), `nearby` (a landmark the sources place it beside), `shift` (see below) or `town-centre` (no exact position known; the centre of its village or town).
 
 Some Wikidata coordinates share one systematic error: about 0.6 km south and 2.1 km east of the real spot (measured on 60 places whose true position is known: 0.00534° and 0.02726°, give or take about 200 m). Where a village place shows exactly that offset from its village, the `shift` source undoes it; in the villages where it could be checked, this lands on the named church. They are applied as `lat`/`lon` patches; a patch in `overrides.json` wins.
 
@@ -99,5 +108,7 @@ The code is released under the MIT License (see `LICENSE`). The generated data i
 - **Wikidata** (places, designations, coordinates): CC0.
 - **Wikipedia** (place descriptions): CC BY-SA 4.0. Text is excerpted from the Serbian and English Wikipedia articles linked on each place card.
 - **Wikimedia Commons** (photos): each photo's own licence. The app shows the author and licence on every photo and links to its Commons page.
-- **OpenStreetMap** (district and municipality boundaries, the Kosovo outline, map tiles): © OpenStreetMap contributors, ODbL.
+- **OpenStreetMap** (district and municipality boundaries, the Kosovo outline, map tiles, and many of the corrected positions in `data/coordinate-fixes.json`): © OpenStreetMap contributors, ODbL.
 - **Republički zavod za zaštitu spomenika kulture** (official heritage register lists, used only to build `data/reports/missing-from-map.csv`).
+
+The fonts bundled with the app, Noto Sans and Source Serif 4, are under the SIL Open Font License 1.1.

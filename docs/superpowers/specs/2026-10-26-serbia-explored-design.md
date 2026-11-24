@@ -126,7 +126,7 @@ Layout chosen: **list + map** on desktop (mockup "B v2"), collapsing to a map-fi
 ### Desktop layout
 
 - **Left panel:** overall progress ("7 / 216 visited"), search box, filters (tiers, culture/nature), area picker, and the list of all places that pass the search and filters, sorted by tier. While searching, the best matches come first: names that start with the search, then names with a word that starts with it, then names that only contain it. Clicking a list item flies the map to it and opens its card; the marker gets its selection ring once the map arrives.
-- **Map:** OpenStreetMap-based, with roads visible. Markers coloured and sized by tier; visited places green; trip places a distinct trip colour. Clustering where markers get dense.
+- **Map:** OpenStreetMap-based, with roads visible. Markers coloured and sized by tier; visited places green; trip places a distinct trip colour. Clustering where markers get dense. (Shapes and colours: see *Visual design* below.)
 - **Top-right of map:** Show Kosovo switch with hover note.
 - **Bottom-right of map:** place card for the selected place.
 
@@ -186,14 +186,25 @@ Considered:
 - Must not rely on any external data API at runtime (map tiles and Google Maps links excepted).
 - Photo attribution for Wikimedia Commons images must be shown (licence requirement).
 - Map tile provider's usage terms must be respected.
-- *Added 2026-10-30:* the app is named "Serbia Explored" in English and "Istraži Srbiju" / "Истражи Србију" in Serbian. Map tiles are the standard OpenStreetMap tiles for now (see the README). Coordinates that Wikidata only gives rounded are replaced from `data/coordinate-fixes.json`.
+- *Added 2026-10-30:* the app is named "Serbia Explored" in English and "Istraži Srbiju" / "Истражи Србију" in Serbian. Map tiles are the standard OpenStreetMap tiles for now (see the README). Coordinates that Wikidata gives rounded or wrong are replaced from `data/coordinate-fixes.json` (see the README for the sources, including matching heritage register numbers to OpenStreetMap).
+
+## Visual design
+
+*Decided by the owner, 2026-11-21 to 2026-11-23:* the app should look Serbian.
+
+- **Colours: the Serbian tricolour.** Flag blue (`#0c4076`) for buttons, links, tabs and selection; flag red (`#c6363c`) for tier 1 and highlights; white surfaces with cool greys. Tiers on the map and in the list: red (World Heritage), coat-of-arms gold (exceptional importance), a lighter flag blue (great importance), grey (other). Visited places keep a green edge. All text meets WCAG AA.
+- **Signature:** a red, blue and white band across the top of the side panel, the phone list and the welcome message.
+- **Type:** Noto Sans for text and Source Serif 4 for headings. Both draw the Serbian forms of б, г, д, п, т when the app is in Serbian.
+- **Icons:** one line icon set (no emoji). Culture is a Serbian-Byzantine church dome; nature is the Pančić spruce, which grows only in Serbia.
+- **Ornament: the Pirot kilim.** A band of kilim motifs (a red stepped rhomb with a blue heart) under the app title, the welcome heading and the top of each place card; the welcome icons sit in kilim rhombs.
+- **Map:** places and clusters are kilim rhombs (clusters white with a flag-blue edge); Serbia's border is drawn as a red line with a blue core; a chosen area gets a flag-blue outline. The base map is the standard OpenStreetMap, toned down so the markers stand out.
 
 ## Left to the builder
 
 - Assessing the nature-protection register's data (format, coordinates, completeness) and choosing how to bring it in — Wikidata may already cover national parks and many reserves.
 - Exact reconciliation between Wikidata and the official Excel lists.
 - Choice of tile provider, clustering library, IndexedDB wrapper, and the stop-ordering method for trips.
-- Exact marker colours, icons and visual design (the mockups are wireframes).
+- ~~Exact marker colours, icons and visual design~~ — decided by the owner, see *Visual design*.
 - Photo size limits and compression settings.
 - The exact definition of "just outside the area" for dimmed places.
 
