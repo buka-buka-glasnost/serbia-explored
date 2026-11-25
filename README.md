@@ -16,12 +16,12 @@ Map tiles are the standard OpenStreetMap tiles, which is fine for personal or lo
 
 ### Design
 
-The look is Serbian: the flag's red, blue and white, Pirot kilim ornaments, and fonts with Serbian letterforms (see *Visual design* in `docs/superpowers/specs/2026-10-26-serbia-explored-design.md`). Where things live:
+The look is Serbian: the flag's red, blue and white, Pirot kilim ornaments, headings in the medieval Serbian book hand, and fonts with Serbian letterforms (see *Visual design* in `docs/superpowers/specs/2026-10-26-serbia-explored-design.md`). Where things live:
 
 - Colours, fonts and the kilim motif: the tokens at the top of `src/ui/app.css`. Marker colours are repeated in `src/map/markerStyle.ts`, so change both together.
 - Icons: `src/ui/Icon.tsx`, line icons drawn in the current text colour.
 - Rhomb markers on the map: `src/map/rhombMarker.ts`, a circle marker drawn as a rhomb.
-- Fonts: Noto Sans and Source Serif 4, bundled from `@fontsource` in `src/main.tsx`.
+- Fonts, bundled from `@fontsource` in `src/main.tsx`: Monomakh for headings (poluustav, the book hand of medieval Serbian manuscripts, with the Serbian letters and full Latin), Noto Sans for text and Source Serif 4 for numbers.
 
 ## Refreshing the data
 
@@ -111,4 +111,4 @@ The code is released under the MIT License (see `LICENSE`). The generated data i
 - **OpenStreetMap** (district and municipality boundaries, the Kosovo outline, map tiles, and many of the corrected positions in `data/coordinate-fixes.json`): © OpenStreetMap contributors, ODbL.
 - **Republički zavod za zaštitu spomenika kulture** (official heritage register lists, used only to build `data/reports/missing-from-map.csv`).
 
-The fonts bundled with the app, Noto Sans and Source Serif 4, are under the SIL Open Font License 1.1.
+The fonts bundled with the app, Monomakh, Noto Sans and Source Serif 4, are under the SIL Open Font License 1.1.
