@@ -18,7 +18,7 @@ Map tiles are the standard OpenStreetMap tiles, which is fine for personal or lo
 
 The look is Serbian: the flag's red, blue and white, Pirot kilim ornaments, headings in the medieval Serbian book hand, and fonts with Serbian letterforms (see *Visual design* in `docs/superpowers/specs/2026-10-26-serbia-explored-design.md`). Where things live:
 
-- Colours, fonts and the kilim motif: the tokens at the top of `src/ui/app.css`. Marker colours are repeated in `src/map/markerStyle.ts`, so change both together.
+- Colours, fonts, the kilim motif, the paper grain and the ink frame: the tokens at the top of `src/ui/app.css`; the parchment surfaces, frames and map vignette are in its *Manuscript skin* section at the end. Marker colours are repeated in `src/map/markerStyle.ts`, so change both together.
 - Icons: `src/ui/Icon.tsx`, line icons drawn in the current text colour.
 - Rhomb markers on the map: `src/map/rhombMarker.ts`, a circle marker drawn as a rhomb.
 - Fonts, bundled from `@fontsource` in `src/main.tsx`: Monomakh for headings (poluustav, the book hand of medieval Serbian manuscripts, with the Serbian letters and full Latin), Noto Sans for text and Source Serif 4 for numbers.

@@ -39,7 +39,7 @@ describe('PlaceMarkers', () => {
     expect(create).toHaveBeenCalledTimes(2);
     expect(setStyle).toHaveBeenCalledTimes(1);
     expect(setStyle.mock.contexts[0]).toBe(q1);
-    expect(q1.options.color).toBe('#25744a'); // visited ring
+    expect(q1.options.color).toBe('#3d6a38'); // visited ring
   });
 
   it('highlights the selected marker with a larger radius and an accent ring once the camera arrives', () => {
@@ -51,7 +51,7 @@ describe('PlaceMarkers', () => {
     expect(q2.getRadius()).toBe(radius); // not while the map is still flying
     act(() => void (fakeMap as unknown as L.Map).fire(PLACE_ARRIVE, { id: 'Q2' }));
     expect(q2.getRadius()).toBe(radius + 3);
-    expect(q2.options.color).toBe('#0c4076');
+    expect(q2.options.color).toBe('#23395b');
     act(() => useApp.setState({ selectedId: null }));
     expect(q2.getRadius()).toBe(radius);
     // selecting it again waits for the new flight

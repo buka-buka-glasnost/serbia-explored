@@ -192,12 +192,12 @@ Considered:
 
 *Decided by the owner, 2026-11-21 to 2026-11-23:* the app should look Serbian.
 
-- **Colours: the Serbian tricolour.** Flag blue (`#0c4076`) for buttons, links, tabs and selection; flag red (`#c6363c`) for tier 1 and highlights; white surfaces with cool greys. Tiers on the map and in the list: red (World Heritage), coat-of-arms gold (exceptional importance), a lighter flag blue (great importance), grey (other). Visited places keep a green edge. All text meets WCAG AA.
-- **Signature:** a red, blue and white band across the top of the side panel, the phone list and the welcome message.
+- **Colours: the Serbian tricolour as faded ink on parchment** (*revised 2026-11-26 by the owner, who wanted it classic, worn, mysterious and rural rather than modern*). Indigo (`#23395b`) for buttons, links, tabs and selection; oxblood (`#9b2f2a`) for tier 1 and highlights; iron-gall ink (`#2a2118`) for text on parchment (`#efe4cc`). Tiers on the map and in the list: oxblood (World Heritage), coat-of-arms gold (exceptional importance), indigo (great importance), stone grey (other). Visited places keep a green edge. All text meets WCAG AA.
+- **Surfaces: an old manuscript.** Parchment with a faint paper grain and darkened, worn edges; near-square corners; cards and the welcome message framed by a thin double ink rule instead of soft floating bubbles; photos slightly aged. A red, blue and white band runs across the top of the side panel, the phone list and the welcome message.
 - **Type:** headings in Monomakh, a poluustav: the book hand of medieval Serbian manuscripts (*revised 2026-11-25 by the owner, who wanted the type more traditional*). Text in Noto Sans and numbers in Source Serif 4, both of which draw the Serbian forms of б, г, д, п, т when the app is in Serbian.
 - **Icons:** one line icon set (no emoji). Culture is a Serbian-Byzantine church dome; nature is the Pančić spruce, which grows only in Serbia.
 - **Ornament: the Pirot kilim.** A band of kilim motifs (a red stepped rhomb with a blue heart) under the app title, the welcome heading and the top of each place card; the welcome icons sit in kilim rhombs.
-- **Map:** places and clusters are kilim rhombs (clusters white with a flag-blue edge); Serbia's border is drawn as a red line with a blue core; a chosen area gets a flag-blue outline. The base map is the standard OpenStreetMap, toned down so the markers stand out.
+- **Map:** places and clusters are kilim rhombs (clusters white with a flag-blue edge); Serbia's border is drawn as a red line with a blue core; a chosen area gets a flag-blue outline. The base map is the standard OpenStreetMap, faded and warmed like an old print, darkening towards its edges like a map under lamplight.
 
 ## Left to the builder
 

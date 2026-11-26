@@ -1,38 +1,46 @@
 /* ---------- Tokens ---------- */
-/* The Serbian tricolour: flag red and flag blue on white, with the coat of arms' gold. */
+/* An old manuscript: the Serbian tricolour faded into ink on parchment (oxblood, indigo, iron-gall),
+   with the coat of arms' gold. */
 :root {
-  --flag-red: #c6363c;
-  --flag-blue: #0c4076;
-  --flag-white: #ffffff;
-  --gold: #b07f1c;
+  --flag-red: #9b2f2a;
+  --flag-blue: #23395b;
+  --flag-white: #efe4cc;
+  --gold: #9c6e16;
   --accent: var(--flag-blue);
-  --accent-hover: #0a3563;
-  --accent-soft: #e7eef7;
-  --accent-border: #b9cce4;
-  --red-soft: #fbebec;
-  --red-ink: #9e2328;
-  --text: #18202e;
-  --muted: #5e6878;
-  --border: #e3e7ee;
+  --accent-hover: #1a2c47;
+  --accent-soft: #d8d2c0;
+  --accent-border: #9aa0ad;
+  --on-accent: #f6efdf;
+  --red-soft: #e8cfc0;
+  --red-ink: #7a231e;
+  --text: #2a2118;
+  --muted: #5f4f39;
+  --border: #b9a47e;
   --surface: var(--flag-white);
-  --surface-2: #f4f6fa;
+  --surface-2: #e4d6b8;
+  --field: #f5ecd8;
+  /* paper grain, and the darkened edge of an old page */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .21 0 0 0 0 .09 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+  --worn-edge: inset 0 0 38px rgba(111, 78, 33, .24);
+  /* a thin double ink rule just inside the edge */
+  --ink-frame: inset 0 0 0 1px rgba(42, 33, 24, .5), inset 0 0 0 3px var(--surface), inset 0 0 0 4px rgba(42, 33, 24, .35);
   /* Headings in Monomakh: poluustav, the book hand of medieval Serbian manuscripts (one weight only, never faux-bolded).
      Numbers use Source Serif 4 for clear, even digits. Both body fonts draw the Serbian б, г, д, п, т. */
   --font-display: 'Monomakh', 'Source Serif 4', Georgia, serif;
   --font-numbers: 'Source Serif 4', Georgia, serif;
   --font-body: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   /* a Pirot kilim motif, repeated along a band */
-  --kilim: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M12 0 18 6 12 12 6 6Z' fill='%23c6363c'/%3E%3Cpath d='M12 2.5 15.5 6 12 9.5 8.5 6Z' fill='%23fff'/%3E%3Cpath d='M12 4 14 6 12 8 10 6Z' fill='%230c4076'/%3E%3Cpath d='M0 5h4v2H0zM20 5h4v2h-4z' fill='%230c4076'/%3E%3C/svg%3E");
-  --danger: #b3262d;
-  --visited: #25744a;
+  --kilim: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M12 0 18 6 12 12 6 6Z' fill='%239b2f2a'/%3E%3Cpath d='M12 2.5 15.5 6 12 9.5 8.5 6Z' fill='%23efe4cc'/%3E%3Cpath d='M12 4 14 6 12 8 10 6Z' fill='%2323395b'/%3E%3Cpath d='M0 5h4v2H0zM20 5h4v2h-4z' fill='%2323395b'/%3E%3C/svg%3E");
+  --danger: #9b2f2a;
+  --visited: #3d6a38;
   --tier1: var(--flag-red);
   --tier2: var(--gold);
-  --tier3: #3f78b5;
-  --tier4: #8a9099;
-  /* red over blue over white, as on the flag; the white band gets a hairline so it shows on white */
+  --tier3: #3f5f8f;
+  --tier4: #7d7262;
+  /* red over blue over white, as on the flag, in faded inks */
   --tricolour: linear-gradient(to bottom, var(--flag-red) 0 33.34%, var(--flag-blue) 33.34% 66.67%, var(--flag-white) 66.67%);
-  --radius: 8px;
-  --shadow: 0 4px 20px rgba(16, 24, 40, .16), 0 1px 3px rgba(16, 24, 40, .08);
+  --radius: 2px;
+  --shadow: 0 1px 0 rgba(42, 33, 24, .2), 0 8px 22px rgba(42, 25, 10, .32);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
@@ -46,7 +54,7 @@ button { -webkit-tap-highlight-color: transparent; }
 button, a, input, select, label { touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 input[type='search'], input[type='date'], select, textarea {
-  font: inherit; color: inherit; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
+  font: inherit; color: inherit; padding: 6px 10px; border: 1px solid var(--border); border-radius: 2px; background: var(--field);
 }
 input[type='search']:focus-visible, input[type='date']:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
 
@@ -59,14 +67,14 @@ input[type='search']:focus-visible, input[type='date']:focus-visible, select:foc
   transition: transform 160ms var(--ease-out), background-color 150ms ease, border-color 150ms ease;
 }
 .btn-primary {
-  background: var(--accent); color: #fff; border-color: transparent; font-weight: 600;
+  background: var(--accent); color: var(--on-accent); border-color: transparent; font-weight: 600; letter-spacing: .02em;
 }
 .btn:active, .tabs button:active, .lang-switch button:active, .chip:active { transform: scale(0.97); }
 button:disabled, button:disabled:active { opacity: .5; cursor: default; transform: none; }
 .btn-link { border: 0; background: none; padding: 2px 0; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 
 @media (hover: hover) and (pointer: fine) {
-  .btn:hover { border-color: #c4c8cd; background: var(--surface-2); }
+  .btn:hover { border-color: #8f7a55; background: var(--surface-2); }
   .btn-primary:not(.done):hover { background: var(--accent-hover); border-color: transparent; }
   .btn-link:hover { color: var(--text); }
   .place-row:hover { background: var(--surface-2); }
@@ -113,7 +121,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 8px; }
 .tabs button { flex: 1; padding: 8px 6px; border: 0; background: none; cursor: pointer; font: inherit; color: var(--muted); border-bottom: 2px solid transparent; transition: transform 160ms var(--ease-out); }
 .tabs button[aria-pressed='true'] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
-.badge-count { margin-left: 6px; padding: 0 6px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 11px; }
+.badge-count { margin-left: 6px; padding: 0 6px; border-radius: 2px; background: var(--accent); color: var(--on-accent); font-size: 11px; }
 
 .area-picker { padding: 10px 14px 0; display: flex; flex-direction: column; gap: 6px; }
 .area-row { display: flex; gap: 4px; }
@@ -181,14 +189,15 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .card-close {
   position: absolute; top: 8px; right: 8px; z-index: 3; display: flex; align-items: center; justify-content: center;
   width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%;
-  background: rgba(24, 32, 46, .72); color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .85), 0 2px 6px rgba(0, 0, 0, .3);
+  background: rgba(42, 33, 24, .78); color: var(--on-accent); box-shadow: 0 0 0 2px rgba(239, 228, 204, .9), 0 2px 6px rgba(0, 0, 0, .35);
   font-size: 20px; line-height: 1; cursor: pointer; transition: transform 160ms var(--ease-out), background-color 150ms ease;
 }
 .card-close .icon { width: 18px; height: 18px; stroke-width: 2.2; }
-@media (hover: hover) and (pointer: fine) { .card-close:hover { background: rgba(24, 32, 46, .88); } }
+@media (hover: hover) and (pointer: fine) { .card-close:hover { background: rgba(42, 33, 24, .9); } }
 .card-close:active { transform: scale(0.94); }
-.card-photo { position: relative; margin: 0; aspect-ratio: 16 / 9; background: #eef0f2; border-radius: 12px 12px 0 0; overflow: hidden; }
-.card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-photo { position: relative; margin: 0; aspect-ratio: 16 / 9; background: var(--surface-2); border-radius: 12px 12px 0 0; overflow: hidden; }
+/* photos age a little, like prints kept in a book */
+.card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; filter: sepia(0.22) saturate(0.85) contrast(0.97); }
 .card-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 8px 4px; background: linear-gradient(transparent, rgba(0,0,0,.55)); font-size: 10px; line-height: 1.3; }
 .card-photo figcaption a { color: #fff; text-decoration: none; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
 .badges { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; padding: 0; }
@@ -206,7 +215,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .card-links .icon { width: 13px; height: 13px; margin-left: 4px; vertical-align: -0.1em; }
 .card-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
 .card-actions .btn-primary { width: 100%; padding: 9px 12px; }
-.card-actions .btn-primary.done, .card-actions .btn-primary.done:hover { background: #e8f5ec; color: var(--visited); border-color: #bfe3cb; opacity: 1; }
+.card-actions .btn-primary.done, .card-actions .btn-primary.done:hover { background: #dfe2c6; color: var(--visited); border-color: #a9b48a; opacity: 1; }
 .card-actions .row { display: flex; gap: 8px; }
 .card-actions .row > .btn { flex: 1; }
 .card-actions .btn-link { align-self: center; }
@@ -231,8 +240,9 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 /* ---------- Map ---------- */
 /* Quieter base map so the tier colours carry the meaning; markers and overlays are unaffected. */
 /* the shaded land colour: zooming out shows this at the edges until the new tiles arrive */
-.leaflet-container { background: #b6b6b7; font-family: inherit; }
-.leaflet-tile-pane { filter: saturate(0.5) contrast(0.95) brightness(1.04); }
+.leaflet-container { background: #a89a80; font-family: inherit; }
+/* an old printed map: faded, warm, slightly soft */
+.leaflet-tile-pane { filter: sepia(0.45) saturate(0.55) contrast(0.92) brightness(0.97); }
 
 /* ---------- Map controls ---------- */
 .leaflet-bar.kosovo-control, .leaflet-bar.legend { border: 0; border-radius: var(--radius); box-shadow: 0 1px 4px rgba(16, 24, 40, .2); }
@@ -266,7 +276,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .cluster { display: flex; align-items: center; justify-content: center; color: var(--text); font: 700 12px/1 var(--font-body); font-variant-numeric: tabular-nums; }
 .cluster::before {
   content: ''; position: absolute; inset: 15%; border-radius: 3px; transform: rotate(45deg);
-  background: rgba(255, 255, 255, .94); border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(16, 24, 40, .25);
+  background: rgba(239, 228, 204, .96); border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(16, 24, 40, .25);
 }
 .cluster span { position: relative; }
 
@@ -280,7 +290,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 .info-button:active { transform: scale(0.94); }
 
 .welcome-layer { position: fixed; inset: 0; z-index: 4000; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.welcome-backdrop { position: absolute; inset: 0; background: rgba(24, 32, 46, .45); transition: opacity 200ms ease; }
+.welcome-backdrop { position: absolute; inset: 0; background: rgba(30, 20, 8, .55); transition: opacity 200ms ease; }
 @starting-style { .welcome-backdrop { opacity: 0; } }
 .welcome-layer[data-state='closing'] .welcome-backdrop { opacity: 0; }
 .welcome {
@@ -334,7 +344,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
 
 .toast {
   position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: var(--radius);
-  background: var(--text); color: #fff; z-index: 3500; /* above the phone list sheet (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
+  background: var(--text); color: var(--on-accent); z-index: 3500; /* above the phone list sheet (3000), below the welcome dialog (4000) */ box-shadow: var(--shadow); font-size: 13px;
   transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
 }
 @starting-style { .toast { opacity: 0; transform: translate(-50%, 16px); } }
@@ -438,7 +448,7 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
   .place-card.bottom-sheet.dragging { transition: none; }
   .place-card.bottom-sheet .card-photo { border-radius: 0; }
   .sheet-handle { display: flex; justify-content: center; position: sticky; top: 0; z-index: 2; height: 22px; margin: 0; touch-action: none; cursor: grab; background: var(--surface); }
-  .sheet-handle::before { content: ''; width: 40px; height: 4px; margin-top: 8px; border-radius: 2px; background: #c9cdd2; }
+  .sheet-handle::before { content: ''; width: 40px; height: 4px; margin-top: 8px; border-radius: 2px; background: var(--border); }
   /* Bigger touch target that stays in view (just under the handle) while the sheet scrolls. */
   .place-card.bottom-sheet .card-close { position: sticky; top: 6px; margin: -18px 10px -22px auto; width: 40px; height: 40px; font-size: 24px; }
   .kosovo-note { width: min(270px, calc(100vw - 32px)); }
@@ -456,4 +466,43 @@ button:disabled, button:disabled:active { opacity: .5; cursor: default; transfor
   /* a drag-dismissed sheet keeps its inline offset (where the finger left it) and fades */
   .place-card.bottom-sheet.drag-dismissed[data-state='closing'] { opacity: 0; }
   .btn:active, .chip:active { transform: none; }
+}
+
+/* ---------- Manuscript skin ----------
+   Parchment with a faint grain and darkened edges, near-square corners, double ink rules
+   instead of soft floating bubbles, and an old map darkening towards its edges. */
+.side-panel, .sheet-bg, .place-card, .welcome, .kosovo-control, .legend, .kosovo-note,
+.top-bar-pill, .top-bar-chip, .top-bar .progress.compact, .sheet-field, .leaflet-control-zoom a, .info-button,
+.welcome-foot, .sheet-handle {
+  background-color: var(--surface); background-image: var(--grain);
+}
+.side-panel { box-shadow: var(--worn-edge); border-right-color: rgba(42, 33, 24, .35); }
+.sheet-bg { box-shadow: var(--worn-edge); }
+.place-card, .welcome { box-shadow: var(--ink-frame), var(--worn-edge), var(--shadow); }
+.place-card { border-radius: 3px; }
+.welcome { border-radius: 3px; }
+.kosovo-control, .legend, .kosovo-note, .leaflet-bar:has(.leaflet-control-zoom-in), .leaflet-bar.info-control {
+  box-shadow: 0 0 0 1px rgba(42, 33, 24, .45), 0 3px 8px rgba(42, 25, 10, .25);
+}
+.leaflet-bar.info-control, .info-button, .card-close { border-radius: 3px; }
+.kosovo-control, .legend, .kosovo-note { border-radius: 2px; }
+.place-row { background: transparent; border-bottom-color: rgba(185, 164, 126, .45); }
+.list-heading { background: var(--surface-2); }
+.lang-switch, .lang-switch button, .chip, .badge, .welcome-icon, .area-suggestions, .area-suggestions li, .thumb, .card-access, .welcome-close { border-radius: 2px; }
+.badge { background: var(--surface-2); box-shadow: inset 0 0 0 1px rgba(185, 164, 126, .7); }
+.badge.tier1 { box-shadow: inset 0 0 0 1px rgba(155, 47, 42, .35); }
+.chip { background: var(--field); }
+.lang-switch button[aria-pressed='true'] { background: var(--field); box-shadow: inset 0 0 0 1px rgba(42, 33, 24, .35); }
+.card-access { background: var(--surface-2); box-shadow: inset 0 0 0 1px rgba(185, 164, 126, .6); }
+.leaflet-container .leaflet-control-attribution { background: rgba(239, 228, 204, .85); color: var(--muted); }
+.leaflet-control-attribution a { color: var(--accent); }
+/* lamplight: the map darkens towards its edges (over the map, under the controls) */
+.leaflet-container::after {
+  content: ''; position: absolute; inset: 0; z-index: 450; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(42, 25, 10, .4) 100%);
+}
+@media (max-width: 767px) {
+  .top-bar-pill, .top-bar-chip, .top-bar .progress.compact, .sheet-field { border-radius: 3px; border-color: rgba(42, 33, 24, .4); box-shadow: var(--worn-edge), 0 3px 10px rgba(42, 25, 10, .3); }
+  .place-card.bottom-sheet { border-radius: 3px 3px 0 0; }
+  .welcome { border-radius: 3px 3px 0 0; }
 }

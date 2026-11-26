@@ -43,11 +43,11 @@ export function KosovoLayer() {
             key={shown ? 'with' : 'without'}
             data={mask}
             interactive={false}
-            style={{ stroke: false, fillColor: '#1b2433', fillOpacity: 0.28, fillRule: 'evenodd' }}
+            style={{ stroke: false, fillColor: '#2a2118', fillOpacity: 0.3, fillRule: 'evenodd' }}
           />
           {/* the border in the flag's colours: a red line with a blue core */}
-          <GeoJSON key={`red-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#c6363c', weight: 4.5, opacity: 0.85 }} />
-          <GeoJSON key={`blue-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#0c4076', weight: 1.6 }} />
+          <GeoJSON key={`red-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#9b2f2a', weight: 4.5, opacity: 0.85 }} />
+          <GeoJSON key={`blue-${shown}`} data={border!} interactive={false} style={{ fill: false, color: '#23395b', weight: 1.6 }} />
         </Pane>
       )}
       {decor.kosovo && shown && (
