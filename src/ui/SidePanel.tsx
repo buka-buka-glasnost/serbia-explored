@@ -8,6 +8,7 @@ import { Filters, SearchField } from './Filters';
 import { PlaceList } from './PlaceList';
 import { TripPanel } from './TripPanel';
 import { BackupControls } from './BackupControls';
+import { BrandMark } from './BrandMark';
 
 export type PanelTab = 'places' | 'trip';
 
@@ -43,13 +44,7 @@ export function SidePanel({ sheet, onClose, onPlaceChosen, closing = false }: {
   const header = (
     <header className="panel-header">
       <h1>
-        <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M12 2.5c-4 0-7 3-7 6.9 0 5 7 12.1 7 12.1s7-7.1 7-12.1C19 5.5 16 2.5 12 2.5z"
-            fill="currentColor"
-          />
-          <circle cx="12" cy="9.4" r="2.6" fill="#efe4cc" />
-        </svg>
+        <BrandMark />
         {t('appTitle', lang)}
       </h1>
       <LanguageSwitch />

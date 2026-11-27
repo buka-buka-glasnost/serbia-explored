@@ -27,3 +27,12 @@ describe('App error screen and title', () => {
     expect(document.title).toBe('Serbia Explored');
   });
 });
+
+describe('App title page while loading', () => {
+  it('shows the app name and a translated loading line', () => {
+    useApp.setState({ status: 'loading', settings: { ...initial.settings, lang: 'sr-Cyrl' } });
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1, name: 'Истражи Србију' })).toBeInTheDocument();
+    expect(screen.getByText('Учитавање…')).toBeInTheDocument();
+  });
+});

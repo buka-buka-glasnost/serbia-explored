@@ -4,6 +4,7 @@ export const STRINGS = {
     en: 'Could not load the map data. Please reload the page.',
   },
   retry: { sr: 'Покушај поново', en: 'Retry' },
+  loading: { sr: 'Учитавање…', en: 'Loading…' },
   language: { sr: 'Језик', en: 'Language' },
   appTitle: { sr: 'Истражи Србију', en: 'Serbia Explored' },
   visited: { sr: 'Посећено', en: 'Visited' },

@@ -12,6 +12,7 @@ import { WelcomeDialog } from './WelcomeDialog';
 import { isWelcomeDismissed } from './welcomePrefs';
 import './app.css';
 import { Icon } from './Icon';
+import { BrandMark } from './BrandMark';
 
 /** Focus without scrolling; ignores elements that are gone. */
 const focusQuietly = (el: HTMLElement | null | undefined) => {
@@ -150,7 +151,17 @@ export function App() {
     setSheet(null);
   };
 
-  if (status === 'loading') return <div className="fullscreen-msg">…</div>;
+  // a title page, like the first leaf of an old book, while the places load
+  if (status === 'loading') {
+    return (
+      <div className="fullscreen-msg title-page" aria-busy="true">
+        <BrandMark />
+        <h1>{t('appTitle', lang)}</h1>
+        <span className="title-kilim" aria-hidden="true" />
+        <p className="title-loading">{t('loading', lang)}</p>
+      </div>
+    );
+  }
   if (status === 'error') {
     return (
       <div className="fullscreen-msg" role="alert">

@@ -5,6 +5,7 @@ import type { StringKey } from '../i18n/strings';
 import { usePresence } from './usePresence';
 import { isWelcomeDismissed, setWelcomeDismissed } from './welcomePrefs';
 import { Icon, type IconName } from './Icon';
+import { BrandMark } from './BrandMark';
 
 const SECTIONS: { icon: IconName; title: StringKey; body: StringKey }[] = [
   { icon: 'map', title: 'welcomeMapTitle', body: 'welcomeMap' },
@@ -76,10 +77,7 @@ export function WelcomeDialog() {
       >
         <button type="button" className="welcome-close" aria-label={t('close', lang)} onClick={close}><Icon name="close" /></button>
         <header className="welcome-head">
-          <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2.5c-4 0-7 3-7 6.9 0 5 7 12.1 7 12.1s7-7.1 7-12.1C19 5.5 16 2.5 12 2.5z" fill="currentColor" />
-            <circle cx="12" cy="9.4" r="2.6" fill="#efe4cc" />
-          </svg>
+          <BrandMark />
           <div>
             <h2 id="welcome-title">{t('welcomeTitle', lang)}</h2>
             <p className="welcome-app">{t('appTitle', lang)}</p>
