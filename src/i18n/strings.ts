@@ -8,6 +8,7 @@ export const STRINGS = {
   language: { sr: 'Језик', en: 'Language' },
   appTitle: { sr: 'Истражи Србију', en: 'Serbia Explored' },
   visited: { sr: 'Посећено', en: 'Visited' },
+  visitedOn: { sr: 'Посећено {date}', en: 'Visited on {date}' },
   markVisited: { sr: 'Означи као посећено', en: 'Mark as visited' },
   unmarkVisited: { sr: 'Уклони ознаку посећеног', en: 'Unmark as visited' },
   addToTrip: { sr: 'Додај у излет', en: 'Add to trip' },

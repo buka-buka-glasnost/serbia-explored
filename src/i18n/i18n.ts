@@ -8,6 +8,16 @@ export function t(key: StringKey, lang: Lang): string {
   return lang === 'sr-Latn' ? toLatin(entry.sr) : entry.sr;
 }
 
+const DATE_LOCALE = { 'sr-Cyrl': 'sr-Cyrl', 'sr-Latn': 'sr-Latn', en: 'en-GB' } as const;
+
+/** A visit date ("2026-11-12") as each language writes it: "12. новембар 2026.", "12 November 2026". */
+export function formatVisitDate(date: string, lang: Lang): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return date;
+  const day = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return new Intl.DateTimeFormat(DATE_LOCALE[lang], { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(day);
+}
+
 // Word forms by plural category (Serbian: 1 / 2–4 / 5+; English: 1 / other).
 const COUNT_WORDS = {
   visits: { sr: { one: 'посета', few: 'посете', other: 'посета' }, en: { one: 'visit', other: 'visits' } },

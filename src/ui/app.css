@@ -543,3 +543,30 @@ input[type='date']::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .title-loading { margin: 6px 0 0; color: var(--muted); font-style: italic; animation: title-breathe 1.8s ease-in-out infinite; }
 @keyframes title-breathe { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .title-loading { animation: none; } }
+
+/* ---------- Manuscript details on the place card ---------- */
+/* An illuminated initial: the description opens with a large oxblood letter in the manuscript hand. */
+.card-desc p:first-of-type::first-letter {
+  float: left; margin: 3px 7px 0 0; padding: 0 2px;
+  font-family: var(--font-display); font-size: 3.35em; font-weight: 400; line-height: .82; color: var(--flag-red);
+  text-shadow: 1px 1px 0 rgba(156, 110, 22, .35);
+}
+/* A divider between the card's sections: ink rules meeting at a kilim rhomb. */
+.ornament {
+  height: 12px; margin: 14px 0 2px;
+  background:
+    linear-gradient(rgba(42, 33, 24, .35), rgba(42, 33, 24, .35)) left center / calc(50% - 14px) 1px no-repeat,
+    linear-gradient(rgba(42, 33, 24, .35), rgba(42, 33, 24, .35)) right center / calc(50% - 14px) 1px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M6 0 12 6 6 12 0 6Z' fill='%239b2f2a'/%3E%3Cpath d='M6 2.6 9.4 6 6 9.4 2.6 6Z' fill='%23efe4cc'/%3E%3Cpath d='M6 4 8 6 6 8 4 6Z' fill='%2323395b'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
+}
+.ornament + .card-access { margin-top: 10px; }
+.ornament + .card-actions { margin-top: 12px; }
+/* The visit stamp: a wax seal pressed slightly askew, with the date in ink beside it. */
+.card-visited { display: flex; align-items: center; gap: 10px; margin: 10px 0 2px; color: var(--visited); font-style: italic; font-weight: 600; }
+.wax-seal {
+  flex: none; width: 52px; height: 52px; transform: rotate(-12deg);
+  filter: drop-shadow(1px 2px 1.5px rgba(42, 25, 10, .35));
+  transition: transform 220ms var(--ease-out), opacity 220ms var(--ease-out);
+}
+@starting-style { .wax-seal { opacity: 0; transform: rotate(-12deg) scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { @starting-style { .wax-seal { transform: rotate(-12deg); } } }

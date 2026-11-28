@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../state/store';
-import { areaName, placeDescription, placeName, placeType, t } from '../i18n/i18n';
+import { areaName, formatVisitDate, placeDescription, placeName, placeType, t } from '../i18n/i18n';
 import { toLatin } from '../shared/translit';
 import type { Access, Designation, Lang, Place } from '../shared/types';
 import type { StringKey } from '../i18n/strings';
 import { VisitEditor } from './VisitEditor';
 import { useIsNarrow } from './useIsNarrow';
 import { Icon, type IconName } from './Icon';
+import { WaxSeal } from './WaxSeal';
 
 const ACCESS_KEY: Record<Access, StringKey> = {
   door: 'accessDoor',
@@ -93,6 +94,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
   const municipality = useApp((s) =>
     (place.municipalityId ? s.areasById.get(place.municipalityId)?.properties : undefined));
   const visited = useApp((s) => !!s.visits[place.id]);
+  const visitDate = useApp((s) => s.visits[place.id]?.date);
   const inTrip = useApp((s) => s.trip.stopIds.includes(place.id));
   const markVisited = useApp((s) => s.markVisited);
   const addToTrip = useApp((s) => s.addToTrip);
@@ -155,12 +157,19 @@ export function PlaceCard({ place, closing = false, headingRef }: {
             {[type, municipality && areaName(municipality, lang)].filter(Boolean).join(' · ')}
           </p>
         )}
+        {visited && (
+          <p className="card-visited">
+            <WaxSeal />
+            <span>{t('visitedOn', lang).replace('{date}', visitDate ? formatVisitDate(visitDate, lang) : '')}</span>
+          </p>
+        )}
         {desc && (
           <div className="card-desc">
             <p>{desc.text}</p>
             {desc.untranslated && <p className="note">{t('notTranslated', lang)}</p>}
           </div>
         )}
+        <div className="ornament" aria-hidden="true" />
         <p className="card-access">
           <Icon name={place.access ? ACCESS_ICON[place.access] : 'unknown'} />
           <span>
@@ -174,6 +183,7 @@ export function PlaceCard({ place, closing = false, headingRef }: {
             <a href={wiki.href} target="_blank" rel="noopener noreferrer">{t('wikipedia', lang)}<Icon name="external" /></a>
           </p>
         )}
+        <div className="ornament" aria-hidden="true" />
         <div className="card-actions">
           <button
             type="button"

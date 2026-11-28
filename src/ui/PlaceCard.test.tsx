@@ -30,6 +30,18 @@ describe('PlaceCard', () => {
     expect(screen.queryByRole('button', { name: 'Mark as visited' })).not.toBeInTheDocument();
   });
 
+  it('stamps a visited place with a seal and the visit date', () => {
+    useApp.setState({ visits: { Q1: { placeId: 'Q1', date: '2026-11-12', note: '', photoIds: [] } } });
+    render(<PlaceCard place={makePlace('Q1')} />);
+    expect(screen.getByText('Visited on 12 November 2026')).toBeInTheDocument();
+    expect(document.querySelector('.wax-seal')).toBeInTheDocument();
+  });
+
+  it('shows no seal before a visit', () => {
+    render(<PlaceCard place={makePlace('Q1')} />);
+    expect(document.querySelector('.wax-seal')).not.toBeInTheDocument();
+  });
+
   it('is hidden from assistive tech while closing', () => {
     render(<PlaceCard place={makePlace('Q1', { nameEn: 'Gone' })} closing />);
     expect(screen.queryByRole('article', { name: 'Gone' })).not.toBeInTheDocument();

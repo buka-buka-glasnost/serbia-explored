@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AreaProps, Place } from '../shared/types';
 import { STRINGS, type StringKey } from './strings';
-import { areaName, countOf, detectLang, placeDescription, placeName, t } from './i18n';
+import { areaName, countOf, detectLang, formatVisitDate, placeDescription, placeName, t } from './i18n';
 
 describe('English house style', () => {
   const english = Object.entries(STRINGS).map(([key, v]) => [key, v.en] as const);
@@ -102,5 +102,17 @@ describe('i18n', () => {
       'designation_unesco_tentative', 'designation_heritage_great', 'designation_special_nature_reserve',
       'designation_ramsar', 'designation_heritage_protected', 'designation_nature_other'];
     for (const k of keys) expect(STRINGS, k).toHaveProperty(k);
+  });
+});
+
+describe('formatVisitDate', () => {
+  it('writes the date the way each language does', () => {
+    expect(formatVisitDate('2026-11-12', 'sr-Cyrl')).toBe('12. новембар 2026.');
+    expect(formatVisitDate('2026-11-12', 'sr-Latn')).toBe('12. novembar 2026.');
+    expect(formatVisitDate('2026-11-12', 'en')).toBe('12 November 2026');
+  });
+  it('keeps a date it cannot read as it is', () => {
+    expect(formatVisitDate('', 'en')).toBe('');
+    expect(formatVisitDate('someday', 'en')).toBe('someday');
   });
 });
